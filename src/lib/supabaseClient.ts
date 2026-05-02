@@ -3,19 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const isValidUrl = (url: string | undefined): boolean => {
-  if (!url) return false;
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
+console.log('SUPABASE URL:', supabaseUrl);
+console.log('ANON KEY exists:', !!supabaseAnonKey);
 
-export const supabase = isValidUrl(supabaseUrl) && supabaseAnonKey
-  ? createClient(supabaseUrl!, supabaseAnonKey)
-  : null;
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Variables Supabase manquantes: ' + 
+    'URL=' + supabaseUrl + ' KEY=' + !!supabaseAnonKey);
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Generates a project ID based on the package type and current count.
