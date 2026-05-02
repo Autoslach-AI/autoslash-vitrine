@@ -29,14 +29,14 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 
 // Simple Error Boundary to catch silent crashes
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -46,14 +46,35 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ background: '#050505', width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'sans-serif' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h2>Something went wrong.</h2>
-            <p>Check console for details.</p>
-            <button onClick={() => window.location.reload()} style={{ padding: '8px 16px', background: '#333', border: '1px solid #555', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>
-              Reload Application
-            </button>
-          </div>
+        <div style={{
+          background: '#050505',
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontFamily: 'monospace',
+          padding: '40px'
+        }}>
+          <p style={{color:'#ff4444', fontSize:'18px', marginBottom:'20px'}}>
+            ERREUR DÉTECTÉE :
+          </p>
+          <p style={{color:'#ffffff', fontSize:'14px', textAlign:'center'}}>
+            {this.state.error?.message}
+          </p>
+          <p style={{color:'#888', fontSize:'12px', marginTop:'20px', 
+          textAlign:'center', maxWidth:'800px', whiteSpace: 'pre-wrap', overflow: 'auto'}}>
+            {this.state.error?.stack}
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{marginTop:'30px', padding:'10px 20px', 
+            background:'#2a6df5', color:'white', border:'none', 
+            borderRadius:'6px', cursor:'pointer'}}>
+            Reload
+          </button>
         </div>
       );
     }
