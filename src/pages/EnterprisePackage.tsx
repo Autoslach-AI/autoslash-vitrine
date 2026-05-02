@@ -1,0 +1,194 @@
+import React, { useState, useEffect, useRef } from "react";
+import { GridBackground } from "../components/ui/GridBackground";
+import { IndustryFilters } from "../components/enterprise/IndustryFilters";
+import { TemplateCard, SkeletonCard } from "../components/enterprise/TemplateCard";
+import { ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { getEnterpriseTemplates } from "../data/enterpriseTemplates";
+import { Template } from "../data/startupTemplates";
+
+export default function EnterprisePackagePage() {
+  const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [visibleCount, setVisibleCount] = useState(40);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  
+  const blocksRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  const shuffle = (array: any[]) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    getEnterpriseTemplates()
+      .then((data) => {
+        if (!mounted) return;
+        setTemplates(shuffle(data));
+      })
+      .catch((err) => {
+        console.error("Error fetching templates:", err);
+        if (!mounted) return;
+        setTemplates([]);
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 1000);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      mounted = false;
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const filteredTemplates = templates.filter(t => {
+    const matchesFilter = activeFilter ? t.category === activeFilter : true;
+    const matchesSearch = searchQuery.trim() === "" || 
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  });
+
+  const currentTemplates = filteredTemplates.slice(0, visibleCount);
+
+  const loadMore = () => {
+    setVisibleCount(prev => prev + 40);
+  };
+
+  return (
+    <div className="bg-black min-h-screen text-white font-sans selection:bg-[#2a6df5]/30 selection:text-white relative overflow-hidden isolate">
+      <GridBackground />
+      <main className="w-full relative z-10">
+        <div className="px-10 pt-32 pb-20 max-w-[1700px] mx-auto w-full">
+          {/* Header Identity */}
+          <div className="flex flex-col gap-2 mb-10">
+            <div className="flex items-end gap-5">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white/90">PILOTER VOTRE EMPIRE</h1>
+              <div className="px-5 py-1.5 rounded-full bg-[#2a6df5]/10 border border-[#2a6df5]/20 text-[#2a6df5] text-[11px] font-black uppercase tracking-[0.2em] mb-1 ring-8 ring-[#2a6df5]/5">
+                À partir de 450K
+              </div>
+            </div>
+            <p className="text-white/40 text-lg max-w-4xl font-medium mt-4 leading-relaxed">
+              Déployez une Infrastructure <span className="text-[#2a6df5] italic font-black text-xl">Premium-Slashed</span> pour une autonomie totale de vos processus métier. 
+              Prêt à transformer votre organisation en une puissance technologique autonome ?
+            </p>
+          </div>
+
+          {/* Filters */}
+          <IndustryFilters 
+            activeFilter={activeFilter}
+            onFilterChange={(filter) => {
+              setActiveFilter(filter);
+              setVisibleCount(40);
+            }}
+            searchQuery={searchQuery}
+            onSearchChange={(query) => {
+              setSearchQuery(query);
+              setVisibleCount(40);
+            }}
+          />
+
+          {/* Grid Layout (4 columns) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+            {loading ? (
+              Array.from({ length: 40 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))
+            ) : templates.length === 0 ? (
+              <div className="col-span-full" style={{ textAlign: 'center', padding: '80px 20px' }}>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white' }}>
+                  Nos templates arrivent bientôt
+                </p>
+                <p style={{ color: '#888', marginTop: '12px' }}>
+                  Revenez nous voir très prochainement
+                </p>
+              </div>
+            ) : (
+              currentTemplates.map((template, idx) => (
+                <div 
+                  key={template.id}
+                  ref={(el) => {
+                    if (idx % 40 === 0) blocksRef.current[idx / 40] = el;
+                  }}
+                >
+                  <TemplateCard template={template} index={idx} packageType="ENTERPRISE" />
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pagination */}
+          {!loading && currentTemplates.length < filteredTemplates.length && (
+            <div className="mt-20 flex justify-center border-t border-white/5 pt-10">
+              <button 
+                onClick={loadMore}
+                className="px-8 py-2 bg-transparent hover:bg-[#2a6df5]/5 border border-white/10 text-white/40 hover:text-[#2a6df5] rounded-md text-[11px] font-bold uppercase tracking-widest transition-all"
+              >
+                Déployer plus de modèles Enterprise
+              </button>
+            </div>
+          )}
+
+          {/* Floating Jump Back Button */}
+          <AnimatePresence>
+            {showScrollTop && (
+              <motion.button
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                onClick={() => {
+                  if (visibleCount > 40) {
+                    const newCount = visibleCount - 40;
+                    const blockIndex = Math.max(0, Math.floor((newCount - 1) / 40));
+                    const targetBlock = blocksRef.current[blockIndex];
+                    
+                    if (targetBlock) {
+                      targetBlock.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                    setVisibleCount(newCount);
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
+                className="fixed bottom-10 right-10 z-[100] w-14 h-14 bg-[#2a6df5] text-white rounded-full flex items-center justify-center shadow-2xl shadow-[#2a6df5]/40 hover:scale-110 active:scale-90 transition-all border border-white/20"
+              >
+                <ChevronUp size={24} strokeWidth={3} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+      </main>
+
+      <style>{`
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #1b1b1b;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #2a6df5;
+        }
+      `}</style>
+    </div>
+  );
+}
