@@ -28,23 +28,19 @@ const ClientProjects = lazy(() => import("./pages/ClientProjects"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 
-// Simple Error Boundary to catch silent crashes
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
+class ErrorBoundary extends React.Component<any, any> {
+  state = { hasError: false, error: null };
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: any, errorInfo: any) {
     console.error("CRITICAL APP CRASH:", error, errorInfo);
   }
 
   render() {
-    if (this.state.hasError) {
+    if ((this.state as any).hasError) {
       return (
         <div style={{
           background: '#050505',
@@ -62,11 +58,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
             ERREUR DÉTECTÉE :
           </p>
           <p style={{color:'#ffffff', fontSize:'14px', textAlign:'center'}}>
-            {this.state.error?.message}
+            {(this.state as any).error?.message}
           </p>
           <p style={{color:'#888', fontSize:'12px', marginTop:'20px', 
           textAlign:'center', maxWidth:'800px', whiteSpace: 'pre-wrap', overflow: 'auto'}}>
-            {this.state.error?.stack}
+            {(this.state as any).error?.stack}
           </p>
           <button 
             onClick={() => window.location.reload()}
@@ -78,7 +74,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
         </div>
       );
     }
-    return this.props.children;
+    return (this as any).props.children;
   }
 }
 

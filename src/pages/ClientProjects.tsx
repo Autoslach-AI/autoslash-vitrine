@@ -146,7 +146,7 @@ export default function ClientProjects() {
   );
 }
 
-function ProjectCard({ project, index }: { project: any; index: number }) {
+function ProjectCard({ project, index }: { project: any; index: number; [key: string]: any }) {
   return (
     <motion.div
       layout
