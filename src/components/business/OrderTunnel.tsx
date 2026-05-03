@@ -86,7 +86,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         email: formData.email,
         phone: formData.phone,
         message: formData.message,
-        comm_mode: 'WHATSAPP',
         region: formData.region || 'Dakar',
         template_id: templateId,
         status: 'PROSPECT',
