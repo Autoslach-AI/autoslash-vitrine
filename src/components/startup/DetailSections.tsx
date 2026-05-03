@@ -148,8 +148,8 @@ export const DetailDescription = ({ template }: { template: Template }) => {
               L'Infrastructure {template.category} : Une approche Haute-Fidélité
             </h2>
               <div className="space-y-8 text-white/60 leading-relaxed text-lg font-light">
-                <p>{template.longDescription.split('\n\n')[0]}</p>
-                <p>{template.longDescription.split('\n\n')[1]}</p>
+                <p>{template?.longDescription?.split('\n\n')[0] || ''}</p>
+                <p>{template?.longDescription?.split('\n\n')[1] || ''}</p>
               </div>
             </div>
 
@@ -178,7 +178,7 @@ export const DetailDescription = ({ template }: { template: Template }) => {
                   <div className="flex flex-col gap-10 bg-white/[0.03] border border-white/[0.03] rounded-[40px] p-12">
                     <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white/20">Cartographie de l'Architecture</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-12">
-                      {template.pages.map((page, i) => (
+                      {template?.pages?.map((page, i) => (
                         <div key={i} className="flex items-center gap-4 group">
                           <div className="w-2 h-2 rounded-full bg-[#2a6df5]/40 group-hover:bg-[#2a6df5] transition-all" />
                           <span className="text-[15px] text-white/50 group-hover:text-white transition-colors">{page}</span>
@@ -205,7 +205,7 @@ export const DetailDescription = ({ template }: { template: Template }) => {
             <div className="flex flex-col gap-6">
               <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10">Sous-catégories</h3>
               <div className="flex flex-wrap gap-2.5">
-                {template.subCategories.map(s => (
+                {template?.subCategories?.map(s => (
                   <span key={s} className="px-4 py-2 bg-white/5 text-[12px] text-white/50 font-semibold rounded-lg hover:bg-[#2a6df5] hover:text-black transition-all cursor-default uppercase">{s}</span>
                 ))}
               </div>
@@ -214,7 +214,7 @@ export const DetailDescription = ({ template }: { template: Template }) => {
             <div className="flex flex-col gap-6">
               <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10">Esthétique</h3>
               <div className="flex flex-wrap gap-2.5">
-                {template.styles.map(s => (
+                {template?.styles?.map(s => (
                   <span key={s} className="px-4 py-2 bg-white/5 text-[12px] text-white/50 font-semibold rounded-lg hover:bg-white hover:text-black transition-all cursor-default uppercase">{s}</span>
                 ))}
               </div>

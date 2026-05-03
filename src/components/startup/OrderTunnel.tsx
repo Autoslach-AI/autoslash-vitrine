@@ -498,7 +498,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             disabled={isSubmitting}
                             className="ai-btn w-full"
                         >
-                            {isSubmitting ? 'Activation en cours...' : 'Lancer ma mission'}
+                            {isSubmitting ? 'Activation...' : 'Lancer mon projet →'}
                         </button>
                     </form>
                 </div>
