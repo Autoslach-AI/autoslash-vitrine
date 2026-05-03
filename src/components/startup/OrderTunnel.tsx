@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { saveOrder } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
 interface OrderTunnelProps {
   isOpen: boolean;
@@ -66,50 +66,71 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     if (e) e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
-
-    const templateId = sessionStorage.getItem('template_id') || null;
-
-    const { error } = await saveOrder({
-      name: formData.company || `${formData.firstName} ${formData.lastName}`,
-      package_type: 'STARTUP',
-      sector: formData.sector,
-      email: formData.email,
-      phone: formData.phone,
-      message: formData.message,
-      comm_mode: 'WHATSAPP',
-      region: formData.region || 'Dakar',
-      template_id: templateId,
-      status: 'PROSPECT',
-      is_test: false
-    });
-
-    if (!error) {
-      // Manual log creation logic as requested
-      const { supabase } = await import('../../lib/supabaseClient');
-      const { data: enterprise } = await supabase
+  
+    try {
+      const templateId = sessionStorage.getItem('template_id') || null;
+      
+      console.log('=== DÉBUT SOUMISSION (STARTUP) ===');
+      console.log('FormData:', formData);
+      console.log('TemplateId:', templateId);
+  
+      const payload = {
+        name: formData.company || `${formData.firstName} ${formData.lastName}`,
+        package_type: 'STARTUP',
+        sector: formData.sector,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message,
+        comm_mode: 'WHATSAPP',
+        region: formData.region || 'Dakar',
+        template_id: templateId,
+        status: 'PROSPECT',
+        is_test: false
+      };
+  
+      console.log('Payload envoyé:', payload);
+  
+      if (!supabase) {
+        throw new Error("Supabase client is not initialized.");
+      }
+  
+      const { data, error } = await supabase
         .from('enterprises')
-        .select('id, project_id')
-        .eq('email', formData.email)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .insert(payload)
+        .select()
         .single();
-
-      if (enterprise) {
-        await supabase
+  
+      console.log('Réponse Supabase data:', data);
+      console.log('Réponse Supabase error:', error);
+  
+      if (error) {
+        console.error('ERREUR SUPABASE:', error.message, error.details, error.hint);
+        setErrorMsg(`Erreur: ${error.message}`);
+        setIsSubmitting(false);
+        return;
+      }
+  
+      // Log NEW_PROSPECT
+      if (data) {
+        const { error: logError } = await supabase
           .from('admin_intelligence_logs')
           .insert({
-            client_id: enterprise.id,
+            client_id: data.id,
             issue_type: 'NEW_PROSPECT',
             severity_level: 'INFO',
-            raw_context: `NOUVEAU PROSPECT — ${formData.company || formData.firstName} · ${formData.sector} · ${formData.region || 'Dakar'} · STARTUP · ${enterprise.project_id}`
+            raw_context: `NOUVEAU PROSPECT — ${data.name} · ${data.sector} · ${data.region} · STARTUP · ${data.project_id}`
           });
+        
+        console.log('Log error:', logError);
       }
-      
+  
       setIsSubmitting(false);
       setCurrentStep(5);
-    } else {
+  
+    } catch (err) {
+      console.error('ERREUR INATTENDUE:', err);
+      setErrorMsg(`Erreur inattendue: ${err}`);
       setIsSubmitting(false);
-      setErrorMsg("Échec de l'activation. Veuillez vérifier votre connexion.");
     }
   };
 
