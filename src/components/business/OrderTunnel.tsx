@@ -26,6 +26,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     phone: '',
     company: '',
     sector: '',
+    region: 'Dakar',
     message: ''
   });
 
@@ -71,6 +72,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     setIsSubmitting(true);
     setErrorMsg(null);
 
+    const templateId = sessionStorage.getItem('template_id') || null;
+
     const { error } = await saveOrder({
       name: formData.company || `${formData.firstName} ${formData.lastName}`,
       package_type: 'BUSINESS',
@@ -79,13 +82,38 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
       phone: formData.phone,
       message: formData.message,
       comm_mode: 'WHATSAPP',
-      region: 'Dakar'
+      region: formData.region || 'Dakar',
+      template_id: templateId,
+      status: 'PROSPECT',
+      is_test: false
     });
 
-    setIsSubmitting(false);
     if (!error) {
+      // Manual log creation logic as requested
+      const { supabase } = await import('../../lib/supabaseClient');
+      const { data: enterprise } = await supabase
+        .from('enterprises')
+        .select('id, project_id')
+        .eq('email', formData.email)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (enterprise) {
+        await supabase
+          .from('admin_intelligence_logs')
+          .insert({
+            client_id: enterprise.id,
+            issue_type: 'NEW_PROSPECT',
+            severity_level: 'INFO',
+            raw_context: `NOUVEAU PROSPECT — ${formData.company || formData.firstName} · ${formData.sector} · ${formData.region || 'Dakar'} · BUSINESS · ${enterprise.project_id}`
+          });
+      }
+      
+      setIsSubmitting(false);
       setCurrentStep(5);
     } else {
+      setIsSubmitting(false);
       setErrorMsg("Échec de l'activation. Veuillez vérifier votre connexion.");
     }
   };
@@ -366,6 +394,17 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 name="sector"
                 placeholder="Ex : Support WhatsApp 24/7, Leads Facebook..." 
                 value={formData.sector}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="frow">
+              <div className="flbl text-white text-[11px] font-bold">Région / Pays</div>
+              <input 
+                className="ai-input text-white text-[14px] py-3 focus:border-[#00F0FF]" 
+                type="text" 
+                name="region"
+                placeholder="Dakar, Sénégal" 
+                value={formData.region}
                 onChange={handleInputChange}
               />
             </div>

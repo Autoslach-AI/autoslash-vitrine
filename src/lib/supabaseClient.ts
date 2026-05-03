@@ -53,6 +53,9 @@ export const saveOrder = async (orderData: {
   message?: string;
   comm_mode?: string;
   region?: string;
+  template_id?: string | null;
+  status?: string;
+  is_test?: boolean;
 }) => {
   if (!supabase) {
     console.log('Supabase not configured, simulating success:', orderData);
@@ -69,14 +72,15 @@ export const saveOrder = async (orderData: {
         name: orderData.name,
         package_type: orderData.package_type,
         sector: orderData.sector || 'Général',
-        client_status: 'PROSPECT',
+        client_status: orderData.status || 'PROSPECT',
         project_id: projectId,
         comm_mode: orderData.comm_mode || 'WHATSAPP',
         region: orderData.region || 'Dakar',
-        // Optional fields that might exist in schema but are provided here for robustness
         email: orderData.email,
         phone: orderData.phone,
-        notes: orderData.message
+        notes: orderData.message,
+        template_id: orderData.template_id,
+        is_test: orderData.is_test ?? false
       }])
       .select()
       .single();
@@ -87,9 +91,10 @@ export const saveOrder = async (orderData: {
     const { error: logError } = await supabase
       .from('admin_intelligence_logs')
       .insert([{
+        client_id: enterprise.id,
         issue_type: 'NEW_PROSPECT',
         severity_level: 'INFO',
-        raw_context: `NOUVEAU PROSPECT — ${orderData.sector || 'Inconnue'} — ${orderData.name}`
+        raw_context: `NOUVEAU PROSPECT — ${orderData.sector || 'Inconnue'} — ${orderData.name} — ${orderData.package_type}`
       }]);
 
     if (logError) console.warn('Logging error:', logError);
