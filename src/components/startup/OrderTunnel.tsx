@@ -40,7 +40,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
           const context = JSON.parse(saved);
           setFormData(prev => ({
             ...prev,
-            company: context.template_name || '',
             sector: context.template_sector || ''
           }));
         } catch (e) {
@@ -68,7 +67,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     setErrorMsg(null);
   
     try {
-      const templateId = sessionStorage.getItem('template_id') || null;
+      const saved = sessionStorage.getItem('autoslash_selection');
+      const templateId = saved ? JSON.parse(saved).template_id || null : null;
       
       console.log('=== DÉBUT SOUMISSION (STARTUP) ===');
       console.log('FormData:', formData);
@@ -414,7 +414,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         <div className="flex flex-col items-center gap-y-5 gap-x-6 [&>*]:w-full sm:flex-row">
                             <div>
                                 <label className="flbl text-white text-[11px] font-bold">
-                                    First name
+                                    Prénom
                                 </label>
                                 <input
                                     type="text"
@@ -428,7 +428,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             </div>
                             <div>
                                 <label className="flbl text-white text-[11px] font-bold">
-                                    Last name
+                                    Nom
                                 </label>
                                 <input
                                     type="text"
@@ -457,7 +457,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         </div>
                         <div>
                             <label className="flbl text-white text-[11px] font-bold">
-                                Phone number
+                                Numéro de téléphone
                             </label>
                             <div className="relative mt-2">
                                 <div className="absolute inset-y-0 left-3 my-auto h-6 flex items-center border-r border-white/10 pr-2">
@@ -498,7 +498,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             disabled={isSubmitting}
                             className="ai-btn w-full"
                         >
-                            {isSubmitting ? 'Activation en cours...' : 'Submit'}
+                            {isSubmitting ? 'Activation en cours...' : 'Lancer ma mission'}
                         </button>
                     </form>
                 </div>

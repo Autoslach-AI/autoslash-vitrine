@@ -45,7 +45,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
           const context = JSON.parse(saved);
           setFormData(prev => ({
             ...prev,
-            company: context.template_name || '',
             sector: context.template_sector || ''
           }));
         } catch (e) {
@@ -73,7 +72,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     setErrorMsg(null);
 
     try {
-      const templateId = sessionStorage.getItem('template_id') || null;
+      const saved = sessionStorage.getItem('autoslash_selection');
+      const templateId = saved ? JSON.parse(saved).template_id || null : null;
       
       console.log('=== DÉBUT SOUMISSION ===');
       console.log('FormData:', formData);
@@ -521,7 +521,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         </div>
                         <div>
                             <label className="flbl text-white text-[11px] font-bold">
-                                téléphone (WhatsApp)
+                                Numéro de téléphone (WhatsApp)
                             </label>
                             <div className="relative mt-2">
                                 <div className="absolute inset-y-0 left-3 my-auto h-6 flex items-center border-r border-white/10 pr-2">
@@ -562,7 +562,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             className="ai-btn w-full"
                             style={{ backgroundColor: '#00F0FF' }}
                         >
-                            {isSubmitting ? 'Audit en cours...' : "Lancer l'audit"}
+                            {isSubmitting ? 'Audit en cours...' : 'Lancer ma mission'}
                         </button>
                     </form>
                 </div>

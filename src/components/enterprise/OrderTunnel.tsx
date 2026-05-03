@@ -43,7 +43,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
           const context = JSON.parse(saved);
           setFormData(prev => ({
             ...prev,
-            company: context.template_name || '',
             sector: context.template_sector || ''
           }));
         } catch (e) {
@@ -71,7 +70,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     setErrorMsg(null);
   
     try {
-      const templateId = sessionStorage.getItem('template_id') || null;
+      const saved = sessionStorage.getItem('autoslash_selection');
+      const templateId = saved ? JSON.parse(saved).template_id || null : null;
       
       console.log('=== DÉBUT SOUMISSION (ENTERPRISE) ===');
       console.log('FormData:', formData);
@@ -463,7 +463,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                     <form onSubmit={handleFormSubmit} className="space-y-5">
                         <div className="flex flex-col items-center gap-y-5 gap-x-6 [&>*]:w-full sm:flex-row">
                             <div>
-                                <label className="flbl text-white text-[11px] font-bold">Prénom (Direction)</label>
+                                <label className="flbl text-white text-[11px] font-bold">Prénom</label>
                                 <input 
                                   type="text" 
                                   name="firstName"
@@ -500,7 +500,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             />
                         </div>
                         <div>
-                            <label className="flbl text-white text-[11px] font-bold">Contact Privé (WhatsApp)</label>
+                            <label className="flbl text-white text-[11px] font-bold">Numéro de téléphone (WhatsApp)</label>
                             <input 
                               type="text" 
                               name="phone"
@@ -529,7 +529,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                           className="ai-btn w-full" 
                           style={{ backgroundColor: '#2a6df5' }}
                         >
-                            {isSubmitting ? 'Réservation en cours...' : 'Confirmer la Réservation Prestige'}
+                            {isSubmitting ? 'Réservation en cours...' : 'Lancer ma mission'}
                         </button>
                     </form>
                 </div>

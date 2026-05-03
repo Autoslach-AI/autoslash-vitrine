@@ -23,6 +23,21 @@ export default function ArchitectureDetail() {
     });
   }, [id]);
 
+  const handleOrder = () => {
+    if (template) {
+      const existing = sessionStorage.getItem('autoslash_selection');
+      const context = existing ? JSON.parse(existing) : {};
+      sessionStorage.setItem('autoslash_selection', JSON.stringify({
+        ...context,
+        template_id: String(template.id),
+        template_sector: template.category,
+        template_name: template.title,
+        package_type: 'STARTUP'
+      }));
+    }
+    setIsOrderOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="bg-zinc-950 min-h-screen flex items-center justify-center">
@@ -40,14 +55,14 @@ export default function ArchitectureDetail() {
       <GridBackground />
       <AppHeader />
       <main className="w-full pb-32 relative z-10">
-        <DetailHero template={template} onOrder={() => setIsOrderOpen(true)} />
+        <DetailHero template={template} onOrder={handleOrder} />
         <DetailShowcase template={template} />
         <DetailDescription template={template} />
         <DetailRecommendations currentId={template.id} templates={allTemplates} category={template.category} />
         <Footer strokeColor="white" />
       </main>
       
-      <StickyBottomBar template={template} onOrder={() => setIsOrderOpen(true)} />
+      <StickyBottomBar template={template} onOrder={handleOrder} />
 
       <OrderTunnel 
         isOpen={isOrderOpen} 
