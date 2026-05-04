@@ -414,7 +414,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="step-eyebrow text-white text-[14px] font-bold">Votre place est réservée</div>
             <div className="step-lead text-white text-[13px] opacity-90 mb-6">Nos agents IA ont besoin de contexte pour être entraînés efficacement sur votre métier.</div>
             <div className="frow">
-              <div className="flbl text-white text-[11px] font-bold">Métier / Entreprise</div>
+              <div className="flbl text-white text-[11px] font-bold">Nom de votre Entreprise / Organisation</div>
               <input 
                 className="ai-input text-white text-[14px] py-3 focus:border-[#00F0FF]" 
                 type="text" 
@@ -581,12 +581,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         }}
                                         value={formData.phoneCode || ''}
                                         onDoubleClick={() => setIsManualPhoneCode(false)}
-                                        onChange={(e) => setFormData(prev => ({ 
-                                            ...prev, 
-                                            phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + prev.phoneNumber
-                                        }))}
-                                        placeholder="+..."
+                                        onChange={(e) => {
+                                            const newCode = e.target.value;
+                                            setFormData(prev => ({ 
+                                                ...prev, 
+                                                phoneCode: newCode,
+                                                phone: newCode + ' ' + prev.phoneNumber
+                                            }))
+                                        }}
                                     />
                                 ) : (
                                     <select
@@ -602,13 +604,15 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         }}
                                         value={formData.phoneCode || '+221'}
                                         onDoubleClick={() => setIsManualPhoneCode(true)}
-                                        onChange={(e) => setFormData(prev => ({ 
-                                            ...prev, 
-                                            phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + prev.phoneNumber
-                                        }))}
+                                        onChange={(e) => {
+                                            const newCode = e.target.value;
+                                            setFormData(prev => ({ 
+                                                ...prev, 
+                                                phoneCode: newCode,
+                                                phone: newCode + ' ' + prev.phoneNumber
+                                            }))
+                                        }}
                                     >
-                                        {/* PRIORITAIRES */}
                                         <option value="+221">🇸🇳 SN +221</option>
                                         <option value="+223">🇲🇱 ML +223</option>
                                         <option value="+224">🇬🇳 GN +224</option>
@@ -677,11 +681,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                     style={{ flex: 1 }}
                                     className="ai-input text-white text-[14px]"
                                     value={formData.phoneNumber || ''}
-                                    onChange={(e) => setFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneNumber: e.target.value,
-                                        phone: prev.phoneCode + ' ' + e.target.value
-                                    }))}
+                                    onChange={(e) => {
+                                        const newNum = e.target.value.replace(formData.phoneCode, '').replace('+', '').trim();
+                                        setFormData(prev => ({ 
+                                            ...prev, 
+                                            phoneNumber: newNum,
+                                            phone: prev.phoneCode + ' ' + newNum
+                                        }))
+                                    }}
                                 />
                             </div>
                         </div>
