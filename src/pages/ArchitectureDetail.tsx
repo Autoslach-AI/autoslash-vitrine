@@ -58,7 +58,7 @@ export default function ArchitectureDetail() {
         <DetailHero template={template} onOrder={handleOrder} />
         <DetailShowcase template={template} />
         <DetailDescription template={template} />
-        <DetailRecommendations currentId={template.id} templates={allTemplates} category={template.category} />
+        <DetailRecommendations currentId={template.id} sector={template.sector} />
         <Footer strokeColor="white" />
       </main>
       

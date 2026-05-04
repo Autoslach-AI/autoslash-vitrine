@@ -4,6 +4,7 @@ export interface Template {
   title: string;
   author: string;
   category: string;
+  sector: string;
   likes: string;
   views: string;
   image: string;

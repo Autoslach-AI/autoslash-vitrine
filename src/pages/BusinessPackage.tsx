@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { GridBackground } from "../components/ui/GridBackground";
 import { IndustryFilters } from "../components/business/IndustryFilters";
 import { TemplateCard, SkeletonCard } from "../components/business/TemplateCard";
@@ -8,10 +9,14 @@ import { getBusinessTemplates } from "../data/businessTemplates";
 import { Template } from "../data/startupTemplates";
 
 export default function BusinessPackagePage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const sectorFromUrl = searchParams.get('sector');
+
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [visibleCount, setVisibleCount] = useState(40);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(sectorFromUrl);
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   
@@ -56,6 +61,12 @@ export default function BusinessPackagePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (sectorFromUrl) {
+      setActiveFilter(sectorFromUrl);
+    }
+  }, [sectorFromUrl]);
+
   const filteredTemplates = templates.filter(t => {
     const matchesFilter = activeFilter ? t.category === activeFilter : true;
     const matchesSearch = searchQuery.trim() === "" || 
@@ -94,6 +105,9 @@ export default function BusinessPackagePage() {
           <IndustryFilters 
             activeFilter={activeFilter}
             onFilterChange={(filter) => {
+              if (filter === null) {
+                navigate('/business-package');
+              }
               setActiveFilter(filter);
               setVisibleCount(40);
             }}
