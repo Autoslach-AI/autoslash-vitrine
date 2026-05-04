@@ -63,49 +63,28 @@ export const DetailHero = ({ template, onOrder }: { template: Template; onOrder?
 // --- Section 1.5: Interactive Showcase ---
 export const DetailShowcase = ({ template }: { template: Template }) => {
   return (
-    <div className="w-full bg-black">
-      <div className="max-w-[1700px] mx-auto px-10 pb-20 flex justify-center py-20">
-        <div 
-          className="aspect-[4/5] w-full max-w-[1100px] rounded-[2.5rem] overflow-hidden border border-white/5 bg-[#121212] relative group shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700"
-        >
-          {/* Main Image */}
-          <img 
-            src={template.image} 
-            className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-700 blur-[2px] group-hover:blur-sm"
-            alt={template.title}
-          />
-          
-          {/* Centered Action Button */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="flex flex-col items-center gap-6 pointer-events-auto">
-              {template.preview_url ? (
-                <button 
-                  onClick={() => window.open(template.preview_url, "_blank")}
-                  className="px-10 py-5 bg-[#2a6df5] text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[13px] transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-[#2a6df5]/40 flex items-center gap-3 group/btn"
-                >
-                  Visiter le site <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              ) : (
-                <div className="px-10 py-5 bg-white/5 border border-white/10 text-white/40 rounded-2xl font-black uppercase tracking-[0.2em] text-[13px] backdrop-blur-md">
-                  Bientôt disponible
-                </div>
-              )}
-              
-              <div className="flex items-center gap-2 opacity-40">
-                <Globe size={14} className="text-[#2a6df5]" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white">Aperçu Haute Définition</span>
-              </div>
+    <div className="w-full bg-black py-20 flex justify-center">
+      <div className="w-full max-w-[1100px] px-6 relative rounded-[2.5rem] overflow-hidden aspect-[4/3] border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+        <img
+          src={template.image}
+          alt={template.title}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          {template.preview_url ? (
+            <a
+              href={template.preview_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-white text-black font-black text-sm uppercase tracking-widest rounded-full hover:scale-105 transition-all"
+            >
+              Visiter le site →
+            </a>
+          ) : (
+            <div className="px-8 py-4 bg-white/10 text-white/40 font-black text-sm uppercase tracking-widest rounded-full border border-white/10">
+              Bientôt disponible
             </div>
-          </div>
-
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-48 bg-gray-400/20 rounded-full blur-[0.5px] pointer-events-none group-hover:bg-gray-400/40 transition-all duration-700">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[12px]">
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-gray-400/30 group-hover:border-b-gray-400/60 transition-all" />
-            </div>
-            <div className="absolute inset-0 bg-white/10 rounded-full overflow-hidden">
-               <div className="w-full h-1/3 bg-[#2a6df5]/40 blur-sm" />
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
