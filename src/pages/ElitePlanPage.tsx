@@ -207,16 +207,16 @@ const ElitePlanPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const sections = document.querySelectorAll('section[id], header[id], div[id]');
+    const sections = document.querySelectorAll('section[id], header[id], div[id], h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]');
     
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Retirer active de tous les liens
-            document.querySelectorAll('.toc-link').forEach(link => {
-              link.classList.remove('active');
-            });
+            const links = document.querySelectorAll('.toc-link');
+            links.forEach(link => link.classList.remove('active'));
+            
             // Ajouter active au lien correspondant
             const activeLink = document.querySelector(
               `.toc-link[href="#${entry.target.id}"]`
@@ -227,7 +227,10 @@ const ElitePlanPage: React.FC = () => {
           }
         });
       },
-      { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' }
+      { 
+        threshold: 0.1, 
+        rootMargin: '-5% 0px -85% 0px' // Plus réactif au sommet de la page
+      }
     );
 
     sections.forEach(section => observer.observe(section));
