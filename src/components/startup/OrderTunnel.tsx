@@ -15,6 +15,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
+  const [isManualPhoneCode, setIsManualPhoneCode] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -430,7 +431,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             </div>
             <div className="flex gap-4 mt-8">
               <button className="ai-btn-sec flex-1" onClick={() => goStep(2)}>← Précédent</button>
-              <button className="ai-btn flex-1" onClick={() => goStep(4)}>Activer la mission →</button>
+              <button className="ai-btn flex-1" onClick={() => goStep(4)}>Commander</button>
             </div>
           </div>
 
@@ -502,85 +503,110 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                 NUMÉRO DE TÉLÉPHONE
                             </label>
                             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                                <select
-                                    style={{ 
-                                        width: '110px', 
-                                        flexShrink: 0,
-                                        background: 'rgba(0,10,30,0.8)',
-                                        border: '1px solid rgba(0,170,255,0.2)',
-                                        color: 'white',
-                                        padding: '12px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '13px'
-                                    }}
-                                    value={formData.phoneCode || '+221'}
-                                    onChange={(e) => setFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneCode: e.target.value,
-                                        phone: e.target.value + ' ' + (prev.phoneNumber || '')
-                                    }))}
-                                >
-                                    {/* PRIORITAIRES */}
-                                    <option value="+221">🇸🇳 SN +221</option>
-                                    <option value="+223">🇲🇱 ML +223</option>
-                                    <option value="+224">🇬🇳 GN +224</option>
-                                    <option value="+225">🇨🇮 CI +225</option>
-                                    <option value="+226">🇧🇫 BF +226</option>
-                                    <option value="+227">🇳🇪 NE +227</option>
-                                    <option value="+228">🇹🇬 TG +228</option>
-                                    <option value="+229">🇧🇯 BJ +229</option>
-                                    <option value="+230">🇲🇺 MU +230</option>
-                                    <option value="+233">🇬🇭 GH +233</option>
-                                    <option value="+234">🇳🇬 NG +234</option>
-                                    <option value="+237">🇨🇲 CM +237</option>
-                                    <option value="+212">🇲🇦 MA +212</option>
-                                    <option value="+213">🇩🇿 DZ +213</option>
-                                    <option value="+216">🇹🇳 TN +216</option>
-                                    <option value="+20">🇪🇬 EG +20</option>
-                                    <option value="+243">🇨🇩 CD +243</option>
-                                    <option value="+33">🇫🇷 FR +33</option>
-                                    <option value="+32">🇧🇪 BE +32</option>
-                                    <option value="+41">🇨🇭 CH +41</option>
-                                    <option value="+1">🇺🇸 US +1</option>
-                                    <option value="+44">🇬🇧 GB +44</option>
-                                    <option value="+49">🇩🇪 DE +49</option>
-                                    <option value="+34">🇪🇸 ES +34</option>
-                                    <option value="+39">🇮🇹 IT +39</option>
-                                    <option value="+351">🇵🇹 PT +351</option>
-                                    <option value="+7">🇷🇺 RU +7</option>
-                                    <option value="+86">🇨🇳 CN +86</option>
-                                    <option value="+91">🇮🇳 IN +91</option>
-                                    <option value="+55">🇧🇷 BR +55</option>
-                                    <option value="+52">🇲🇽 MX +52</option>
-                                    <option value="+971">🇦🇪 AE +971</option>
-                                    <option value="+966">🇸🇦 SA +966</option>
-                                    <option value="+974">🇶🇦 QA +974</option>
-                                    <option value="+965">🇰🇼 KW +965</option>
-                                    <option value="+254">🇰🇪 KE +254</option>
-                                    <option value="+255">🇹🇿 TZ +255</option>
-                                    <option value="+256">🇺🇬 UG +256</option>
-                                    <option value="+27">🇿🇦 ZA +27</option>
-                                    <option value="+57">🇨🇴 CO +57</option>
-                                    <option value="+54">🇦🇷 AR +54</option>
-                                    <option value="+56">🇨🇱 CL +56</option>
-                                    <option value="+81">🇯🇵 JP +81</option>
-                                    <option value="+82">🇰🇷 KR +82</option>
-                                    <option value="+61">🇦🇺 AU +61</option>
-                                    <option value="+64">🇳🇿 NZ +64</option>
-                                    <option value="+31">🇳🇱 NL +31</option>
-                                    <option value="+46">🇸🇪 SE +46</option>
-                                    <option value="+47">🇳🇴 NO +47</option>
-                                    <option value="+45">🇩🇰 DK +45</option>
-                                    <option value="+48">🇵🇱 PL +48</option>
-                                    <option value="+90">🇹🇷 TR +90</option>
-                                    <option value="+92">🇵🇰 PK +92</option>
-                                    <option value="+880">🇧🇩 BD +880</option>
-                                    <option value="+60">🇲🇾 MY +60</option>
-                                    <option value="+62">🇮🇩 ID +62</option>
-                                    <option value="+63">🇵🇭 PH +63</option>
-                                    <option value="+66">🇹🇭 TH +66</option>
-                                    <option value="+84">🇻🇳 VN +84</option>
-                                </select>
+                                {isManualPhoneCode ? (
+                                    <input
+                                        type="text"
+                                        style={{ 
+                                            width: '110px', 
+                                            flexShrink: 0,
+                                            background: 'rgba(0,10,30,0.8)',
+                                            border: '1px solid rgba(0,170,255,0.4)',
+                                            color: 'white',
+                                            padding: '12px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '13px'
+                                        }}
+                                        value={formData.phoneCode || ''}
+                                        onDoubleClick={() => setIsManualPhoneCode(false)}
+                                        onChange={(e) => setFormData(prev => ({ 
+                                            ...prev, 
+                                            phoneCode: e.target.value,
+                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                        }))}
+                                        placeholder="+..."
+                                    />
+                                ) : (
+                                    <select
+                                        style={{ 
+                                            width: '110px', 
+                                            flexShrink: 0,
+                                            background: 'rgba(0,10,30,0.8)',
+                                            border: '1px solid rgba(0,170,255,0.2)',
+                                            color: 'white',
+                                            padding: '12px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '13px'
+                                        }}
+                                        value={formData.phoneCode || '+221'}
+                                        onDoubleClick={() => setIsManualPhoneCode(true)}
+                                        onChange={(e) => setFormData(prev => ({ 
+                                            ...prev, 
+                                            phoneCode: e.target.value,
+                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                        }))}
+                                    >
+                                        {/* PRIORITAIRES */}
+                                        <option value="+221">🇸🇳 SN +221</option>
+                                        <option value="+223">🇲🇱 ML +223</option>
+                                        <option value="+224">🇬🇳 GN +224</option>
+                                        <option value="+225">🇨🇮 CI +225</option>
+                                        <option value="+226">🇧🇫 BF +226</option>
+                                        <option value="+227">🇳🇪 NE +227</option>
+                                        <option value="+228">🇹🇬 TG +228</option>
+                                        <option value="+229">🇧🇯 BJ +229</option>
+                                        <option value="+230">🇲🇺 MU +230</option>
+                                        <option value="+233">🇬🇭 GH +233</option>
+                                        <option value="+234">🇳🇬 NG +234</option>
+                                        <option value="+237">🇨🇲 CM +237</option>
+                                        <option value="+212">🇲🇦 MA +212</option>
+                                        <option value="+213">🇩🇿 DZ +213</option>
+                                        <option value="+216">🇹🇳 TN +216</option>
+                                        <option value="+20">🇪🇬 EG +20</option>
+                                        <option value="+243">🇨🇩 CD +243</option>
+                                        <option value="+33">🇫🇷 FR +33</option>
+                                        <option value="+32">🇧🇪 BE +32</option>
+                                        <option value="+41">🇨🇭 CH +41</option>
+                                        <option value="+1">🇺🇸 US +1</option>
+                                        <option value="+44">🇬🇧 GB +44</option>
+                                        <option value="+49">🇩🇪 DE +49</option>
+                                        <option value="+34">🇪🇸 ES +34</option>
+                                        <option value="+39">🇮🇹 IT +39</option>
+                                        <option value="+351">🇵🇹 PT +351</option>
+                                        <option value="+7">🇷🇺 RU +7</option>
+                                        <option value="+86">🇨🇳 CN +86</option>
+                                        <option value="+91">🇮🇳 IN +91</option>
+                                        <option value="+55">🇧🇷 BR +55</option>
+                                        <option value="+52">🇲🇽 MX +52</option>
+                                        <option value="+971">🇦🇪 AE +971</option>
+                                        <option value="+966">🇸🇦 SA +966</option>
+                                        <option value="+974">🇶🇦 QA +974</option>
+                                        <option value="+965">🇰🇼 KW +965</option>
+                                        <option value="+254">🇰🇪 KE +254</option>
+                                        <option value="+255">🇹🇿 TZ +255</option>
+                                        <option value="+256">🇺🇬 UG +256</option>
+                                        <option value="+27">🇿🇦 ZA +27</option>
+                                        <option value="+57">🇨🇴 CO +57</option>
+                                        <option value="+54">🇦🇷 AR +54</option>
+                                        <option value="+56">🇨🇱 CL +56</option>
+                                        <option value="+81">🇯🇵 JP +81</option>
+                                        <option value="+82">🇰🇷 KR +82</option>
+                                        <option value="+61">🇦🇺 AU +61</option>
+                                        <option value="+64">🇳🇿 NZ +64</option>
+                                        <option value="+31">🇳🇱 NL +31</option>
+                                        <option value="+46">🇸🇪 SE +46</option>
+                                        <option value="+47">🇳🇴 NO +47</option>
+                                        <option value="+45">🇩🇰 DK +45</option>
+                                        <option value="+48">🇵🇱 PL +48</option>
+                                        <option value="+90">🇹🇷 TR +90</option>
+                                        <option value="+92">🇵🇰 PK +92</option>
+                                        <option value="+880">🇧🇩 BD +880</option>
+                                        <option value="+60">🇲🇾 MY +60</option>
+                                        <option value="+62">🇮🇩 ID +62</option>
+                                        <option value="+63">🇵🇭 PH +63</option>
+                                        <option value="+66">🇹🇭 TH +66</option>
+                                        <option value="+84">🇻🇳 VN +84</option>
+                                    </select>
+                                )}
                                 <input
                                     type="text"
                                     placeholder="77 000 00 00"
@@ -630,9 +656,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="status-ring">
               <span style={{ color: '#00AAFF', fontSize: '32px', lineHeight: 1 }}>✓</span>
             </div>
-            <div style={{ color: 'white', fontSize: '18px', letterSpacing: '0.26em', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase' }}>Mission Alpha activée</div>
+            <div style={{ color: 'white', fontSize: '18px', letterSpacing: '0.26em', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase' }}>Votre demande est envoyée</div>
             <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', letterSpacing: '0.04em', marginBottom: '32px' }}>
-              Nos ingénieurs analysent vos assets dès maintenant.
+              Merci de votre confiance, notre équipe vous contactera sous 24H pour un audit personnalisé à vos besoins.
             </div>
             <div 
               style={{ padding: '20px', background: 'rgba(5, 10, 28, 0.72)', border: '1px solid rgba(0, 170, 255, 0.14)', borderRadius: '4px', textAlign: 'left', marginBottom: '24px' }}
