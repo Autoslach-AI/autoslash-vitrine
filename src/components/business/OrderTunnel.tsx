@@ -114,20 +114,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         return;
       }
 
-      // Log NEW_PROSPECT
-      if (data) {
-        const { error: logError } = await supabase
-          .from('admin_intelligence_logs')
-          .insert({
-            client_id: data.id,
-            issue_type: 'NEW_PROSPECT',
-            severity_level: 'INFO',
-            raw_context: `NOUVEAU PROSPECT — ${data.name} · ${data.sector} · ${data.region} · BUSINESS · ${data.project_id}`
-          });
-        
-        console.log('Log error:', logError);
-      }
-
       setIsSubmitting(false);
       setCurrentStep(5);
 
