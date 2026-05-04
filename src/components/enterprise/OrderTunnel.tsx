@@ -23,6 +23,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     lastName: '',
     email: '',
     phone: '',
+    phoneCode: '+221',
+    phoneNumber: '',
     company: '',
     sector: '',
     region: 'Dakar',
@@ -538,15 +540,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             <label className="flbl text-white text-[11px] font-bold">
                                 Numéro de téléphone
                             </label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 mt-2">
                                 <select
-                                    name="phoneCode"
-                                    className="ai-input text-white text-[14px] w-24 focus:border-[#2a6df5]"
+                                    className="ai-input text-white text-[14px] w-28 flex-shrink-0 focus:border-[#2a6df5]"
+                                    value={formData.phoneCode || '+221'}
                                     onChange={(e) => setFormData(prev => ({ 
                                         ...prev, 
-                                        phone: e.target.value + ' ' + (prev.phone.split(' ').slice(1).join(' ') || '')
+                                        phoneCode: e.target.value 
                                     }))}
-                                    defaultValue="+221"
                                 >
                                     <option value="+221">🇸🇳 +221</option>
                                     <option value="+33">🇫🇷 +33</option>
@@ -555,18 +556,18 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                     <option value="+225">🇨🇮 +225</option>
                                     <option value="+237">🇨🇲 +237</option>
                                     <option value="+234">🇳🇬 +234</option>
-                                    <option value="+20">🇪🇬 +20</option>
                                 </select>
                                 <input
                                     type="text"
-                                    name="phone"
+                                    name="phoneNumber"
                                     placeholder="77 000 00 00"
                                     required
                                     className="ai-input text-white text-[14px] flex-1 focus:border-[#2a6df5]"
-                                    value={formData.phone.split(' ').slice(1).join(' ')}
-                                    onChange={(e) => setFormData(prev => ({
-                                        ...prev,
-                                        phone: (prev.phone.split(' ')[0] || '+221') + ' ' + e.target.value
+                                    value={formData.phoneNumber || ''}
+                                    onChange={(e) => setFormData(prev => ({ 
+                                        ...prev, 
+                                        phoneNumber: e.target.value,
+                                        phone: (prev.phoneCode || '+221') + ' ' + e.target.value
                                     }))}
                                 />
                             </div>
