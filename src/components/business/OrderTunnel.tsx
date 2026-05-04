@@ -456,7 +456,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
+                accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.txt,.pptx,.xls,.xlsx"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.length) {
@@ -486,7 +486,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                   <>
                     <span className="text-white text-[14px] font-bold">↑ Déposer vos fichiers ici</span><br />
                     <span style={{ opacity: 0.8, fontSize: '11px', color: 'white' }}>
-                      PNG · JPG · SVG · PDF · DOC · DOCX · XLS · ZIP acceptés
+                      Images (JPG, PNG, WEBP, GIF) & Documents (PDF, DOC, TXT, PPTX, XLS) acceptés
                     </span>
                   </>
                 )}
