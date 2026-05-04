@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Globe } from "lucide-react";
 import { Template } from "../../types";
 import { Link } from "react-router-dom";
 import { cn } from "../../lib/utils";
@@ -42,7 +42,7 @@ export const DetailHero = ({ template, onOrder }: { template: Template; onOrder?
 
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => window.open("https://demo.autoslash.ai", "_blank")}
+              onClick={() => window.open(template.preview_url || "https://demo.autoslash.ai", "_blank")}
               className="px-3 py-1.5 bg-black border border-white/10 text-white text-[10px] font-bold rounded-lg shadow-sm hover:border-white/20 transition-all active:scale-95 whitespace-nowrap"
             >
               Aperçu
@@ -66,19 +66,38 @@ export const DetailShowcase = ({ template }: { template: Template }) => {
     <div className="w-full bg-black">
       <div className="max-w-[1700px] mx-auto px-10 pb-20 flex justify-center py-20">
         <div 
-          onMouseEnter={() => {
-            document.body.style.overflow = "hidden";
-          }}
-          onMouseLeave={() => {
-            document.body.style.overflow = "unset";
-          }}
           className="aspect-[4/5] w-full max-w-[1100px] rounded-[2.5rem] overflow-hidden border border-white/5 bg-[#121212] relative group shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700"
         >
-          <iframe 
-            srcDoc={ROSEHILL_DEMO_HTML}
-            className="w-full h-full border-none"
-            title="Live Preview"
+          {/* Main Image */}
+          <img 
+            src={template.image} 
+            className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-700 blur-[2px] group-hover:blur-sm"
+            alt={template.title}
           />
+          
+          {/* Centered Action Button */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-6 pointer-events-auto">
+              {template.preview_url ? (
+                <button 
+                  onClick={() => window.open(template.preview_url, "_blank")}
+                  className="px-10 py-5 bg-[#2a6df5] text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[13px] transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-[#2a6df5]/40 flex items-center gap-3 group/btn"
+                >
+                  Visiter le site <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              ) : (
+                <div className="px-10 py-5 bg-white/5 border border-white/10 text-white/40 rounded-2xl font-black uppercase tracking-[0.2em] text-[13px] backdrop-blur-md">
+                  Bientôt disponible
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 opacity-40">
+                <Globe size={14} className="text-[#2a6df5]" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white">Aperçu Haute Définition</span>
+              </div>
+            </div>
+          </div>
+
           <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-48 bg-gray-400/20 rounded-full blur-[0.5px] pointer-events-none group-hover:bg-gray-400/40 transition-all duration-700">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[12px]">
               <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-gray-400/30 group-hover:border-b-gray-400/60 transition-all" />
@@ -316,7 +335,7 @@ export const StickyBottomBar = ({ template, onOrder }: { template: Template; onO
 
             <div className="flex items-center gap-3">
               <button 
-                onClick={() => window.open("https://demo.autoslash.ai", "_blank")}
+                onClick={() => window.open(template.preview_url || "https://demo.autoslash.ai", "_blank")}
                 className="px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-bold text-white hover:bg-white/5 transition-all whitespace-nowrap"
               >
                 Aperçu

@@ -7,6 +7,7 @@ export interface Template {
   likes: string;
   views: string;
   image: string;
+  preview_url?: string;
   description: string;
   longDescription: string;
   subCategories: string[];
