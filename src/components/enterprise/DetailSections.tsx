@@ -51,7 +51,7 @@ export const DetailHero = ({ template, onOrder }: { template: Template; onOrder?
               onClick={onOrder}
               className="px-4 py-2 bg-[#2a6df5] text-white rounded font-black uppercase tracking-[0.1em] text-[9px] transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-[#2a6df5]/20"
             >
-              ACTIVER ENTERPRISE 450K
+              ACTIVER ENTERPRISE {template.price ? `${Math.round(template.price / 1000)}K` : '450K'}
             </button>
           </div>
         </div>
@@ -328,7 +328,7 @@ export const StickyBottomBar = ({ template, onOrder }: { template: Template; onO
                 onClick={onOrder}
                 className="px-4 py-2 bg-[#2a6df5] text-white rounded font-black uppercase tracking-[0.1em] text-[9px] transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-[#2a6df5]/20"
               >
-                ACTIVER ENTERPRISE 450K
+                ACTIVER ENTERPRISE {template.price ? `${Math.round(template.price / 1000)}K` : '450K'}
               </button>
             </div>
           </div>

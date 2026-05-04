@@ -17,4 +17,5 @@ export interface Template {
     description: string;
   }[];
   pages: string[];
+  price: number;
 }
