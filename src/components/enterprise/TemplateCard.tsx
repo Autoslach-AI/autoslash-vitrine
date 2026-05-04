@@ -22,6 +22,7 @@ interface TemplateCardProps {
 export const TemplateCard = ({ template, index, packageType }: TemplateCardProps) => {
   const saveContext = () => {
     sessionStorage.setItem('autoslash_selection', JSON.stringify({
+      template_id: String(template.id),
       template_sector: template.category,
       template_name: template.title,
       package_type: packageType
