@@ -245,7 +245,7 @@ export default function PricingPage() {
           >
             <Button
               asChild
-              className="bg-[#2a6df5] hover:bg-[#2a6df5]/90 text-white rounded-full px-12 py-6 text-sm font-black tracking-widest transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(42,109,245,0.3)] group overflow-hidden relative"
+              className="bg-[#2a6df5] hover:bg-[#2a6df5]/90 text-white rounded-full px-8 py-4 text-xs font-black tracking-widest transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(42,109,245,0.3)] group overflow-hidden relative"
             >
               <Link to="/elite-plan">
                 <span className="relative z-10 flex items-center gap-2 uppercase">
@@ -325,7 +325,7 @@ export default function PricingPage() {
                 <CardFooter className="mt-auto pt-6">
                   <Button
                     asChild
-                    className={`w-full rounded-lg ${i === 1 ? 'bg-white text-black hover:bg-neutral-200' : 'bg-transparent border border-white/10 text-white hover:bg-white/5'}`}
+                    className={`w-fit mx-auto px-8 py-2 h-9 rounded-lg text-xs font-bold transition-all ${i === 1 ? 'bg-white text-black hover:bg-neutral-200' : 'bg-transparent border border-white/10 text-white hover:bg-white/5'}`}
                   >
                     <Link to={plan.button.url}>
                       {plan.button.text}

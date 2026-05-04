@@ -371,9 +371,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 </div>
               ))}
             </div>
-            <div className="flex gap-4 mt-8">
-              <div className="flex-1"></div>
-              <button className="ai-btn flex-1" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(2)}>Confirmer →</button>
+            <div className="flex justify-center mt-8 gap-4">
+              <button className="ai-btn" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(2)}>Confirmer →</button>
             </div>
           </div>
 
@@ -404,9 +403,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="gold-badge mt-6 p-4 text-[11px] border-[#00F0FF]/40 bg-[#00F0FF]/10 text-[#00F0FF]">
               ★ &nbsp;Garantie Business — Inclus 2 agents IA opérationnels et leur maintenance pendant le premier mois. Maintenance et Hébergement : 50 000 FCFA/mois.
             </div>
-            <div className="flex gap-4 mt-8">
-              <button className="ai-btn-sec flex-1" onClick={() => goStep(1)}>← Précédent</button>
-              <button className="ai-btn flex-1" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(3)}>Confirmer →</button>
+            <div className="flex justify-center mt-8 gap-4">
+              <button className="ai-btn-sec" onClick={() => goStep(1)}>← Précédent</button>
+              <button className="ai-btn" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(3)}>Confirmer →</button>
             </div>
           </div>
 
@@ -493,9 +492,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 )}
               </div>
             </div>
-            <div className="flex gap-4 mt-8">
-              <button className="ai-btn-sec flex-1" onClick={() => goStep(2)}>← Précédent</button>
-              <button className="ai-btn flex-1" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(4)}>Commander</button>
+            <div className="flex justify-center mt-8 gap-4">
+              <button className="ai-btn-sec" onClick={() => goStep(2)}>← Précédent</button>
+              <button className="ai-btn" style={{ backgroundColor: '#00F0FF' }} onClick={() => goStep(4)}>Commander</button>
             </div>
           </div>
 
@@ -703,7 +702,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="ai-btn w-full"
+                            className="ai-btn"
                             style={{ backgroundColor: '#00F0FF' }}
                         >
                             {isSubmitting ? 'Activation...' : 'Commander'}
@@ -711,8 +710,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                     </form>
                 </div>
             </main>
-            <div className="flex gap-4 mt-8">
-              <button className="ai-btn-sec flex-1" onClick={() => goStep(3)}>← Précédent</button>
+            <div className="flex justify-center mt-8 gap-4">
+              <button className="ai-btn-sec" onClick={() => goStep(3)}>← Précédent</button>
             </div>
           </div>
 
@@ -741,19 +740,19 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '10px' }}>Livraison J+15-20</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'center' }}>
               <button 
                 className="ai-btn"
                 style={{ 
-                  flex: 1, 
-                  padding: '12px 8px', 
+                  padding: '8px 16px', 
                   marginTop: 0, 
                   backgroundColor: 'transparent', 
                   border: '1px solid #00F0FF',
                   color: '#00F0FF',
                   fontSize: '10px',
                   fontWeight: '900',
-                  letterSpacing: '0.2em'
+                  letterSpacing: '0.2em',
+                  minWidth: '150px'
                 }}
                 onClick={() => {
                   onClose();
@@ -765,14 +764,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
               <button 
                 className="ai-btn"
                 style={{ 
-                  flex: 1, 
-                  padding: '12px 8px', 
+                  padding: '8px 16px', 
                   marginTop: 0, 
                   backgroundColor: '#00F0FF', 
                   color: '#050a1b',
                   fontSize: '10px',
                   fontWeight: '900',
-                  letterSpacing: '0.2em'
+                  letterSpacing: '0.2em',
+                  minWidth: '150px'
                 }}
                 onClick={() => {
                   onClose();
