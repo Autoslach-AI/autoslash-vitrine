@@ -360,8 +360,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 </div>
               ))}
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(2)}>Confirmer →</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn whitespace-nowrap" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(2)}>Confirmer →</button>
             </div>
           </div>
 
@@ -392,9 +392,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="gold-badge mt-6 p-4 text-[11px] border-[#2a6df5]/40 bg-[#2a6df5]/10 text-[#2a6df5]">
               ★ &nbsp;Garantie Prestige — Inclus maintenance complète, 5M tokens/mois et support VIP 24/7 pendant les 6 premiers mois. Maintenance et Hébergement : 100 000 FCFA/mois.
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn-sec" onClick={() => goStep(1)}>← Précédent</button>
-              <button className="ai-btn" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(3)}>Confirmer →</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(1)}>← Précédent</button>
+              <button className="ai-btn whitespace-nowrap" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(3)}>Confirmer →</button>
             </div>
           </div>
 
@@ -481,9 +481,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 )}
               </div>
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn-sec" onClick={() => goStep(2)}>← Précédent</button>
-              <button className="ai-btn" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(4)}>Commander</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(2)}>← Précédent</button>
+              <button className="ai-btn whitespace-nowrap" style={{ backgroundColor: '#2a6df5' }} onClick={() => goStep(4)}>Commander</button>
             </div>
           </div>
 
@@ -564,7 +564,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         onChange={(e) => setFormData(prev => ({ 
                                             ...prev, 
                                             phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                            phone: e.target.value + ' ' + prev.phoneNumber
                                         }))}
                                         placeholder="+..."
                                     />
@@ -585,7 +585,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         onChange={(e) => setFormData(prev => ({ 
                                             ...prev, 
                                             phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                            phone: e.target.value + ' ' + prev.phoneNumber
                                         }))}
                                     >
                                         {/* PRIORITAIRES */}
@@ -660,7 +660,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                     onChange={(e) => setFormData(prev => ({ 
                                         ...prev, 
                                         phoneNumber: e.target.value,
-                                        phone: (prev.phoneCode || '+221') + ' ' + e.target.value
+                                        phone: prev.phoneCode + ' ' + e.target.value
                                     }))}
                                 />
                             </div>
@@ -677,12 +677,12 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             ></textarea>
                         </div>
                         {errorMsg && <div className="text-red-500 text-[11px] font-bold">{errorMsg}</div>}
-                        <div className="flex justify-center gap-4 mt-8">
-                            <button type="button" className="ai-btn-sec" onClick={() => goStep(3)}>← Précédent</button>
+                        <div className="flex flex-row flex-nowrap items-center justify-center gap-4 mt-8">
+                            <button type="button" className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(3)}>← Précédent</button>
                             <button 
                               type="submit" 
                               disabled={isSubmitting}
-                              className="ai-btn" 
+                              className="ai-btn whitespace-nowrap" 
                               style={{ backgroundColor: '#2a6df5' }}
                             >
                                 {isSubmitting ? 'Activation...' : 'Commander'}
@@ -718,8 +718,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '10px' }}>Livraison Prestige J+30</span>
               </div>
             </div>
-            <div className="flex justify-center mt-4">
-              <button className="ai-btn" style={{ backgroundColor: '#2a6df5', padding: '10px 24px', marginTop: 0 }} onClick={onClose}>
+            <div className="flex justify-center mt-4 flex-nowrap">
+              <button className="ai-btn whitespace-nowrap" style={{ backgroundColor: '#2a6df5', padding: '10px 24px', marginTop: 0 }} onClick={onClose}>
                 ← Quitter le Hub Prestige
               </button>
             </div>

@@ -308,8 +308,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 </div>
               ))}
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn" onClick={() => goStep(2)}>Confirmer →</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn whitespace-nowrap" onClick={() => goStep(2)}>Confirmer →</button>
             </div>
           </div>
 
@@ -340,9 +340,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="gold-badge mt-6 p-4 text-[11px] border-yellow-500/40 bg-yellow-500/10 text-yellow-400">
               ★ &nbsp;Garantie de résultat — Maintenance et Hébergement : 25 000 FCFA/mois. Si le livrable ne vous satisfait pas, un remboursement total ou partiel est garanti par contrat.
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn-sec" onClick={() => goStep(1)}>← Précédent</button>
-              <button className="ai-btn" onClick={() => goStep(3)}>Confirmer →</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(1)}>← Précédent</button>
+              <button className="ai-btn whitespace-nowrap" onClick={() => goStep(3)}>Confirmer →</button>
             </div>
           </div>
 
@@ -428,9 +428,9 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 )}
               </div>
             </div>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn-sec" onClick={() => goStep(2)}>← Précédent</button>
-              <button className="ai-btn" onClick={() => goStep(4)}>Commander</button>
+            <div className="flex flex-row flex-nowrap items-center justify-center mt-8 gap-4">
+              <button className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(2)}>← Précédent</button>
+              <button className="ai-btn whitespace-nowrap" onClick={() => goStep(4)}>Commander</button>
             </div>
           </div>
 
@@ -520,7 +520,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         onChange={(e) => setFormData(prev => ({ 
                                             ...prev, 
                                             phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                            phone: e.target.value + ' ' + prev.phoneNumber
                                         }))}
                                         placeholder="+..."
                                     />
@@ -541,7 +541,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         onChange={(e) => setFormData(prev => ({ 
                                             ...prev, 
                                             phoneCode: e.target.value,
-                                            phone: e.target.value + ' ' + (prev.phoneNumber || '')
+                                            phone: e.target.value + ' ' + prev.phoneNumber
                                         }))}
                                     >
                                         {/* PRIORITAIRES */}
@@ -616,7 +616,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                     onChange={(e) => setFormData(prev => ({ 
                                         ...prev, 
                                         phoneNumber: e.target.value,
-                                        phone: (prev.phoneCode || '+221') + ' ' + e.target.value
+                                        phone: prev.phoneCode + ' ' + e.target.value
                                     }))}
                                 />
                             </div>
@@ -635,12 +635,12 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             ></textarea>
                         </div>
                         {errorMsg && <div className="text-red-500 text-[11px] font-bold">{errorMsg}</div>}
-                        <div className="flex justify-center gap-4 mt-8">
-                            <button type="button" className="ai-btn-sec" onClick={() => goStep(3)}>← Précédent</button>
+                        <div className="flex flex-row flex-nowrap items-center justify-center gap-4 mt-8">
+                            <button type="button" className="ai-btn-sec whitespace-nowrap" onClick={() => goStep(3)}>← Précédent</button>
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="ai-btn"
+                                className="ai-btn whitespace-nowrap"
                             >
                                 {isSubmitting ? 'Activation...' : 'Commander'}
                             </button>
@@ -675,7 +675,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '10px' }}>Livraison J+15</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'center', flexWrap: 'nowrap' }}>
               <button 
                 className="ai-btn"
                 style={{ 
@@ -687,7 +687,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                   fontSize: '10px',
                   fontWeight: '900',
                   letterSpacing: '0.2em',
-                  minWidth: '150px'
+                  minWidth: '150px',
+                  whiteSpace: 'nowrap'
                 }}
                 onClick={() => {
                   onClose();
@@ -706,7 +707,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                   fontSize: '10px',
                   fontWeight: '900',
                   letterSpacing: '0.2em',
-                  minWidth: '150px'
+                  minWidth: '150px',
+                  whiteSpace: 'nowrap'
                 }}
                 onClick={() => {
                   onClose();
