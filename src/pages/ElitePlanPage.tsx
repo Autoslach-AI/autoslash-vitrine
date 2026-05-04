@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { format } from "date-fns";
-import { saveOrder } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 // Register GSAP plugins
 gsap.registerPlugin(Draggable);
@@ -18,6 +18,8 @@ const ElitePlanPage: React.FC = () => {
     prenom: "",
     societe: "",
     fonction: "",
+    secteur: "",
+    region: "Dakar",
     email: "",
     telephone: "",
     message: "",
@@ -69,22 +71,28 @@ const ElitePlanPage: React.FC = () => {
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const { error } = await saveOrder({
-      name: formData.societe || `${formData.nom} ${formData.prenom}`,
-      package_type: 'ELITE',
-      sector: 'Général Elite',
-      email: formData.email,
-      phone: formData.telephone,
-      message: `${formData.message}\nRendez-vous : ${format(formData.appointmentDate, "dd/MM/yyyy")} à ${formData.appointmentTime}`,
-      comm_mode: 'WHATSAPP',
-      region: 'Dakar'
-    });
+    const { data, error } = await supabase
+      .from('enterprises')
+      .insert({
+        name: formData.societe || `${formData.nom} ${formData.prenom}`,
+        package_type: 'ELITE',
+        sector: formData.secteur || 'Général Elite',
+        email: formData.email,
+        phone: formData.telephone,
+        message: `${formData.message}\nRendez-vous : ${format(formData.appointmentDate, "dd/MM/yyyy")} à ${formData.appointmentTime}`,
+        region: formData.region || 'Dakar',
+        status: 'PROSPECT',
+        is_test: false
+      })
+      .select()
+      .single();
     
     setIsSubmitting(false);
     if (!error) {
       setIsSuccess(true);
       setCurrentStep(3);
     } else {
+      console.error('Supabase error:', error);
       setErrorMsg("Une erreur est survenue lors de l'envoi. Veuillez vérifier votre connexion.");
     }
   };
@@ -182,9 +190,9 @@ const ElitePlanPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="elite-plan-page bg-[#fdfbf7] min-h-screen" ref={containerRef}>
+    <div className="elite-plan-page bg-[#050505] min-h-screen text-white" ref={containerRef}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
         .elite-plan-page {
           --font-size-min: 16;
@@ -193,24 +201,16 @@ const ElitePlanPage: React.FC = () => {
           --font-ratio-max: 1.33;
           --font-width-min: 375;
           --font-width-max: 1500;
+          --accent-gold: #FFD700;
           font-family: 'Inter', sans-serif;
-          color: light-dark(hsl(0 0% 24%), hsl(0 0% 98%));
-          letter-spacing: -0.02em;
-          scroll-behavior: smooth;
-          scroll-padding-top: 2rem;
-          scroll-snap-type: y proximity;
-        }
-
-        .elite-plan-page[data-theme='light'] {
-          color-scheme: light only;
-          background: #fff;
-          color: hsl(0 0% 24%);
-        }
-
-        .elite-plan-page[data-theme='dark'] {
-          color-scheme: dark only;
-          background: #000;
           color: hsl(0 0% 98%);
+          letter-spacing: -0.01em;
+          scroll-behavior: smooth;
+        }
+
+        .elite-plan-page h1, .elite-plan-page h2.fluid {
+          font-family: 'Playfair Display', serif;
+          color: var(--accent-gold);
         }
 
         .elite-plan-page .container {
@@ -245,13 +245,12 @@ const ElitePlanPage: React.FC = () => {
         }
 
         .elite-plan-page h1 {
-          --font-level: 3.8;
-          line-height: 1.1;
+          --font-level: 4.5;
+          line-height: 1.05;
           margin: 0;
           margin-bottom: 2rem;
           text-wrap: balance;
           font-weight: 900;
-          max-width: 20ch;
         }
 
         .elite-plan-page main {
@@ -265,10 +264,12 @@ const ElitePlanPage: React.FC = () => {
         }
 
         .elite-plan-page article p {
-          line-height: 1.6;
+          line-height: 1.8;
           margin: 0;
           margin-bottom: 1.5rem;
-          font-size: 1.1rem;
+          font-size: 1.15rem;
+          font-weight: 300;
+          opacity: 0.9;
         }
 
         .elite-plan-page .table-of-contents {
@@ -276,102 +277,44 @@ const ElitePlanPage: React.FC = () => {
           position: sticky;
           top: 4rem;
           align-self: start;
-          font-size: 0.875rem;
+          font-size: 0.8rem;
           font-weight: 500;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
 
         .elite-plan-page .table-of-contents nav ol {
           list-style: none;
           padding-left: 1rem;
           margin: 0;
-        }
-
-        .elite-plan-page .table-of-contents nav > ol {
-          padding: 0;
+          border-left: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .elite-plan-page .table-of-contents a {
           text-decoration: none;
           display: block;
-          padding-block: 0.25rem;
-          transition: color 0.26s cubic-bezier(0.215, 0.61, 0.355, 1);
-          color: light-dark(hsl(0 0% 60%), hsl(0 0% 40%));
+          padding-block: 0.5rem;
+          transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+          color: rgba(255, 255, 255, 0.4);
         }
 
         .elite-plan-page .table-of-contents a:hover {
-          color: light-dark(#000, #fff);
+          color: var(--accent-gold);
+          padding-left: 0.5rem;
         }
 
         .elite-plan-page .table-of-contents h2 {
-          font-size: 0.65rem;
-          text-transform: uppercase;
-          margin-bottom: 0.25rem;
-          color: light-dark(#000, #fff);
-        }
-
-        .elite-plan-page .table-of-contents .back-to-top {
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.26s;
-        }
-
-        .elite-plan-page .table-of-contents:has(a:is(:active, :focus, :target)) .back-to-top {
-          opacity: 1;
-          pointer-events: all;
+          font-size: 0.7rem;
+          margin-bottom: 1rem;
+          color: var(--accent-gold);
+          opacity: 0.6;
         }
 
         .elite-plan-page footer {
           grid-column: 2;
           width: 100%;
           padding-block: 4rem;
-          border-top: 1px solid color-mix(in srgb, currentColor, transparent 90%);
-        }
-
-        .elite-plan-page .bear-link {
-          position: fixed;
-          top: 1rem;
-          left: 1rem;
-          width: 48px;
-          opacity: 0.8;
-          color: currentColor;
-          z-index: 100;
-        }
-
-        /* Waitlist form styles */
-        .elite-plan-page [data-waitlist-form] {
-          margin-bottom: 4rem;
-        }
-        .elite-plan-page [data-controls] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          margin-bottom: 1rem;
-        }
-        .elite-plan-page [data-controls] input {
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          padding: 0.5rem;
-          flex: 1;
-        }
-        .elite-plan-page [data-controls] button {
-          background: #333;
-          color: #fff;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .elite-plan-page[data-align='right'] .table-of-contents {
-          grid-column: 3;
-        }
-        .elite-plan-page[data-align='left'] .table-of-contents {
-          grid-column: 1;
-          justify-self: end;
-        }
-        .elite-plan-page[data-align='left'] main, 
-        .elite-plan-page[data-align='left'] header {
-          grid-column: 2;
+          border-top: 1px solid rgba(255, 215, 0, 0.1);
         }
 
         /* Conversion Tunnel Styles */
@@ -380,31 +323,22 @@ const ElitePlanPage: React.FC = () => {
           width: 60ch;
           max-width: 100%;
           margin-top: 10vh;
-          display: flex;
-          flex-direction: column;
-          gap: 10vh;
         }
 
         .tunnel-step {
           min-height: 90vh;
-          scroll-snap-align: center;
           display: flex;
           flex-direction: column;
           justify-content: center;
-          opacity: 0.3;
-          transition: opacity 0.5s;
-        }
-
-        .tunnel-step.active {
-          opacity: 1;
+          transition: opacity 0.8s;
         }
 
         .tunnel-card {
-          background: light-dark(#f9f9f9, #111);
-          padding: 3rem;
-          border-radius: 2rem;
-          border: 2px solid color-mix(in srgb, currentColor, transparent 90%);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+          background: #0a0a0a;
+          padding: 4rem;
+          border-radius: 1.5rem;
+          border: 1px solid rgba(255, 215, 0, 0.1);
+          box-shadow: 0 40px 100px rgba(0,0,0,0.8);
           position: relative;
           overflow: hidden;
         }
@@ -415,21 +349,15 @@ const ElitePlanPage: React.FC = () => {
           top: 0;
           left: 0;
           width: 100%;
-          height: 4px;
-          background: var(--accent-light);
-          opacity: 0.5;
-        }
-
-        .elite-plan-page[data-theme='dark'] .tunnel-card {
-          background: #0a0a0a;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          height: 2px;
+          background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
         }
 
         .input-group {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1rem;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
         }
 
         @media (max-width: 768px) {
@@ -440,85 +368,134 @@ const ElitePlanPage: React.FC = () => {
 
         .elite-input {
           width: 100%;
-          padding: 1rem;
-          border-radius: 0.75rem;
-          border: 1px solid color-mix(in srgb, currentColor, transparent 80%);
-          background: transparent;
-          color: currentColor;
+          padding: 1.25rem;
+          border-radius: 0.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
+          color: white;
           outline: none;
-          transition: border-color 0.2s;
+          transition: all 0.3s;
+          font-size: 0.95rem;
         }
 
         .elite-input:focus {
-          border-color: var(--accent-light);
+          border-color: var(--accent-gold);
+          background: rgba(255, 215, 0, 0.05);
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.05);
         }
 
         .elite-button {
-          background: light-dark(#000, #fff);
-          color: light-dark(#fff, #000);
-          padding: 1rem 2rem;
-          border-radius: 0.75rem;
-          font-weight: 600;
+          background: var(--accent-gold);
+          color: black;
+          padding: 1.25rem 2.5rem;
+          border-radius: 0.5rem;
+          font-weight: 700;
           cursor: pointer;
           border: none;
-          transition: opacity 0.2s, transform 0.2s;
+          transition: all 0.3s;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.75rem;
           justify-content: center;
           width: 100%;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
         }
 
         .elite-button:hover {
-          opacity: 0.9;
-          transform: translateY(-2px);
+          transform: translateY(-3px);
+          box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+          filter: brightness(1.1);
         }
 
         .calendar-container {
           display: flex;
           flex-direction: column;
-          gap: 2rem;
+          gap: 3rem;
           align-items: center;
         }
 
+        /* React Calendar Dark Theme Override */
         .react-calendar {
           width: 100% !important;
           max-width: 400px;
           border: none !important;
-          background: transparent !important;
+          background: #0a0a0a !important;
           font-family: inherit !important;
+          color: white !important;
+        }
+
+        .react-calendar__navigation button {
+          color: white !important;
+          font-size: 1.2rem !important;
+        }
+
+        .react-calendar__navigation button:enabled:hover,
+        .react-calendar__navigation button:enabled:focus {
+          background-color: rgba(255, 215, 0, 0.1) !important;
+        }
+
+        .react-calendar__month-view__weekdays {
+          color: var(--accent-gold) !important;
+          text-transform: uppercase;
+          font-weight: 700;
+          font-size: 0.7rem;
+          opacity: 0.8;
+        }
+
+        .react-calendar__tile {
+          color: white !important;
+          padding: 1rem 0.5rem !important;
+          transition: all 0.2s !important;
+        }
+
+        .react-calendar__tile:enabled:hover,
+        .react-calendar__tile:enabled:focus {
+          background-color: rgba(255, 215, 0, 0.15) !important;
+          border-radius: 0.5rem;
         }
 
         .react-calendar__tile--now {
-          background: color-mix(in srgb, var(--accent-light), transparent 80%) !important;
+          background: transparent !important;
+          border: 1px solid var(--accent-gold) !important;
+          border-radius: 0.5rem;
         }
 
         .react-calendar__tile--active {
-          background: var(--accent-light) !important;
-          color: white !important;
+          background: var(--accent-gold) !important;
+          color: black !important;
           border-radius: 0.5rem;
+          font-weight: 700;
         }
 
         .time-slots {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
+          gap: 0.75rem;
           width: 100%;
         }
 
         .time-slot {
-          padding: 0.75rem;
+          padding: 1rem;
           border-radius: 0.5rem;
-          border: 1px solid color-mix(in srgb, currentColor, transparent 80%);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
           text-align: center;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s;
+          font-weight: 500;
+        }
+
+        .time-slot:hover {
+          border-color: var(--accent-gold);
+          background: rgba(255, 215, 0, 0.05);
         }
 
         .time-slot.active {
-          background: var(--accent-light);
-          color: white;
-          border-color: var(--accent-light);
+          background: var(--accent-gold);
+          color: black;
+          border-color: var(--accent-gold);
+          font-weight: 700;
         }
       `}</style>
 
@@ -551,7 +528,7 @@ const ElitePlanPage: React.FC = () => {
             <section id="conversion" className="conversion-tunnel">
               <div className={`tunnel-step ${currentStep >= 1 ? 'active' : ''}`}>
                 <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#2a6df5]">Carte 1 : Synchronisation Stratégique</h2>
+                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Carte 1 : Synchronisation Stratégique</h2>
                   <p className="mb-8 opacity-70">Réservez votre créneau pour une session d'ingénierie préliminaire.</p>
                   <div className="calendar-container">
                     <Calendar 
@@ -562,7 +539,7 @@ const ElitePlanPage: React.FC = () => {
                     />
                     
                     <div className="w-full">
-                      <h3 className="text-sm font-bold uppercase mb-4 opacity-70">Heure de rendez-vous souhaitée</h3>
+                      <h3 className="text-sm font-bold uppercase mb-4 opacity-70 text-[#FFD700]">Heure de rendez-vous souhaitée</h3>
                       <div className="time-slots">
                         {["09:00", "10:30", "14:00", "15:30", "17:00"].map((time) => (
                           <div
@@ -584,7 +561,7 @@ const ElitePlanPage: React.FC = () => {
 
               <div className={`tunnel-step ${currentStep >= 2 ? 'active' : ''} ${currentStep < 2 ? 'pointer-events-none' : ''}`}>
                 <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#2a6df5]">Carte 2 : Qualification & Vision</h2>
+                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Carte 2 : Qualification & Vision</h2>
                   <p className="mb-8 opacity-70">Détaillez vos besoins techniques pour notre équipe d'experts.</p>
                   <form onSubmit={submitLead} className="flex flex-col gap-4">
                     <div className="input-group">
@@ -594,6 +571,10 @@ const ElitePlanPage: React.FC = () => {
                     <div className="input-group">
                       <input required className="elite-input" name="societe" placeholder="Société*" value={formData.societe} onChange={handleInputChange} />
                       <input className="elite-input" name="fonction" placeholder="Fonction" value={formData.fonction} onChange={handleInputChange} />
+                    </div>
+                    <div className="input-group">
+                      <input required className="elite-input" name="secteur" placeholder="Secteur d'activité*" value={formData.secteur} onChange={handleInputChange} />
+                      <input required className="elite-input" name="region" placeholder="Région / Pays*" value={formData.region} onChange={handleInputChange} />
                     </div>
                     <div className="input-group">
                       <input required type="email" className="elite-input" name="email" placeholder="Email professionnel*" value={formData.email} onChange={handleInputChange} />
@@ -615,7 +596,7 @@ const ElitePlanPage: React.FC = () => {
               </div>
 
               <div className={`tunnel-step ${currentStep >= 3 ? 'active' : ''}`}>
-                <div className="tunnel-card text-center py-20 bg-gradient-to-br from-[#2a6df5]/10 to-transparent">
+                <div className="tunnel-card text-center py-20 bg-gradient-to-br from-[#FFD700]/10 to-transparent">
                   <AnimatePresence mode="wait">
                     {isSuccess ? (
                       <motion.div
@@ -623,9 +604,9 @@ const ElitePlanPage: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                       >
-                        <h2 className="text-4xl font-bold mb-4 uppercase tracking-tighter">Carte 3 : Déploiement & Résultat</h2>
-                        <div className="w-20 h-20 bg-[#2a6df5] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#2a6df5]/40">
-                          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h2 className="text-4xl font-bold mb-4 uppercase tracking-tighter text-[#FFD700]">Carte 3 : Déploiement & Résultat</h2>
+                        <div className="w-20 h-20 bg-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#FFD700]/40">
+                          <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
