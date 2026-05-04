@@ -109,10 +109,11 @@ const ElitePlanPage: React.FC = () => {
 
       // Find all headings within the article (h2 and below only)
       const headings = Array.from(article.querySelectorAll('h2, h3, h4, h5, h6'))
-      if (headings.length === 0) return
-
+      // Also include the header for the "pre" top link
+      const preHeader = containerRef.current?.querySelector('header#pre h1')
+      
       // Build hierarchical structure
-      const buildTOC = (items: Element[], startIndex = 0, currentLevel = 1) => {
+      const buildTOC = (items: Element[], startIndex = 0, currentLevel = 2) => {
         const list = document.createElement('ol')
         let index = startIndex
         
@@ -128,13 +129,22 @@ const ElitePlanPage: React.FC = () => {
             const listItem = document.createElement('li')
             const link = document.createElement('a')
             
-            const id = item.id || item.textContent?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') || `heading-${index}`
-            if (!item.id) {
+            const id = item.id || item.parentElement?.id || item.textContent?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') || `heading-${index}`
+            if (!item.id && !item.parentElement?.id) {
               item.id = id
             }
             
-            link.href = `#${id}`
+            const finalId = item.id || item.parentElement?.id || id;
+            link.href = `#${finalId}`
             link.textContent = item.textContent?.trim() || ''
+            link.classList.add('toc-link')
+            link.onclick = (e) => {
+              e.preventDefault();
+              document.getElementById(finalId)?.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+              });
+            }
             
             listItem.appendChild(link)
             index++
@@ -174,12 +184,19 @@ const ElitePlanPage: React.FC = () => {
       const backToTop = document.createElement('div')
       backToTop.classList.add('back-to-top')
       backToTop.innerHTML = `
-      <a aria-label="Back to Top" href="#pre">
+      <a aria-label="Back to Top" href="#pre" class="toc-link">
       top <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px; display: inline-block;">
         <path stroke-linecap="round" stroke-linejoin="round" d="m11.99 7.5 3.75-3.75m0 0 3.75 3.75m-3.75-3.75v16.499H4.49" />
       </svg>
       </a>
       `
+      const backLink = backToTop.querySelector('a')
+      if (backLink) {
+        backLink.onclick = (e) => {
+          e.preventDefault();
+          document.getElementById('pre')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
 
       nav.appendChild(backToTop)
       tocElement.innerHTML = '';
@@ -187,6 +204,34 @@ const ElitePlanPage: React.FC = () => {
     }
 
     generateTableOfContents()
+  }, []);
+
+  useEffect(() => {
+    const sections = document.querySelectorAll('section[id], header[id], div[id]');
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Retirer active de tous les liens
+            document.querySelectorAll('.toc-link').forEach(link => {
+              link.classList.remove('active');
+            });
+            // Ajouter active au lien correspondant
+            const activeLink = document.querySelector(
+              `.toc-link[href="#${entry.target.id}"]`
+            );
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        });
+      },
+      { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' }
+    );
+
+    sections.forEach(section => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -275,32 +320,40 @@ const ElitePlanPage: React.FC = () => {
         .elite-plan-page .table-of-contents {
           grid-column: 3;
           position: sticky;
-          top: 4rem;
+          top: 40px;
+          height: fit-content;
           align-self: start;
-          font-size: 0.8rem;
-          font-weight: 500;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+          transition: all 0.3s ease;
         }
 
         .elite-plan-page .table-of-contents nav ol {
           list-style: none;
           padding-left: 1rem;
           margin: 0;
-          border-left: 1px solid rgba(255, 215, 0, 0.2);
         }
 
-        .elite-plan-page .table-of-contents a {
-          text-decoration: none;
-          display: block;
-          padding-block: 0.5rem;
-          transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+        .elite-plan-page .toc-link {
           color: rgba(255, 255, 255, 0.4);
+          transition: all 0.4s ease;
+          font-size: 11px;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          padding: 4px 0;
+          border-left: 2px solid transparent;
+          padding-left: 12px;
+          display: block;
+          text-decoration: none;
         }
 
-        .elite-plan-page .table-of-contents a:hover {
-          color: var(--accent-gold);
-          padding-left: 0.5rem;
+        .elite-plan-page .toc-link.active {
+          color: #FFD700;
+          border-left: 2px solid #FFD700;
+          padding-left: 16px;
+          font-weight: 700;
+        }
+
+        .elite-plan-page .toc-link:hover {
+          color: rgba(255, 215, 0, 0.7);
         }
 
         .elite-plan-page .table-of-contents h2 {
