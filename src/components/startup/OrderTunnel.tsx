@@ -379,12 +379,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
               />
             </div>
             <div className="frow">
-              <div className="flbl text-white text-[11px] font-bold">Logo et Assets</div>
+              <div className="flbl text-white text-[11px] font-bold">
+                Documents & Fichiers (optionnel)
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".png,.jpg,.svg,.pdf"
+                accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.length) {
@@ -402,13 +404,19 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
               >
                 {isLogoUploaded ? (
                   <>
-                    <span className="text-white text-[14px] font-bold">✓ Assets reçus</span><br />
-                    <span style={{ opacity: 0.9, fontSize: '11px', letterSpacing: '0.1em', color: 'white' }}>fichier chargé avec succès</span>
+                    <span className="text-white text-[14px] font-bold">
+                      ✓ {uploadedFiles.length} fichier(s) prêt(s)
+                    </span><br />
+                    <span style={{ fontSize: '11px', color: 'white', opacity: 0.7 }} className="mt-1 px-4 text-center">
+                      {uploadedFiles.map(f => f.name).join(', ')}
+                    </span>
                   </>
                 ) : (
                   <>
                     <span className="text-white text-[14px] font-bold">↑ Déposer vos fichiers ici</span><br />
-                    <span style={{ opacity: 0.8, fontSize: '11px', letterSpacing: '0.1em', color: 'white' }}>PNG · JPG · SVG · PDF acceptés</span>
+                    <span style={{ opacity: 0.8, fontSize: '11px', color: 'white' }}>
+                      PNG · JPG · SVG · PDF · DOC · DOCX · XLS · ZIP acceptés
+                    </span>
                   </>
                 )}
               </div>
