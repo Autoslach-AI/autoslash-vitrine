@@ -494,15 +494,25 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         </div>
                         <div>
                             <label className="flbl text-white text-[11px] font-bold">
-                                Numéro de téléphone
+                                NUMÉRO DE TÉLÉPHONE
                             </label>
-                            <div className="flex gap-2 mt-2">
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                                 <select
-                                    className="ai-input text-white text-[14px] w-28 flex-shrink-0"
+                                    style={{ 
+                                        width: '110px', 
+                                        flexShrink: 0,
+                                        background: 'rgba(0,10,30,0.8)',
+                                        border: '1px solid rgba(0,170,255,0.2)',
+                                        color: 'white',
+                                        padding: '12px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '13px'
+                                    }}
                                     value={formData.phoneCode || '+221'}
                                     onChange={(e) => setFormData(prev => ({ 
                                         ...prev, 
-                                        phoneCode: e.target.value 
+                                        phoneCode: e.target.value,
+                                        phone: e.target.value + ' ' + (prev.phoneNumber || '')
                                     }))}
                                 >
                                     <option value="+221">🇸🇳 +221</option>
@@ -515,10 +525,10 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                 </select>
                                 <input
                                     type="text"
-                                    name="phoneNumber"
                                     placeholder="77 000 00 00"
                                     required
-                                    className="ai-input text-white text-[14px] flex-1"
+                                    style={{ flex: 1 }}
+                                    className="ai-input text-white text-[14px]"
                                     value={formData.phoneNumber || ''}
                                     onChange={(e) => setFormData(prev => ({ 
                                         ...prev, 
