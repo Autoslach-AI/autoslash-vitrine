@@ -64,7 +64,7 @@ export const DetailHero = ({ template, onOrder }: { template: Template; onOrder?
 export const DetailShowcase = ({ template }: { template: Template }) => {
   return (
     <div className="w-full bg-black py-20 flex justify-center">
-      <div className="w-full max-w-[1100px] relative rounded-[2.5rem] overflow-hidden aspect-[16/10] border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.5)] bg-zinc-900">
+      <div className="w-full max-w-[1100px] relative rounded-[2.5rem] overflow-hidden aspect-[16/13] border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.5)] bg-zinc-900">
         {template.preview_url ? (
           <iframe 
             src={template.preview_url}
