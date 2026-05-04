@@ -14,6 +14,7 @@ interface TemplateCardProps {
     likes: string;
     views: string;
     image: string;
+    price: number;
   };
   index: number;
   packageType: 'STARTUP' | 'BUSINESS' | 'ENTERPRISE';
@@ -55,7 +56,9 @@ export const TemplateCard = ({ template, index, packageType }: TemplateCardProps
         
         {/* Hover Overlay */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center p-8 bg-[#2a6df5]/5 backdrop-blur-[1px]">
-          <ArrowDotsButton text="Aperçu Enterprise" />
+          <div className="text-white text-[11px] font-black uppercase tracking-widest bg-[#2a6df5]/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-xl">
+            {template.price ? `À partir de ${template.price.toLocaleString('fr-FR')} FCFA` : 'Sur devis'}
+          </div>
         </div>
       </Link>
 
