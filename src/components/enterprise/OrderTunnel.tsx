@@ -44,11 +44,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
       const saved = sessionStorage.getItem('autoslash_selection');
       if (saved) {
         try {
+          // context sector automatic input disabled as requested
+          /*
           const context = JSON.parse(saved);
           setFormData(prev => ({
             ...prev,
             sector: context.template_sector || ''
           }));
+          */
         } catch (e) {
           console.error('Context parse error', e);
         }
@@ -400,23 +403,25 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             <div className="step-eyebrow text-white text-[14px] font-bold">Configuration du Silo Prestige</div>
             <div className="step-lead text-white text-[13px] opacity-90 mb-6">Nous construisons une intelligence qui vous ressemble.</div>
             <div className="frow">
-              <div className="flbl text-white text-[11px] font-bold">Organisation / Groupe Enterprise</div>
+              <div className="flbl text-white text-[11px] font-bold">Métier / Entreprise</div>
               <input 
                 className="ai-input text-white text-[14px] py-3 focus:border-[#2a6df5]" 
                 type="text" 
                 name="company"
-                placeholder="Ex : Global Industries Worldwide" 
+                autoComplete="off"
+                placeholder="Ex : Groupe Industriel National" 
                 value={formData.company}
                 onChange={handleInputChange}
               />
             </div>
             <div className="frow">
-              <div className="flbl text-white text-[11px] font-bold">Vision IA Stratégique (Secteur)</div>
+              <div className="flbl text-white text-[11px] font-bold">Secteur / Métier</div>
               <input 
                 className="ai-input text-white text-[14px] py-3 focus:border-[#2a6df5]" 
                 type="text" 
                 name="sector"
-                placeholder="Dites-nous quel processus vous voulez automatiser totalement..." 
+                autoComplete="off"
+                placeholder="Quel est votre secteur / métier ?" 
                 value={formData.sector}
                 onChange={handleInputChange}
               />
@@ -559,13 +564,66 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                                         phone: e.target.value + ' ' + (prev.phoneNumber || '')
                                     }))}
                                 >
-                                    <option value="+221">🇸🇳 +221</option>
-                                    <option value="+33">🇫🇷 +33</option>
-                                    <option value="+1">🇺🇸 +1</option>
-                                    <option value="+212">🇲🇦 +212</option>
-                                    <option value="+225">🇨🇮 +225</option>
-                                    <option value="+237">🇨🇲 +237</option>
-                                    <option value="+234">🇳🇬 +234</option>
+                                    {/* PRIORITAIRES */}
+                                    <option value="+221">🇸🇳 SN +221</option>
+                                    <option value="+223">🇲🇱 ML +223</option>
+                                    <option value="+224">🇬🇳 GN +224</option>
+                                    <option value="+225">🇨🇮 CI +225</option>
+                                    <option value="+226">🇧🇫 BF +226</option>
+                                    <option value="+227">🇳🇪 NE +227</option>
+                                    <option value="+228">🇹🇬 TG +228</option>
+                                    <option value="+229">🇧🇯 BJ +229</option>
+                                    <option value="+230">🇲🇺 MU +230</option>
+                                    <option value="+233">🇬🇭 GH +233</option>
+                                    <option value="+234">🇳🇬 NG +234</option>
+                                    <option value="+237">🇨🇲 CM +237</option>
+                                    <option value="+212">🇲🇦 MA +212</option>
+                                    <option value="+213">🇩🇿 DZ +213</option>
+                                    <option value="+216">🇹🇳 TN +216</option>
+                                    <option value="+20">🇪🇬 EG +20</option>
+                                    <option value="+243">🇨🇩 CD +243</option>
+                                    <option value="+33">🇫🇷 FR +33</option>
+                                    <option value="+32">🇧🇪 BE +32</option>
+                                    <option value="+41">🇨🇭 CH +41</option>
+                                    <option value="+1">🇺🇸 US +1</option>
+                                    <option value="+44">🇬🇧 GB +44</option>
+                                    <option value="+49">🇩🇪 DE +49</option>
+                                    <option value="+34">🇪🇸 ES +34</option>
+                                    <option value="+39">🇮🇹 IT +39</option>
+                                    <option value="+351">🇵🇹 PT +351</option>
+                                    <option value="+7">🇷🇺 RU +7</option>
+                                    <option value="+86">🇨🇳 CN +86</option>
+                                    <option value="+91">🇮🇳 IN +91</option>
+                                    <option value="+55">🇧🇷 BR +55</option>
+                                    <option value="+52">🇲🇽 MX +52</option>
+                                    <option value="+971">🇦🇪 AE +971</option>
+                                    <option value="+966">🇸🇦 SA +966</option>
+                                    <option value="+974">🇶🇦 QA +974</option>
+                                    <option value="+965">🇰🇼 KW +965</option>
+                                    <option value="+254">🇰🇪 KE +254</option>
+                                    <option value="+255">🇹🇿 TZ +255</option>
+                                    <option value="+256">🇺🇬 UG +256</option>
+                                    <option value="+27">🇿🇦 ZA +27</option>
+                                    <option value="+57">🇨🇴 CO +57</option>
+                                    <option value="+54">🇦🇷 AR +54</option>
+                                    <option value="+56">🇨🇱 CL +56</option>
+                                    <option value="+81">🇯🇵 JP +81</option>
+                                    <option value="+82">🇰🇷 KR +82</option>
+                                    <option value="+61">🇦🇺 AU +61</option>
+                                    <option value="+64">🇳🇿 NZ +64</option>
+                                    <option value="+31">🇳🇱 NL +31</option>
+                                    <option value="+46">🇸🇪 SE +46</option>
+                                    <option value="+47">🇳🇴 NO +47</option>
+                                    <option value="+45">🇩🇰 DK +45</option>
+                                    <option value="+48">🇵🇱 PL +48</option>
+                                    <option value="+90">🇹🇷 TR +90</option>
+                                    <option value="+92">🇵🇰 PK +92</option>
+                                    <option value="+880">🇧🇩 BD +880</option>
+                                    <option value="+60">🇲🇾 MY +60</option>
+                                    <option value="+62">🇮🇩 ID +62</option>
+                                    <option value="+63">🇵🇭 PH +63</option>
+                                    <option value="+66">🇹🇭 TH +66</option>
+                                    <option value="+84">🇻🇳 VN +84</option>
                                 </select>
                                 <input
                                     type="text"
@@ -600,7 +658,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                           className="ai-btn w-full" 
                           style={{ backgroundColor: '#2a6df5' }}
                         >
-                            {isSubmitting ? 'Activation...' : 'Lancer mon projet →'}
+                            {isSubmitting ? 'Activation...' : 'Commander'}
                         </button>
                     </form>
                 </div>
