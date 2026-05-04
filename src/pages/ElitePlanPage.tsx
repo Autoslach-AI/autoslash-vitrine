@@ -27,6 +27,7 @@ const ElitePlanPage: React.FC = () => {
     appointmentTime: "",
   });
 
+  const [budget, setBudget] = useState(1000000);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -553,6 +554,97 @@ const ElitePlanPage: React.FC = () => {
           border-color: var(--accent-gold);
           font-weight: 700;
         }
+
+        .elite-manifesto {
+          font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.85);
+          font-weight: 300;
+          letter-spacing: 0.02em;
+          max-width: 900px;
+          margin: 60px auto;
+          font-family: 'Playfair Display', serif;
+        }
+
+        .budget-section {
+          padding: 80px 0;
+          text-align: center;
+        }
+
+        .budget-title {
+          font-size: 11px;
+          letter-spacing: 0.4em;
+          color: #FFD700;
+          text-transform: uppercase;
+          margin-bottom: 60px;
+          font-weight: 700;
+        }
+
+        .budget-slider-container {
+          max-width: 700px;
+          margin: 0 auto;
+        }
+
+        .budget-slider {
+          width: 100%;
+          -webkit-appearance: none;
+          height: 2px;
+          background: linear-gradient(to right, #FFD700, rgba(255,215,0,0.2));
+          border-radius: 2px;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .budget-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #FFD700;
+          box-shadow: 0 0 20px rgba(255,215,0,0.6);
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+
+        .budget-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.3);
+        }
+
+        .budget-amount {
+          display: block;
+          font-size: clamp(2rem, 5vw, 4rem);
+          font-weight: 900;
+          color: #FFD700;
+          letter-spacing: -0.02em;
+          margin: 40px 0 8px;
+          font-family: 'Playfair Display', serif;
+        }
+
+        .budget-labels {
+          display: flex;
+          justify-content: space-between;
+          color: rgba(255,255,255,0.3);
+          font-size: 10px;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          margin-top: 12px;
+        }
+
+        .budget-description {
+          margin-top: 50px;
+          text-align: left;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .budget-description p {
+          color: rgba(255,255,255,0.6);
+          font-size: 14px;
+          letter-spacing: 0.05em;
+          border-left: 1px solid #FFD700;
+          padding-left: 20px;
+        }
       `}</style>
 
       <div className="container">
@@ -579,6 +671,53 @@ const ElitePlanPage: React.FC = () => {
             <section id="expertise">
               <h2>Expertise Dédiée</h2>
               <p>Une équipe d'agents IA experts est entraînée spécifiquement sur vos données pour répondre à vos besoins 24/7.</p>
+            </section>
+
+            <section id="vision-elite" className="vision-section">
+              <p className="elite-manifesto">
+                Le Plan Élite est l'architecture la plus puissante jamais conçue par Autoslash AI.
+                Ce n'est pas un abonnement. Ce n'est pas un outil. C'est un engagement absolu —
+                une équipe d'agents IA et d'experts humains déployée exclusivement pour votre entreprise,
+                entraînée sur vos données, vos processus, votre secteur, disponible 24h/24,
+                qui reste à vos côtés — sans limite de temps — jusqu'à ce que vos résultats
+                soient une réalité tangible et mesurable. Vous définissez l'ambition.
+                Nous livrons l'exécution.
+              </p>
+            </section>
+
+            <section id="budget-elite" className="budget-section">
+              <h2 className="budget-title">DÉFINISSEZ L'ÉCHELLE DE VOTRE AMBITION</h2>
+              
+              <div className="budget-slider-container">
+                <input
+                  type="range"
+                  min={1000000}
+                  max={20000000}
+                  step={500000}
+                  value={budget}
+                  onChange={(e) => setBudget(Number(e.target.value))}
+                  className="budget-slider"
+                />
+                <div className="budget-display">
+                  <span className="budget-amount">
+                    {budget.toLocaleString('fr-FR')} FCFA
+                  </span>
+                  {budget >= 20000000 && (
+                    <span className="budget-unlimited">et plus</span>
+                  )}
+                </div>
+
+                <div className="budget-labels">
+                  <span>1.000.000 FCFA</span>
+                  <span>Illimité</span>
+                </div>
+
+                <div className="budget-description">
+                  <p>→ Équipe agents IA + experts humains dédiés</p>
+                  <p>→ Accompagnement jusqu'à l'obtention de vos résultats</p>
+                  <p>→ Profondeur du déploiement ajustée à votre ambition</p>
+                </div>
+              </div>
             </section>
 
             <section id="conversion" className="conversion-tunnel">
