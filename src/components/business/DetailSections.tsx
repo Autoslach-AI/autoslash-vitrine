@@ -239,7 +239,7 @@ export const DetailDescription = ({ template }: { template: Template }) => {
 
 // --- Section 3: Recommendations ---
 export const DetailRecommendations = ({ currentId, sector }: { currentId: string, sector: string }) => {
-  const [recommendations, setRecommendations] = useState<Template[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -258,14 +258,7 @@ export const DetailRecommendations = ({ currentId, sector }: { currentId: string
         if (error) throw error;
         
         if (data) {
-          setRecommendations(data.map(t => ({
-            id: t.id,
-            title: t.title,
-            sector: t.sector,
-            category: t.category,
-            price: t.price_fcfa || 300000,
-            image: t.image_url
-          }) as unknown as Template));
+          setRecommendations(data);
         }
       } catch (err) {
         console.error("Error fetching recommendations:", err);
@@ -276,6 +269,19 @@ export const DetailRecommendations = ({ currentId, sector }: { currentId: string
 
     fetchRecommendations();
   }, [currentId, sector]);
+
+  const handleSelection = (t: any) => {
+    sessionStorage.setItem('autoslash_selection', JSON.stringify({
+      template_id: t.id,
+      template_sector: t.sector,
+      template_name: t.title,
+      package_type: t.package_type,
+      template_image: t.image_url,
+      template_price: t.price_fcfa
+    }));
+    navigate(`/business-details/${t.id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (loading || recommendations.length === 0) return null;
 
@@ -289,14 +295,14 @@ export const DetailRecommendations = ({ currentId, sector }: { currentId: string
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {recommendations.map((template) => (
-            <Link 
+            <div 
               key={template.id} 
-              to={`/business-details/${template.id}`}
-              className="group flex flex-col gap-6"
+              onClick={() => handleSelection(template)}
+              className="group flex flex-col gap-6 cursor-pointer"
             >
               <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-500 hover:border-[#2a6df5]/30 shadow-2xl shadow-black/50">
                 <img 
-                  src={template.image} 
+                  src={template.image_url} 
                   alt={template.title}
                   className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
                 />
@@ -310,9 +316,9 @@ export const DetailRecommendations = ({ currentId, sector }: { currentId: string
                   <h3 className="text-lg font-bold text-white group-hover:text-[#2a6df5] transition-colors uppercase tracking-tighter">{template.title}</h3>
                   <span className="text-white/30 text-[10px] uppercase font-bold tracking-widest">{template.sector}</span>
                 </div>
-                <span className="text-white font-black text-[12px]">{Math.round(template.price / 1000)}K</span>
+                <span className="text-white font-black text-[12px]">{template.price_fcfa?.toLocaleString()} FCFA</span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 
@@ -321,7 +327,7 @@ export const DetailRecommendations = ({ currentId, sector }: { currentId: string
             onClick={() => navigate(`/business-package?sector=${sector}`)}
             className="px-12 py-5 rounded-full border border-white/10 bg-black text-white text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#2a6df5] hover:border-[#2a6df5] hover:text-white transition-all shadow-xl active:scale-95"
           >
-            Explorer les templates {sector.toUpperCase()}
+            Explorer les templates {sector?.toUpperCase()}
           </button>
         </div>
       </div>
