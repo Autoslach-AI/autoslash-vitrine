@@ -39,17 +39,6 @@ export const IndustryFilters = ({ onFilterChange, activeFilter, searchQuery, onS
     <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 mb-10">
       <div className="flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => onFilterChange(null)}
-            className={`px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase tracking-wider transition-all ${
-              activeFilter === null
-                ? "bg-[#2a6df5] text-white border-[#2a6df5] shadow-[0_0_20px_rgba(42,109,245,0.4)]"
-                : "bg-white/5 border-white/10 text-white/40 hover:border-[#2a6df5]/30 hover:text-white"
-            }`}
-          >
-            Voir Tout
-          </button>
-          
           {ALL_INDUSTRIES.slice(0, visibleCount).map((industry) => (
             <button
               key={industry}

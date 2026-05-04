@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, Globe, ShoppingCart, ChevronDown, Check, ArrowRight, Layout, Info, HelpCircle, Shield, X, Facebook, Linkedin, Instagram, MessageCircle, MoreHorizontal } from "lucide-react";
 import { Template } from "../../types";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import { ROSEHILL_DEMO_HTML } from "./DemoContent";
 import { ArrowDotsButton } from "../ui/arrow-dots-button";
-import { supabase } from "../../lib/supabaseClient";
 
 // --- Section 0: Global App Header (The Topmost Bar) ---
 export const AppHeader = () => {
@@ -256,97 +255,50 @@ export const DetailDescription = ({ template }: { template: Template }) => {
 };
 
 // --- Section 3: Recommendations Grid ---
-export const DetailRecommendations = ({ currentId, sector }: { currentId: string, sector: string }) => {
-  const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('templates')
-          .select('*')
-          .eq('package_type', 'STARTUP')
-          .eq('sector', sector)
-          .eq('is_published', true)
-          .neq('id', currentId)
-          .limit(3);
-
-        if (error) throw error;
-        
-        if (data) {
-          setRecommendations(data);
-        }
-      } catch (err) {
-        console.error("Error fetching recommendations:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecommendations();
-  }, [currentId, sector]);
-
-  const handleSelection = (t: any) => {
-    sessionStorage.setItem('autoslash_selection', JSON.stringify({
-      template_id: t.id,
-      template_sector: t.sector,
-      template_name: t.title,
-      package_type: t.package_type,
-      template_image: t.image_url,
-      template_price: t.price_fcfa
-    }));
-    navigate(`/architecture/${t.id}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (loading || recommendations.length === 0) return null;
+export const DetailRecommendations = ({ currentId, templates, category }: { currentId: string, templates: Template[], category: string }) => {
+  const recommendations = templates
+    .filter(t => t.id !== currentId && t.category === category)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 8);
 
   return (
-    <div className="w-full py-40 bg-zinc-950/50 border-t border-white/5">
+    <div className="w-full py-40 bg-transparent border-t border-white/5">
       <div className="max-w-[1700px] mx-auto px-10">
-        <div className="flex flex-col gap-4 mb-20 text-center">
-          <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#2a6df5]">Suggestions</span>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-none">Architectures Similaires</h2>
+        <div className="flex flex-row items-end justify-between mb-20">
+          <div className="flex flex-col gap-4">
+            <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#2a6df5]">Bibliothèque</span>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-none">Architectures Similaires</h2>
+          </div>
+          <Link to="/startup-package" className="flex items-center gap-3 text-[12px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-[#2a6df5] transition-all group pb-2">
+            Parcourir tout <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
           {recommendations.map((template) => (
-            <div 
+            <Link 
               key={template.id} 
-              onClick={() => handleSelection(template)}
-              className="group flex flex-col gap-6 cursor-pointer"
+              to={`/architecture/${template.id}`}
+              className="group flex flex-col gap-6"
             >
-              <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-500 hover:border-[#2a6df5]/30">
+              <div className="flex flex-col gap-1.5 ml-1">
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/10 group-hover:text-white/30 transition-colors">{template.category}</span>
+              </div>
+              <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-neutral-100 border border-black/[0.03] shadow-md">
                 <img 
-                  src={template.image_url} 
+                  src={template.image} 
                   alt={template.title}
                   className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                  <span className="text-[10px] font-black tracking-widest text-[#2a6df5] uppercase mb-2">{template.sector}</span>
-                  <p className="text-white text-xl font-bold">{template.title}</p>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center p-8 bg-black/5 backdrop-blur-[1px]">
+                  <ArrowDotsButton text="Voir Plus" />
                 </div>
               </div>
-              <div className="flex items-center justify-between px-2">
-                <div className="flex flex-col">
-                  <h3 className="text-lg font-bold text-white group-hover:text-[#2a6df5] transition-colors">{template.title}</h3>
-                  <span className="text-white/30 text-[10px] uppercase font-bold tracking-widest">{template.sector}</span>
-                </div>
-                <span className="text-white font-black text-[12px]">{template.price_fcfa?.toLocaleString()} FCFA</span>
+              <div className="px-4">
+                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#2a6df5] transition-colors">{template.title}</h3>
               </div>
-            </div>
+            </Link>
           ))}
-        </div>
-
-        <div className="flex justify-center">
-          <button 
-            onClick={() => navigate(`/startup-package?sector=${sector}`)}
-            className="px-12 py-5 rounded-full border border-white/10 bg-black text-white text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#2a6df5] hover:border-[#2a6df5] hover:text-white transition-all shadow-xl active:scale-95"
-          >
-            Explorer les templates {sector?.toUpperCase()}
-          </button>
         </div>
       </div>
     </div>

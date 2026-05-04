@@ -59,7 +59,7 @@ export default function EnterpriseDetail() {
         <DetailHero template={template} onOrder={handleOrder} />
         <DetailShowcase template={template} />
         <DetailDescription template={template} />
-        <DetailRecommendations currentId={template.id} sector={template.sector} />
+        <DetailRecommendations currentId={template.id} templates={allTemplates} category={template.category} />
         <Footer strokeColor="#A855F7" />
       </main>
       
