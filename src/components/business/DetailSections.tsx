@@ -65,27 +65,21 @@ export const DetailShowcase = ({ template }: { template: Template }) => {
   return (
     <div className="w-full bg-black py-20 flex justify-center">
       <div className="w-full max-w-[1100px] px-6 relative rounded-[2.5rem] overflow-hidden aspect-[4/3] border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
-        <img
-          src={template.image}
-          alt={template.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          {template.preview_url ? (
-            <a
-              href={template.preview_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 bg-white text-black font-black text-sm uppercase tracking-widest rounded-full hover:scale-105 transition-all"
-            >
-              Visiter le site →
-            </a>
-          ) : (
-            <div className="px-8 py-4 bg-white/10 text-white/40 font-black text-sm uppercase tracking-widest rounded-full border border-white/10">
-              Bientôt disponible
-            </div>
-          )}
-        </div>
+        {template.preview_url ? (
+          <iframe 
+            src={template.preview_url}
+            className="w-full h-full border-none"
+            title="Live Preview"
+            sandbox="allow-scripts allow-same-origin allow-forms"
+            loading="lazy"
+          />
+        ) : (
+          <img
+            src={template.image}
+            alt={template.title}
+            className="w-full h-full object-cover"
+          />
+        )}
       </div>
     </div>
   );
