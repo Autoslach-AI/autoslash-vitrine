@@ -364,8 +364,6 @@
 .ai-btn {
   width: auto;
   min-width: 180px;
-  margin: 10px auto 0;
-  display: block;
   background: #00AAFF;
   color: #01050F;
   border: none;
@@ -384,8 +382,6 @@
 .ai-btn-sec {
   width: auto;
   min-width: 140px;
-  display: block;
-  margin: 10px auto 0;
   background: transparent;
   color: #00AAFF;
   border: 1px solid rgba(0, 170, 255, 0.4);

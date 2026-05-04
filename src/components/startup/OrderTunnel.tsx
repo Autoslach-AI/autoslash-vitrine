@@ -89,14 +89,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         for (const file of uploadedFiles) {
           const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('prospect-assets')
+            .from('prospect-fichiers')
             .upload(fileName, file);
           
           if (uploadError) {
             console.error('Erreur upload bucket:', uploadError);
           } else if (uploadData) {
             const { data: urlData } = supabase.storage
-              .from('prospect-assets')
+              .from('prospect-fichiers')
               .getPublicUrl(fileName);
             assetUrls.push(urlData.publicUrl);
           }
@@ -635,19 +635,19 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             ></textarea>
                         </div>
                         {errorMsg && <div className="text-red-500 text-[11px] font-bold">{errorMsg}</div>}
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="ai-btn"
-                        >
-                            {isSubmitting ? 'Activation...' : 'Commander'}
-                        </button>
+                        <div className="flex justify-center gap-4 mt-8">
+                            <button type="button" className="ai-btn-sec" onClick={() => goStep(3)}>← Précédent</button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="ai-btn"
+                            >
+                                {isSubmitting ? 'Activation...' : 'Commander'}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </main>
-            <div className="flex justify-center mt-8 gap-4">
-              <button className="ai-btn-sec" onClick={() => goStep(3)}>← Précédent</button>
-            </div>
           </div>
 
           {/* STEP 5: Mission Activated */}
