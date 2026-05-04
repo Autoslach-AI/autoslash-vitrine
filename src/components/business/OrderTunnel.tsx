@@ -14,6 +14,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLogoUploaded, setIsLogoUploaded] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,9 +77,30 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
       const saved = sessionStorage.getItem('autoslash_selection');
       const templateId = saved ? JSON.parse(saved).template_id || null : null;
       
-      console.log('=== DÉBUT SOUMISSION ===');
+      console.log('=== DÉBUT SOUMISSION (BUSINESS) ===');
       console.log('FormData:', formData);
       console.log('TemplateId:', templateId);
+
+      // --- UPLOAD DES ASSETS ---
+      const assetUrls: string[] = [];
+      if (uploadedFiles.length > 0) {
+        console.log(`Uploading ${uploadedFiles.length} files...`);
+        for (const file of uploadedFiles) {
+          const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('prospect-assets')
+            .upload(fileName, file);
+          
+          if (uploadError) {
+            console.error('Erreur upload bucket:', uploadError);
+          } else if (uploadData) {
+            const { data: urlData } = supabase.storage
+              .from('prospect-assets')
+              .getPublicUrl(fileName);
+            assetUrls.push(urlData.publicUrl);
+          }
+        }
+      }
 
       const payload = {
         name: formData.company || `${formData.firstName} ${formData.lastName}`,
@@ -90,7 +112,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         region: formData.region || 'Dakar',
         template_id: templateId,
         status: 'PROSPECT',
-        is_test: false
+        is_test: false,
+        assets_urls: assetUrls
       };
 
       console.log('Payload envoyé:', payload);
@@ -129,6 +152,14 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
     setExpandedSteps(prev => 
       prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
     );
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files?.length) {
+      setIsLogoUploaded(true);
+      setUploadedFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+    }
   };
 
   useEffect(() => {
@@ -209,11 +240,6 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
 
   const goStep = (n: number) => {
     setCurrentStep(n);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsLogoUploaded(true);
   };
 
   if (!isOpen) return null;
@@ -424,7 +450,10 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 accept=".png,.jpg,.svg,.pdf"
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files?.length) setIsLogoUploaded(true);
+                  if (e.target.files?.length) {
+                    setIsLogoUploaded(true);
+                    setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                  }
                 }}
               />
               <div 
