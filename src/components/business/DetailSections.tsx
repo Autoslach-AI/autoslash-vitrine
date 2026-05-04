@@ -131,8 +131,19 @@ export const DetailDescription = ({ template }: { template: Template }) => {
             <h2 className="text-3xl font-bold tracking-tight text-white uppercase italic">
               L'Espace Business Augmenté par l'IA
             </h2>
-              <div className="space-y-8 text-white/60 leading-relaxed text-lg font-light">
-                <p>{template?.longDescription}</p>
+              <div className="p-10 rounded-3xl bg-white/5 border border-white/10">
+                <p className="text-white/60 text-lg italic leading-relaxed">
+                  {template.longDescription || "Notre approche combine une esthétique minimaliste avec une performance technique de premier ordre."}
+                </p>
+                <div className="mt-8 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-800 overflow-hidden">
+                    <div className="w-full h-full bg-gradient-to-br from-[#2a6df5] to-[#1a5de5] opacity-50" />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Studio Autoslash</div>
+                    <div className="text-white/40 text-sm italic">Expert Design</div>
+                  </div>
+                </div>
               </div>
             </div>
 
