@@ -29,5 +29,6 @@ export async function getBusinessTemplates(): Promise<Template[]> {
     styles: t.styles || [],
     features: t.features || [],
     pages: t.pages || [],
+    price: t.price_fcfa || 300000,
   }));
 }

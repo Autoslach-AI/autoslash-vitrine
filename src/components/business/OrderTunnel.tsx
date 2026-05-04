@@ -31,6 +31,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
   });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -416,12 +417,23 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             </div>
             <div className="frow">
               <div className="flbl text-white text-[11px] font-bold">Documentation et Logo</div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".png,.jpg,.svg,.pdf"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.length) setIsLogoUploaded(true);
+                }}
+              />
               <div 
                 className={`dropzone py-6 ${isLogoUploaded ? 'done' : ''}`}
                 style={{ borderColor: isLogoUploaded ? '#00F0FF' : 'rgba(255,255,255,0.1)' }}
                 onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('hover'); }}
                 onDragLeave={(e) => { e.currentTarget.classList.remove('hover'); }}
                 onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
               >
                 {isLogoUploaded ? (
                   <>
@@ -507,26 +519,17 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                         </div>
                         <div>
                             <label className="flbl text-white text-[11px] font-bold">
-                                Numéro de téléphone (WhatsApp)
+                                Numéro de téléphone
                             </label>
-                            <div className="relative mt-2">
-                                <div className="absolute inset-y-0 left-3 my-auto h-6 flex items-center border-r border-white/10 pr-2">
-                                    <select className="text-sm bg-transparent outline-none rounded-lg h-full text-white cursor-pointer">
-                                        <option className='bg-[#050a1a]'>SN</option>
-                                        <option className='bg-[#050a1a]'>US</option>
-                                        <option className='bg-[#050a1a]'>MR</option>
-                                    </select>
-                                </div>
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    placeholder="+221 ..."
-                                    required
-                                    className="ai-input text-white text-[14px] pl-[4.5rem] focus:border-[#00F0FF]"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                name="phone"
+                                placeholder="+221 77 000 00 00"
+                                required
+                                className="ai-input text-white text-[14px]"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                            />
                         </div>
                         <div>
                             <label className="flbl text-white text-[11px] font-bold">

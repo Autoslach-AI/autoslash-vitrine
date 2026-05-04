@@ -67,7 +67,7 @@ export default function ArchitectureDetail() {
       <OrderTunnel 
         isOpen={isOrderOpen} 
         onClose={() => setIsOrderOpen(false)} 
-        price={150000} 
+        price={template.price} 
       />
     </div>
   );

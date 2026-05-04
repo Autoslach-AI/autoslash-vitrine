@@ -68,7 +68,7 @@ export default function BusinessDetail() {
       <OrderTunnel 
         isOpen={isOrderOpen} 
         onClose={() => setIsOrderOpen(false)} 
-        price={300000} 
+        price={template.price} 
       />
     </div>
   );

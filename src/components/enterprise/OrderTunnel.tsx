@@ -29,6 +29,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
   });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -405,12 +406,23 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
             </div>
             <div className="frow">
               <div className="flbl text-white text-[11px] font-bold">Documentation et Logos</div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".png,.jpg,.svg,.pdf"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.length) setIsLogoUploaded(true);
+                }}
+              />
               <div 
                 className={`dropzone py-6 ${isLogoUploaded ? 'done' : ''}`}
                 style={{ borderColor: isLogoUploaded ? '#2a6df5' : 'rgba(255,255,255,0.1)' }}
                 onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('hover'); }}
                 onDragLeave={(e) => { e.currentTarget.classList.remove('hover'); }}
                 onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
               >
                 {isLogoUploaded ? (
                   <>
@@ -486,15 +498,17 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                             />
                         </div>
                         <div>
-                            <label className="flbl text-white text-[11px] font-bold">Numéro de téléphone (WhatsApp)</label>
-                            <input 
-                              type="text" 
-                              name="phone"
-                              placeholder="+221 ..." 
-                              required 
-                              className="ai-input text-white text-[14px] focus:border-[#2a6df5]" 
-                              value={formData.phone}
-                              onChange={handleInputChange}
+                            <label className="flbl text-white text-[11px] font-bold">
+                                Numéro de téléphone
+                            </label>
+                            <input
+                                type="text"
+                                name="phone"
+                                placeholder="+221 77 000 00 00"
+                                required
+                                className="ai-input text-white text-[14px]"
+                                value={formData.phone}
+                                onChange={handleInputChange}
                             />
                         </div>
                         <div>
