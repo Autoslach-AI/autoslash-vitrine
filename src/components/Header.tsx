@@ -40,11 +40,8 @@ export function Header() {
 	return (
         <>
             <div className="fixed top-0 left-0 z-[60] p-6 md:p-8 flex items-center gap-3">
-                <a href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity pointer-events-auto">
+                <a href="/" className="flex items-center hover:opacity-80 transition-opacity pointer-events-auto">
                     <AutoslashLogo className="h-10 w-auto" isProcessing={isProcessing} invert={isWhiteBgPage} />
-                    <span className={`text-xl font-bold tracking-tighter uppercase ${isWhiteBgPage ? 'text-black' : 'text-white'}`}>
-                        AUTOSLASH<span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">AI</span>
-                    </span>
                 </a>
             </div>
             <CurvedMenuHeader 

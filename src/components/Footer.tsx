@@ -73,9 +73,8 @@ function Footer({ strokeColor = "#3ca2fa" }: { strokeColor?: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8 lg:gap-16 pb-12">
           {/* Brand section */}
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center">
               <AutoslashLogo className="w-8 h-8" />
-              <span className="text-white text-3xl font-bold">AutoSlashAI</span>
             </div>
             <p className="text-sm leading-relaxed text-white/60">
               L'automatisation intelligente au service de votre croissance.
