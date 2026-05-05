@@ -238,6 +238,34 @@ const ElitePlanPage: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleScrollProgress = () => {
+      const activeLink = document.querySelector('.toc-link.active') as HTMLElement;
+      if (!activeLink) return;
+
+      const href = activeLink.getAttribute('href');
+      if (!href || href === '#pre') {
+        activeLink.style.setProperty('--toc-progress', '0%');
+        return;
+      }
+
+      const targetId = href.substring(1);
+      const targetElement = document.getElementById(targetId);
+      if (!targetElement) return;
+
+      const rect = targetElement.getBoundingClientRect();
+      const winHeight = window.innerHeight;
+      const threshold = winHeight * 0.1; 
+      const scrolled = threshold - rect.top;
+      const progress = Math.min(100, Math.max(0, (scrolled / rect.height) * 100));
+      
+      activeLink.style.setProperty('--toc-progress', `${progress}%`);
+    };
+
+    window.addEventListener('scroll', handleScrollProgress);
+    return () => window.removeEventListener('scroll', handleScrollProgress);
+  }, []);
+
   return (
     <div className="elite-plan-page bg-[#050505] min-h-screen text-white" ref={containerRef}>
       <style>{`
@@ -347,6 +375,22 @@ const ElitePlanPage: React.FC = () => {
           padding-left: 12px;
           display: block;
           text-decoration: none;
+          position: relative;
+        }
+
+        .elite-plan-page .toc-link::after {
+          content: '';
+          display: block;
+          width: var(--toc-progress, 0%);
+          height: 1px;
+          background: #FFD700;
+          margin-top: 4px;
+          transition: width 0.1s linear;
+          opacity: 0;
+        }
+
+        .elite-plan-page .toc-link.active::after {
+          opacity: 1;
         }
 
         .elite-plan-page .toc-link.active {
