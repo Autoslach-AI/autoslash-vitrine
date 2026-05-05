@@ -75,12 +75,19 @@ const ElitePlanPage: React.FC = () => {
     const urls: string[] = [];
     
     for (const file of Array.from(files)) {
-      const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+      // Générer un nom de fichier unique basé sur timestamp uniquement
+      const fileExt = file.name.split('.').pop() || 'bin';
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
       console.log(`Tentative d'upload: ${fileName}`);
       
+      // Uploader avec le vrai nom dans les métadonnées
       const { data, error } = await supabase.storage
         .from('prospect-fichiers')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          contentType: file.type,
+          upsert: false
+        });
       
       if (error) {
         console.error("Erreur d'upload Supabase:", error);
