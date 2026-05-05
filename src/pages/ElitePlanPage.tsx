@@ -28,6 +28,9 @@ const ElitePlanPage: React.FC = () => {
   });
 
   const [budget, setBudget] = useState(1000000);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -67,34 +70,64 @@ const ElitePlanPage: React.FC = () => {
     }
   };
 
+  const handleFileUpload = async (files: FileList) => {
+    setIsUploading(true);
+    const urls: string[] = [];
+    
+    for (const file of Array.from(files)) {
+      const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+      const { data, error } = await supabase.storage
+        .from('prospect-fichiers')
+        .upload(fileName, file);
+      
+      if (!error && data) {
+        const { data: urlData } = supabase.storage
+          .from('prospect-fichiers')
+          .getPublicUrl(fileName);
+        urls.push(urlData.publicUrl);
+      }
+    }
+    
+    setUploadedFiles(prev => [...prev, ...urls]);
+    setIsUploading(false);
+  };
+
   const submitLead = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const { data, error } = await supabase
-      .from('enterprises')
-      .insert({
-        name: formData.societe || `${formData.nom} ${formData.prenom}`,
-        package_type: 'ELITE',
-        sector: formData.secteur || 'Général Elite',
-        email: formData.email,
-        phone: formData.telephone,
-        message: `${formData.message}\nRendez-vous : ${format(formData.appointmentDate, "dd/MM/yyyy")} à ${formData.appointmentTime}`,
-        region: formData.region || 'Dakar',
-        status: 'PROSPECT',
-        is_test: false
-      })
-      .select()
-      .single();
-    
-    setIsSubmitting(false);
-    if (!error) {
+    try {
+      const { data, error } = await supabase
+        .from('enterprises')
+        .insert({
+          name: formData.societe || `${formData.nom} ${formData.prenom}`,
+          package_type: 'ELITE',
+          sector: formData.secteur || 'Général',
+          email: formData.email,
+          phone: formData.telephone,
+          message: `${formData.message}\nBudget : ${budget.toLocaleString('fr-FR')} FCFA\nRendez-vous : ${format(formData.appointmentDate, "dd/MM/yyyy")} à ${formData.appointmentTime}`,
+          region: formData.region || 'Dakar',
+          status: 'PROSPECT',
+          is_test: false,
+          assets_urls: uploadedFiles
+        })
+        .select()
+        .single();
+
+      if (error) {
+        setErrorMsg(`Erreur: ${error.message}`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsSubmitting(false);
       setIsSuccess(true);
       setCurrentStep(3);
-    } else {
-      console.error('Supabase error:', error);
-      setErrorMsg("Une erreur est survenue lors de l'envoi. Veuillez vérifier votre connexion.");
+
+    } catch (err) {
+      setErrorMsg(`Erreur inattendue: ${err}`);
+      setIsSubmitting(false);
     }
   };
 
@@ -689,6 +722,32 @@ const ElitePlanPage: React.FC = () => {
           border-left: 1px solid #FFD700;
           padding-left: 20px;
         }
+
+        .elite-dropzone {
+          border: 1px solid rgba(255, 215, 0, 0.3);
+          border-radius: 8px;
+          padding: 30px;
+          text-align: center;
+          cursor: pointer;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 13px;
+          letter-spacing: 0.1em;
+          transition: all 0.3s ease;
+          margin-bottom: 20px;
+        }
+
+        .elite-dropzone:hover {
+          border-color: #FFD700;
+          color: #FFD700;
+        }
+
+        .elite-dropzone-hint {
+          display: block;
+          font-size: 10px;
+          color: rgba(255,255,255,0.3);
+          margin-top: 8px;
+          letter-spacing: 0.2em;
+        }
       `}</style>
 
       <div className="container">
@@ -821,6 +880,35 @@ const ElitePlanPage: React.FC = () => {
                     </div>
                     <textarea required className="elite-input min-h-[150px] mb-6" name="message" placeholder="Description de vos besoins spécifiques en automatisation*" value={formData.message} onChange={handleInputChange}></textarea>
                     
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.pptx,.txt"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.length) handleFileUpload(e.target.files);
+                      }}
+                    />
+
+                    <div
+                      className="elite-dropzone"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {isUploading ? (
+                        <span>Chargement en cours...</span>
+                      ) : uploadedFiles.length > 0 ? (
+                        <span>✓ {uploadedFiles.length} fichier(s) prêt(s)</span>
+                      ) : (
+                        <>
+                          <span>↑ Déposer vos documents ici</span>
+                          <span className="elite-dropzone-hint">
+                            PDF · DOC · XLS · PNG · JPG · ZIP acceptés
+                          </span>
+                        </>
+                      )}
+                    </div>
+
                     {errorMsg && <div className="text-red-500 mb-4 text-center font-bold">{errorMsg}</div>}
 
                       <button 
