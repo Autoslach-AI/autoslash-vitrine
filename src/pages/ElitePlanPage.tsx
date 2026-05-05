@@ -76,11 +76,17 @@ const ElitePlanPage: React.FC = () => {
     
     for (const file of Array.from(files)) {
       const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+      console.log(`Tentative d'upload: ${fileName}`);
+      
       const { data, error } = await supabase.storage
         .from('prospect-fichiers')
         .upload(fileName, file);
       
-      if (!error && data) {
+      if (error) {
+        console.error("Erreur d'upload Supabase:", error);
+        setErrorMsg(`Erreur upload: ${error.message}`);
+      } else if (data) {
+        console.log("Upload réussi:", data);
         const { data: urlData } = supabase.storage
           .from('prospect-fichiers')
           .getPublicUrl(fileName);
