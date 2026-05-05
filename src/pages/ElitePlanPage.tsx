@@ -723,7 +723,7 @@ const ElitePlanPage: React.FC = () => {
             <section id="conversion" className="conversion-tunnel">
               <div className={`tunnel-step ${currentStep >= 1 ? 'active' : ''}`}>
                 <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Carte 1 : Synchronisation Stratégique</h2>
+                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Synchronisation Stratégique</h2>
                   <p className="mb-8 opacity-70">Réservez votre créneau pour une session d'ingénierie préliminaire.</p>
                   <div className="calendar-container">
                     <Calendar 
@@ -756,7 +756,7 @@ const ElitePlanPage: React.FC = () => {
 
               <div className={`tunnel-step ${currentStep >= 2 ? 'active' : ''} ${currentStep < 2 ? 'pointer-events-none' : ''}`}>
                 <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Carte 2 : Qualification & Vision</h2>
+                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Qualification Vision</h2>
                   <p className="mb-8 opacity-70">Détaillez vos besoins techniques pour notre équipe d'experts.</p>
                   <form onSubmit={submitLead} className="flex flex-col gap-4">
                     <div className="input-group">
@@ -799,7 +799,7 @@ const ElitePlanPage: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                       >
-                        <h2 className="text-4xl font-bold mb-4 uppercase tracking-tighter text-[#FFD700]">Carte 3 : Déploiement & Résultat</h2>
+                        <h2 className="text-4xl font-bold mb-4 uppercase tracking-tighter text-[#FFD700]">Déploiement Résultat</h2>
                         <div className="w-20 h-20 bg-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#FFD700]/40">
                           <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
@@ -811,7 +811,7 @@ const ElitePlanPage: React.FC = () => {
                       </motion.div>
                     ) : (
                       <div className="opacity-30">
-                        <h2 className="text-3xl font-bold uppercase tracking-widest">Carte 3 : Résultat</h2>
+                        <h2 className="text-3xl font-bold uppercase tracking-widest">Résultat</h2>
                         <p>En attente de validation des étapes précédentes...</p>
                       </div>
                     )}
