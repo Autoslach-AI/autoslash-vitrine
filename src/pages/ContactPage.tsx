@@ -79,7 +79,7 @@ const workspaces = [
 ];
 
 export default function ContactPage() {
-  const [selectedWorkspace, setSelectedWorkspace] = useState(workspaces[0]);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
   const [sector, setSector] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -96,6 +96,9 @@ export default function ContactPage() {
   const validate = () => {
     const newErrors: {[key: string]: string} = {};
 
+    if (!selectedWorkspace) {
+      newErrors.package = "Veuillez sélectionner un package";
+    }
     if (!firstName.trim()) {
       newErrors.firstName = "Le prénom est obligatoire";
     }
@@ -143,7 +146,7 @@ export default function ContactPage() {
           sector: sector || null,
           region: region || "AFRIQUE-OUEST",
           message: message,
-          package_type: selectedWorkspace.title.toUpperCase(),
+          package_type: selectedWorkspace?.title?.toUpperCase() || "CUSTOM",
           status: "PROSPECT",
           is_test: false,
           template_id: null,
@@ -420,16 +423,22 @@ export default function ContactPage() {
             <Separator className="col-span-full my-4 bg-neutral-100" />
             <div className="col-span-full">
               <Label htmlFor="package-select" className="font-semibold text-neutral-900 block mb-4">
-                Sélectionnez votre package
+                Sélectionnez votre package<span className="text-red-500">*</span>
               </Label>
               
               <Select 
-                defaultValue={selectedWorkspace.id.toString()}
-                onValueChange={(value) => 
-                  setSelectedWorkspace(workspaces.find(w => w.id.toString() === value) || workspaces[0])
-                }
+                onValueChange={(value) => {
+                  setSelectedWorkspace(workspaces.find(w => w.id.toString() === value));
+                  if (errors.package) setErrors(prev => ({ ...prev, package: "" }));
+                }}
+                value={selectedWorkspace?.id?.toString() || ""}
               >
-                <SelectTrigger id="package-select" className="border-neutral-200 text-neutral-900 h-12 rounded-xl">
+                <SelectTrigger 
+                  id="package-select" 
+                  className={`text-neutral-900 h-12 rounded-xl ${
+                    errors.package ? "border-red-400" : "border-neutral-200"
+                  }`}
+                >
                   <SelectValue placeholder="Choisir un package" />
                 </SelectTrigger>
                 <SelectContent className="bg-white text-neutral-900">
@@ -440,47 +449,52 @@ export default function ContactPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.package && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{errors.package}</p>
+              )}
 
               {/* Individual Selected Package Card */}
-              <div className="mt-8 flex justify-center">
-                <div className="w-full border-2 border-neutral-900 rounded-2xl p-8 bg-neutral-50 shadow-xl shadow-neutral-100 transition-all duration-300">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h4 className="text-xl font-black text-neutral-900 uppercase tracking-tighter">
-                            {selectedWorkspace.title}
-                        </h4>
-                        <p className="text-sm text-neutral-500 mt-1 leading-relaxed max-w-sm">
-                            {selectedWorkspace.description}
-                        </p>
+              {selectedWorkspace && (
+                <div className="mt-8 flex justify-center">
+                  <div className="w-full border-2 border-neutral-900 rounded-2xl p-8 bg-neutral-50 shadow-xl shadow-neutral-100 transition-all duration-300">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                          <h4 className="text-xl font-black text-neutral-900 uppercase tracking-tighter">
+                              {selectedWorkspace.title}
+                          </h4>
+                          <p className="text-sm text-neutral-500 mt-1 leading-relaxed max-w-sm">
+                              {selectedWorkspace.description}
+                          </p>
+                      </div>
+                      <div className="w-4 h-4 rounded-full bg-neutral-900" />
                     </div>
-                    <div className="w-4 h-4 rounded-full bg-neutral-900" />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mb-8 text-neutral-900">
-                    {selectedWorkspace.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                            <div className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
-                            {feature}
-                        </div>
-                    ))}
-                  </div>
-                  
-                  <div className="pt-6 border-t border-neutral-200 flex justify-between items-end">
-                    <div>
-                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Configuration</span>
-                        <span className="text-2xl font-black text-neutral-900">
-                          {selectedWorkspace.price}
-                        </span>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mb-8 text-neutral-900">
+                      {selectedWorkspace.features.map((feature: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
+                              <div className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
+                              {feature}
+                          </div>
+                      ))}
                     </div>
-                    <div className="text-right text-neutral-900">
-                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1 uppercase">Maintenance</span>
-                        <span className="text-lg font-bold text-emerald-600">
-                          {selectedWorkspace.maintenance}{selectedWorkspace.maintenance !== "SLA Garanti" && "/mois"}
-                        </span>
+                    
+                    <div className="pt-6 border-t border-neutral-200 flex justify-between items-end">
+                      <div>
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Configuration</span>
+                          <span className="text-2xl font-black text-neutral-900">
+                            {selectedWorkspace.price}
+                          </span>
+                      </div>
+                      <div className="text-right text-neutral-900">
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1 uppercase">Maintenance</span>
+                          <span className="text-lg font-bold text-emerald-600">
+                            {selectedWorkspace.maintenance}{selectedWorkspace.maintenance !== "SLA Garanti" && "/mois"}
+                          </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <p className="mt-6 text-xs text-neutral-400 italic">
                 * Les prix indiqués sont des bases de calcul pour une infrastructure standard.
