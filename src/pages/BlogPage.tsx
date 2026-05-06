@@ -12,7 +12,6 @@ export default function BlogPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("Tous");
-  const [activeType, setActiveType] = useState("News Articles");
   const [currentPage, setCurrentPage] = useState(1);
   const POSTS_PER_PAGE = 4;
 
@@ -48,12 +47,6 @@ export default function BlogPage() {
       result = result.filter(post => post.category === activeFilter || post.type === activeFilter);
     }
 
-    // Filtre par type (Radio Buttons)
-    // On considère que "News Articles" est le type par défaut ou un type spécifique
-    if (activeType) {
-      result = result.filter(post => post.type === activeType);
-    }
-
     // Filtre par recherche
     if (searchQuery.trim()) {
       result = result.filter(post =>
@@ -64,7 +57,7 @@ export default function BlogPage() {
 
     setFilteredPosts(result);
     setCurrentPage(1);
-  }, [activeFilter, searchQuery, blogPosts, activeType]);
+  }, [activeFilter, searchQuery, blogPosts]);
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const paginatedPosts = filteredPosts.slice(
@@ -145,45 +138,6 @@ export default function BlogPage() {
           {activeFilter === "Tous" ? "Toute l'actualité" : activeFilter}
         </h2>
 
-        {/* Filter Bar — TOUJOURS VISIBLE */}
-        <div className="border-t border-neutral-200 pt-8 mt-12 mb-12">
-           <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
-              <div className="flex items-center gap-6 text-sm font-bold uppercase tracking-wider">
-                <span className="text-neutral-400">Show:</span>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    name="display" 
-                    checked={activeType === "News Articles"} 
-                    onChange={() => setActiveType("News Articles")}
-                    className="accent-[#CC0000]" 
-                  />
-                  News Articles
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    name="display" 
-                    checked={activeType === "In the Media"} 
-                    onChange={() => setActiveType("In the Media")}
-                    className="accent-[#CC0000]" 
-                  />
-                  In the Media
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    name="display" 
-                    checked={activeType === "Audio"} 
-                    onChange={() => setActiveType("Audio")}
-                    className="accent-[#CC0000]" 
-                  />
-                  Audio
-                </label>
-              </div>
-           </div>
-        </div>
-
         {/* Blog entries list */}
         <div className="relative min-h-[600px]">
           {isLoading ? (
@@ -201,12 +155,17 @@ export default function BlogPage() {
               ))}
             </div>
           ) : filteredPosts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <p className="text-4xl font-black text-neutral-200 uppercase tracking-tighter mb-4">
+            <div className="border-t border-neutral-200 mt-8 flex flex-col items-center justify-center py-32 text-center">
+              <p 
+                className="text-5xl font-black text-neutral-100 uppercase tracking-tighter mb-3"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
                 Aucun article
               </p>
               <p className="text-sm text-neutral-400">
-                {searchQuery ? `Aucun résultat pour "${searchQuery}"` : "Aucun article publié dans cette catégorie"}
+                {searchQuery 
+                  ? `Aucun résultat pour "${searchQuery}"` 
+                  : "Aucun article publié dans cette catégorie"}
               </p>
             </div>
           ) : (
