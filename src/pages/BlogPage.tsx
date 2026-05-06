@@ -12,6 +12,7 @@ export default function BlogPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("Tous");
+  const [activeType, setActiveType] = useState("News Articles");
   const [currentPage, setCurrentPage] = useState(1);
   const POSTS_PER_PAGE = 4;
 
@@ -42,9 +43,15 @@ export default function BlogPage() {
   useEffect(() => {
     let result = [...blogPosts];
 
-    // Filtre par topic
+    // Filtre par topic (Top Nav)
     if (activeFilter !== "Tous") {
       result = result.filter(post => post.category === activeFilter || post.type === activeFilter);
+    }
+
+    // Filtre par type (Radio Buttons)
+    // On considère que "News Articles" est le type par défaut ou un type spécifique
+    if (activeType) {
+      result = result.filter(post => post.type === activeType);
     }
 
     // Filtre par recherche
@@ -57,7 +64,7 @@ export default function BlogPage() {
 
     setFilteredPosts(result);
     setCurrentPage(1);
-  }, [activeFilter, searchQuery, blogPosts]);
+  }, [activeFilter, searchQuery, blogPosts, activeType]);
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const paginatedPosts = filteredPosts.slice(
@@ -137,6 +144,45 @@ export default function BlogPage() {
         >
           {activeFilter === "Tous" ? "Toute l'actualité" : activeFilter}
         </h2>
+
+        {/* Filter Bar — TOUJOURS VISIBLE */}
+        <div className="border-t border-neutral-200 pt-8 mt-12 mb-12">
+           <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
+              <div className="flex items-center gap-6 text-sm font-bold uppercase tracking-wider">
+                <span className="text-neutral-400">Show:</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="display" 
+                    checked={activeType === "News Articles"} 
+                    onChange={() => setActiveType("News Articles")}
+                    className="accent-[#CC0000]" 
+                  />
+                  News Articles
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="display" 
+                    checked={activeType === "In the Media"} 
+                    onChange={() => setActiveType("In the Media")}
+                    className="accent-[#CC0000]" 
+                  />
+                  In the Media
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="display" 
+                    checked={activeType === "Audio"} 
+                    onChange={() => setActiveType("Audio")}
+                    className="accent-[#CC0000]" 
+                  />
+                  Audio
+                </label>
+              </div>
+           </div>
+        </div>
 
         {/* Blog entries list */}
         <div className="relative min-h-[600px]">
@@ -228,53 +274,51 @@ export default function BlogPage() {
           )}
         </div>
         
-        {/* Pagination Bar */}
-        {!isLoading && filteredPosts.length > 0 && (
-          <div className="mt-20 border border-neutral-200 flex items-stretch h-16 bg-white">
-            <div className="flex-1 flex items-center px-8 border-r border-neutral-200">
-              <span className="text-base font-medium text-neutral-900">
-                Page {currentPage} / {totalPages || 1}
-              </span>
-            </div>
-            <div className="flex divide-x border-neutral-200">
-              <button 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-6 flex items-center justify-center hover:bg-neutral-50 transition-colors group disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <svg 
-                  viewBox="0 0 24 24" 
-                  className="w-8 h-8 text-[#CC0000] group-hover:scale-110 transition-transform" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button 
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-6 flex items-center justify-center hover:bg-neutral-50 transition-colors group disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <svg 
-                  viewBox="0 0 24 24" 
-                  className="w-8 h-8 text-[#CC0000] group-hover:scale-110 transition-transform" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-            <div className="w-16 h-full flex items-center justify-center border-l border-neutral-200" />
+        {/* Pagination Bar — TOUJOURS VISIBLE */}
+        <div className="mt-20 border border-neutral-200 flex items-stretch h-16 bg-white">
+          <div className="flex-1 flex items-center px-8 border-r border-neutral-200">
+            <span className="text-base font-medium text-neutral-900">
+              Page {currentPage} / {totalPages || 1}
+            </span>
           </div>
-        )}
+          <div className="flex divide-x border-neutral-200">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-6 flex items-center justify-center hover:bg-neutral-50 transition-colors group disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                className="w-8 h-8 text-[#CC0000] group-hover:scale-110 transition-transform" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-6 flex items-center justify-center hover:bg-neutral-50 transition-colors group disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                className="w-8 h-8 text-[#CC0000] group-hover:scale-110 transition-transform" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+          <div className="w-16 h-full flex items-center justify-center border-l border-neutral-200" />
+        </div>
       </div>
     </div>
   );
