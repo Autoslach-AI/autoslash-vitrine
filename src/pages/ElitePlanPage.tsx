@@ -975,7 +975,7 @@ const ElitePlanPage: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-[#050505]"
+            className="fixed inset-0 flex items-center justify-center p-4 z-[200] bg-[#050505]"
           >
             <div className="tunnel-card text-center py-20 max-w-2xl w-full border-[#FFD700]/30 shadow-[#FFD700]/5 shadow-2xl">
               <h2 className="text-[#FFD700] text-4xl font-bold mb-8 tracking-tighter uppercase">
