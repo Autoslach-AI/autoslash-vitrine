@@ -555,6 +555,29 @@ const ElitePlanPage: React.FC = () => {
           filter: brightness(1.1);
         }
 
+        .elite-button-secondary {
+          background: transparent;
+          color: white;
+          padding: 1.25rem 2.5rem;
+          border-radius: 0.5rem;
+          font-weight: 700;
+          cursor: pointer;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          justify-content: center;
+          width: 100%;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .elite-button-secondary:hover {
+          border-color: white;
+          background: rgba(255, 255, 255, 0.05);
+        }
+
         .calendar-container {
           display: flex;
           flex-direction: column;
@@ -926,43 +949,43 @@ const ElitePlanPage: React.FC = () => {
 
                       <button 
                         type="submit" 
-                        disabled={isSubmitting || !formData.appointmentTime}
-                        className="elite-button disabled:opacity-50"
+                        disabled={isSubmitting || isSuccess}
+                        className="elite-button"
                       >
-                        {isSubmitting ? "ENVOI EN COURS..." : "Parlons de votre réussite"}
+                        {isSubmitting ? "ENVOI EN COURS..." : "PARLONS DE VOTRE RÉUSSITE"}
                       </button>
                   </form>
                 </div>
               </div>
 
-              <div className={`tunnel-step ${currentStep >= 3 ? 'active' : ''}`}>
-                <div className="tunnel-card text-center py-20 bg-gradient-to-br from-[#FFD700]/10 to-transparent">
-                  <AnimatePresence mode="wait">
-                    {isSuccess ? (
-                      <motion.div
-                        key="success"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                      >
-                        <h2 className="text-4xl font-bold mb-4 uppercase tracking-tighter text-[#FFD700]">Déploiement Résultat</h2>
-                        <div className="w-20 h-20 bg-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#FFD700]/40">
-                          <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <p className="text-xl opacity-80 max-w-md mx-auto">
-                          Architecture verrouillée. Votre session stratégique du <strong>{format(formData.appointmentDate, "dd MMMM yyyy")}</strong> est confirmée.
-                        </p>
-                      </motion.div>
-                    ) : (
-                      <div className="opacity-30">
-                        <h2 className="text-3xl font-bold uppercase tracking-widest">Résultat</h2>
-                        <p>En attente de validation des étapes précédentes...</p>
-                      </div>
-                    )}
-                  </AnimatePresence>
+              {/* CARTE 3 — visible UNIQUEMENT après succès */}
+              {isSuccess && (
+                <div className="tunnel-card text-center py-20">
+                  <h2 className="text-[#FFD700] text-3xl font-bold mb-6">
+                    SESSION CONFIRMÉE
+                  </h2>
+                  <p className="text-white/60 mb-4">
+                    Rendez-vous le {format(formData.appointmentDate, "dd/MM/yyyy")} à {formData.appointmentTime}
+                  </p>
+                  <p className="text-white/40 text-sm mb-12">
+                    Notre équipe vous contacte sous 24h pour confirmer votre session d'ingénierie.
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    <button 
+                      onClick={() => window.location.href = '/'}
+                      className="elite-button-secondary"
+                    >
+                      ← RETOUR ACCUEIL
+                    </button>
+                    <button 
+                      onClick={() => window.location.href = '/pricing'}
+                      className="elite-button"
+                    >
+                      VOIR NOS PACKAGES →
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </section>
           </article>
         </main>
