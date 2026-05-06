@@ -99,10 +99,25 @@ export default function ContactPage() {
     if (!firstName.trim()) {
       newErrors.firstName = "Le prénom est obligatoire";
     }
+    if (!lastName.trim()) {
+      newErrors.lastName = "Le nom est obligatoire";
+    }
     if (!email.trim()) {
       newErrors.email = "L'email est obligatoire";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "L'adresse email n'est pas valide";
+    }
+    if (!phone.trim()) {
+      newErrors.phone = "Le numéro de téléphone est obligatoire";
+    }
+    if (!company.trim()) {
+      newErrors.company = "Le nom de la société est obligatoire";
+    }
+    if (!region.trim()) {
+      newErrors.region = "La région ou le pays est obligatoire";
+    }
+    if (!sector || !sector.trim()) {
+      newErrors.sector = "Veuillez sélectionner votre secteur";
     }
     if (!message.trim()) {
       newErrors.message = "Veuillez décrire votre projet";
@@ -216,7 +231,7 @@ export default function ContactPage() {
               </div>
               <div className="col-span-full sm:col-span-3">
                 <Label htmlFor="last-name" className="font-medium text-neutral-900">
-                  Nom
+                  Nom<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="text"
@@ -225,9 +240,19 @@ export default function ContactPage() {
                   autoComplete="family-name"
                   placeholder="Crown"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (errors.lastName) setErrors(prev => ({ ...prev, lastName: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.lastName 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.lastName && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.lastName}</p>
+                )}
               </div>
               <div className="col-span-full">
                 <Label htmlFor="email" className="font-medium text-neutral-900">
@@ -257,7 +282,7 @@ export default function ContactPage() {
               </div>
               <div className="col-span-full">
                 <Label htmlFor="phone" className="font-medium text-neutral-900">
-                  Téléphone / WhatsApp
+                  Téléphone / WhatsApp<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="tel"
@@ -265,13 +290,23 @@ export default function ContactPage() {
                   name="phone"
                   placeholder="+221 77 000 00 00"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (errors.phone) setErrors(prev => ({ ...prev, phone: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.phone 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.phone}</p>
+                )}
               </div>
               <div className="col-span-full sm:col-span-3">
                 <Label htmlFor="company" className="font-medium text-neutral-900">
-                  Société
+                  Société<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="text"
@@ -280,13 +315,23 @@ export default function ContactPage() {
                   autoComplete="organization"
                   placeholder="Entreprise, Inc."
                   value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setCompany(e.target.value);
+                    if (errors.company) setErrors(prev => ({ ...prev, company: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.company 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.company && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.company}</p>
+                )}
               </div>
               <div className="col-span-full sm:col-span-3">
                 <Label htmlFor="region" className="font-medium text-neutral-900">
-                  Pays / Région
+                  Pays / Région<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="text"
@@ -294,13 +339,23 @@ export default function ContactPage() {
                   name="region"
                   placeholder="Sénégal, France, Canada..."
                   value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setRegion(e.target.value);
+                    if (errors.region) setErrors(prev => ({ ...prev, region: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.region 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.region && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.region}</p>
+                )}
               </div>
             <div className="col-span-full sm:col-span-3">
               <Label htmlFor="sector" className="font-medium text-neutral-900">
-                Secteur d'activité
+                Secteur d'activité<span className="text-red-500">*</span>
               </Label>
               <div className="relative mt-2">
                 {sector === "autre" ? (
@@ -309,10 +364,17 @@ export default function ContactPage() {
                       type="text"
                       name="other-sector"
                       placeholder="Votre secteur..."
-                      className="border-neutral-900 text-neutral-900 placeholder:text-neutral-400 pr-10"
+                      className={`text-neutral-900 placeholder:text-neutral-400 pr-10 focus:border-neutral-900 ${
+                        errors.sector 
+                          ? "border-red-400" 
+                          : "border-neutral-900"
+                      }`}
                       required
                       autoFocus
-                      onChange={(e) => setSector(e.target.value)}
+                      onChange={(e) => {
+                        setSector(e.target.value);
+                        if (errors.sector) setErrors(prev => ({ ...prev, sector: "" }));
+                      }}
                     />
                     <button
                       type="button"
@@ -323,8 +385,22 @@ export default function ContactPage() {
                     </button>
                   </div>
                 ) : (
-                  <Select onValueChange={setSector} value={sector}>
-                    <SelectTrigger id="sector" name="sector" className="border-neutral-200 text-neutral-900">
+                  <Select 
+                    onValueChange={(val) => {
+                      setSector(val);
+                      if (errors.sector) setErrors(prev => ({ ...prev, sector: "" }));
+                    }} 
+                    value={sector}
+                  >
+                    <SelectTrigger 
+                      id="sector" 
+                      name="sector" 
+                      className={`text-neutral-900 ${
+                        errors.sector 
+                          ? "border-red-400" 
+                          : "border-neutral-200"
+                      }`}
+                    >
                       <SelectValue placeholder="Choisir un secteur" />
                     </SelectTrigger>
                     <SelectContent className="bg-white text-neutral-900">
@@ -335,6 +411,9 @@ export default function ContactPage() {
                       <SelectItem value="autre">Autre</SelectItem>
                     </SelectContent>
                   </Select>
+                )}
+                {errors.sector && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.sector}</p>
                 )}
               </div>
             </div>
