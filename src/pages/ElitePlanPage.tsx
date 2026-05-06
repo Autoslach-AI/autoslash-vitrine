@@ -786,210 +786,231 @@ const ElitePlanPage: React.FC = () => {
         }
       `}</style>
 
-      <div className="container">
-        <div className="table-of-contents"></div>
-        
-        <header id="pre">
-          <h1 className="fluid uppercase tracking-tight">L'INGÉNIERIE DE RÉSULTAT ABSOLU</h1>
-          <p className="text-xl mb-12 opacity-80 leading-relaxed font-light">
-            Pour les leaders exigeant une automatisation intégrale et un accompagnement business total jusqu'à l'obtention matérielle de vos résultats. Le Plan Élite est l'architecture la plus puissante jamais conçue par Autoslash AI.
-          </p>
-        </header>
-
-        <main>
-          <article>
-            <p className="intro">
-              Le plan Élite représente le sommet de notre expertise. Ce n'est pas seulement un outil, c'est une transformation radicale de votre infrastructure opérationnelle par l'IA et l'automatisation.
-            </p>
-
-            <section id="strategie">
-              <h2>Stratégie & Vision</h2>
-              <p>Nous commençons par une analyse profonde de vos processus business pour identifier les leviers d'automatisation les plus impactants.</p>
-            </section>
-
-            <section id="expertise">
-              <h2>Expertise Dédiée</h2>
-              <p>Une équipe d'agents IA experts est entraînée spécifiquement sur vos données pour répondre à vos besoins 24/7.</p>
-            </section>
-
-            <section id="vision-elite" className="vision-section">
-              <p className="elite-manifesto">
-                Le Plan Élite est l'architecture la plus puissante jamais conçue par Autoslash AI.
-                Ce n'est pas un abonnement. Ce n'est pas un outil. C'est un engagement absolu —
-                une équipe d'agents IA et d'experts humains déployée exclusivement pour votre entreprise,
-                entraînée sur vos données, vos processus, votre secteur, disponible 24h/24,
-                qui reste à vos côtés — sans limite de temps — jusqu'à ce que vos résultats
-                soient une réalité tangible et mesurable. Vous définissez l'ambition.
-                Nous livrons l'exécution.
+      <AnimatePresence mode="wait">
+        {!isSuccess ? (
+          <motion.div 
+            key="page-content"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="container"
+          >
+            <div className="table-of-contents"></div>
+            
+            <header id="pre">
+              <h1 className="fluid uppercase tracking-tight">L'INGÉNIERIE DE RÉSULTAT ABSOLU</h1>
+              <p className="text-xl mb-12 opacity-80 leading-relaxed font-light">
+                Pour les leaders exigeant une automatisation intégrale et un accompagnement business total jusqu'à l'obtention matérielle de vos résultats. Le Plan Élite est l'architecture la plus puissante jamais conçue par Autoslash AI.
               </p>
-            </section>
-
-            <section id="budget-elite" className="budget-section">
-              <h2 className="budget-title">DÉFINISSEZ L'ÉCHELLE DE VOTRE AMBITION</h2>
-              
-              <div className="budget-slider-container">
-                <input
-                  type="range"
-                  min={1000000}
-                  max={20000000}
-                  step={500000}
-                  value={budget}
-                  onChange={(e) => setBudget(Number(e.target.value))}
-                  className="budget-slider"
-                />
-                <div className="budget-display">
-                  <span className="budget-amount">
-                    {budget.toLocaleString('fr-FR')} FCFA
-                  </span>
-                  {budget >= 20000000 && (
-                    <span className="budget-unlimited">et plus</span>
-                  )}
-                </div>
-
-                <div className="budget-labels">
-                  <span>1.000.000 FCFA</span>
-                  <span>Illimité</span>
-                </div>
-
-                <div className="budget-description">
-                  <p>→ Équipe agents IA + experts humains dédiés</p>
-                  <p>→ Accompagnement jusqu'à l'obtention de vos résultats</p>
-                  <p>→ Profondeur du déploiement ajustée à votre ambition</p>
-                </div>
-              </div>
-            </section>
-
-            <section id="conversion" className="conversion-tunnel">
-              <div className={`tunnel-step ${currentStep >= 1 ? 'active' : ''}`}>
-                <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Synchronisation Stratégique</h2>
-                  <p className="mb-8 opacity-70">Réservez votre créneau pour une session d'ingénierie préliminaire.</p>
-                  <div className="calendar-container">
-                    <Calendar 
-                      onChange={handleDateChange} 
-                      value={formData.appointmentDate} 
-                      minDate={new Date()} 
-                      className="rounded-xl border shadow-lg" 
+            </header>
+    
+            <main>
+              <article>
+                <p className="intro">
+                  Le plan Élite représente le sommet de notre expertise. Ce n'est pas seulement un outil, c'est une transformation radicale de votre infrastructure opérationnelle par l'IA et l'automatisation.
+                </p>
+    
+                <section id="strategie">
+                  <h2>Stratégie & Vision</h2>
+                  <p>Nous commençons par une analyse profonde de vos processus business pour identifier les leviers d'automatisation les plus impactants.</p>
+                </section>
+    
+                <section id="expertise">
+                  <h2>Expertise Dédiée</h2>
+                  <p>Une équipe d'agents IA experts est entraînée spécifiquement sur vos données pour répondre à vos besoins 24/7.</p>
+                </section>
+    
+                <section id="vision-elite" className="vision-section">
+                  <p className="elite-manifesto">
+                    Le Plan Élite est l'architecture la plus puissante jamais conçue par Autoslash AI.
+                    Ce n'est pas un abonnement. Ce n'est pas un outil. C'est un engagement absolu —
+                    une équipe d'agents IA et d'experts humains déployée exclusivement pour votre entreprise,
+                    entraînée sur vos données, vos processus, votre secteur, disponible 24h/24,
+                    qui reste à vos côtés — sans limite de temps — jusqu'à ce que vos résultats
+                    soient une réalité tangible et mesurable. Vous définissez l'ambition.
+                    Nous livrons l'exécution.
+                  </p>
+                </section>
+    
+                <section id="budget-elite" className="budget-section">
+                  <h2 className="budget-title">DÉFINISSEZ L'ÉCHELLE DE VOTRE AMBITION</h2>
+                  
+                  <div className="budget-slider-container">
+                    <input
+                      type="range"
+                      min={1000000}
+                      max={20000000}
+                      step={500000}
+                      value={budget}
+                      onChange={(e) => setBudget(Number(e.target.value))}
+                      className="budget-slider"
                     />
-                    
-                    <div className="w-full">
-                      <h3 className="text-sm font-bold uppercase mb-4 opacity-70 text-[#FFD700]">Heure de rendez-vous souhaitée</h3>
-                      <div className="time-slots">
-                        {["09:00", "10:30", "14:00", "15:30", "17:00"].map((time) => (
-                          <div
-                            key={time}
-                            className={`time-slot ${formData.appointmentTime === time ? "active" : ""}`}
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, appointmentTime: time }));
-                              if (currentStep === 1) nextStep();
-                            }}
-                          >
-                            {time}
+                    <div className="budget-display">
+                      <span className="budget-amount">
+                        {budget.toLocaleString('fr-FR')} FCFA
+                      </span>
+                      {budget >= 20000000 && (
+                        <span className="budget-unlimited">et plus</span>
+                      )}
+                    </div>
+    
+                    <div className="budget-labels">
+                      <span>1.000.000 FCFA</span>
+                      <span>Illimité</span>
+                    </div>
+    
+                    <div className="budget-description">
+                      <p>→ Équipe agents IA + experts humains dédiés</p>
+                      <p>→ Accompagnement jusqu'à l'obtention de vos résultats</p>
+                      <p>→ Profondeur du déploiement ajustée à votre ambition</p>
+                    </div>
+                  </div>
+                </section>
+    
+                <section id="conversion" className="conversion-tunnel">
+                  <div className={`tunnel-step ${currentStep >= 1 ? 'active' : ''}`}>
+                    <div className="tunnel-card">
+                      <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Synchronisation Stratégique</h2>
+                      <p className="mb-8 opacity-70">Réservez votre créneau pour une session d'ingénierie préliminaire.</p>
+                      <div className="calendar-container">
+                        <Calendar 
+                          onChange={handleDateChange} 
+                          value={formData.appointmentDate} 
+                          minDate={new Date()} 
+                          className="rounded-xl border shadow-lg" 
+                        />
+                        
+                        <div className="w-full">
+                          <h3 className="text-sm font-bold uppercase mb-4 opacity-70 text-[#FFD700]">Heure de rendez-vous souhaitée</h3>
+                          <div className="time-slots">
+                            {["09:00", "10:30", "14:00", "15:30", "17:00"].map((time) => (
+                              <div
+                                key={time}
+                                className={`time-slot ${formData.appointmentTime === time ? "active" : ""}`}
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, appointmentTime: time }));
+                                  if (currentStep === 1) nextStep();
+                                }}
+                              >
+                                {time}
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className={`tunnel-step ${currentStep >= 2 ? 'active' : ''} ${currentStep < 2 ? 'pointer-events-none' : ''}`}>
-                <div className="tunnel-card">
-                  <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Qualification Vision</h2>
-                  <p className="mb-8 opacity-70">Détaillez vos besoins techniques pour notre équipe d'experts.</p>
-                  <form onSubmit={submitLead} className="flex flex-col gap-4">
-                    <div className="input-group">
-                      <input required className="elite-input" name="nom" placeholder="Nom*" value={formData.nom} onChange={handleInputChange} />
-                      <input required className="elite-input" name="prenom" placeholder="Prénom*" value={formData.prenom} onChange={handleInputChange} />
+    
+                  <div className={`tunnel-step ${currentStep >= 2 ? 'active' : ''} ${currentStep < 2 ? 'pointer-events-none' : ''}`}>
+                    <div className="tunnel-card">
+                      <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest text-[#FFD700]">Qualification Vision</h2>
+                      <p className="mb-8 opacity-70">Détaillez vos besoins techniques pour notre équipe d'experts.</p>
+                      <form onSubmit={submitLead} className="flex flex-col gap-4">
+                        <div className="input-group">
+                          <input required className="elite-input" name="nom" placeholder="Nom*" value={formData.nom} onChange={handleInputChange} />
+                          <input required className="elite-input" name="prenom" placeholder="Prénom*" value={formData.prenom} onChange={handleInputChange} />
+                        </div>
+                        <div className="input-group">
+                          <input required className="elite-input" name="societe" placeholder="Société*" value={formData.societe} onChange={handleInputChange} />
+                          <input className="elite-input" name="fonction" placeholder="Fonction" value={formData.fonction} onChange={handleInputChange} />
+                        </div>
+                        <div className="input-group">
+                          <input required className="elite-input" name="secteur" placeholder="Secteur d'activité*" value={formData.secteur} onChange={handleInputChange} />
+                          <input required className="elite-input" name="region" placeholder="Région / Pays*" value={formData.region} onChange={handleInputChange} />
+                        </div>
+                        <div className="input-group">
+                          <input required type="email" className="elite-input" name="email" placeholder="Email professionnel*" value={formData.email} onChange={handleInputChange} />
+                          <input required className="elite-input" name="telephone" placeholder="Téléphone*" value={formData.telephone} onChange={handleInputChange} />
+                        </div>
+                        <textarea required className="elite-input min-h-[150px] mb-6" name="message" placeholder="Description de vos besoins spécifiques en automatisation*" value={formData.message} onChange={handleInputChange}></textarea>
+                        
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.pptx,.txt"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.length) handleFileUpload(e.target.files);
+                          }}
+                        />
+    
+                        <div
+                          className="elite-dropzone"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          {isUploading ? (
+                            <span>Chargement en cours...</span>
+                          ) : uploadedFiles.length > 0 ? (
+                            <span>✓ {uploadedFiles.length} fichier(s) prêt(s)</span>
+                          ) : (
+                            <>
+                              <span>↑ Déposer vos documents ici</span>
+                              <span className="elite-dropzone-hint">
+                                PDF · DOC · XLS · PNG · JPG · ZIP acceptés
+                              </span>
+                            </>
+                          )}
+                        </div>
+    
+                        {errorMsg && <div className="text-red-500 mb-4 text-center font-bold">{errorMsg}</div>}
+    
+                          <button 
+                            type="submit" 
+                            disabled={isSubmitting || isSuccess}
+                            className="elite-button"
+                          >
+                            {isSubmitting ? "ENVOI EN COURS..." : "PARLONS DE VOTRE RÉUSSITE"}
+                          </button>
+                      </form>
                     </div>
-                    <div className="input-group">
-                      <input required className="elite-input" name="societe" placeholder="Société*" value={formData.societe} onChange={handleInputChange} />
-                      <input className="elite-input" name="fonction" placeholder="Fonction" value={formData.fonction} onChange={handleInputChange} />
-                    </div>
-                    <div className="input-group">
-                      <input required className="elite-input" name="secteur" placeholder="Secteur d'activité*" value={formData.secteur} onChange={handleInputChange} />
-                      <input required className="elite-input" name="region" placeholder="Région / Pays*" value={formData.region} onChange={handleInputChange} />
-                    </div>
-                    <div className="input-group">
-                      <input required type="email" className="elite-input" name="email" placeholder="Email professionnel*" value={formData.email} onChange={handleInputChange} />
-                      <input required className="elite-input" name="telephone" placeholder="Téléphone*" value={formData.telephone} onChange={handleInputChange} />
-                    </div>
-                    <textarea required className="elite-input min-h-[150px] mb-6" name="message" placeholder="Description de vos besoins spécifiques en automatisation*" value={formData.message} onChange={handleInputChange}></textarea>
-                    
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.pptx,.txt"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files?.length) handleFileUpload(e.target.files);
-                      }}
-                    />
-
-                    <div
-                      className="elite-dropzone"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {isUploading ? (
-                        <span>Chargement en cours...</span>
-                      ) : uploadedFiles.length > 0 ? (
-                        <span>✓ {uploadedFiles.length} fichier(s) prêt(s)</span>
-                      ) : (
-                        <>
-                          <span>↑ Déposer vos documents ici</span>
-                          <span className="elite-dropzone-hint">
-                            PDF · DOC · XLS · PNG · JPG · ZIP acceptés
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {errorMsg && <div className="text-red-500 mb-4 text-center font-bold">{errorMsg}</div>}
-
-                      <button 
-                        type="submit" 
-                        disabled={isSubmitting || isSuccess}
-                        className="elite-button"
-                      >
-                        {isSubmitting ? "ENVOI EN COURS..." : "PARLONS DE VOTRE RÉUSSITE"}
-                      </button>
-                  </form>
-                </div>
-              </div>
-
-              {/* CARTE 3 — visible UNIQUEMENT après succès */}
-              {isSuccess && (
-                <div className="tunnel-card text-center py-20">
-                  <h2 className="text-[#FFD700] text-3xl font-bold mb-6">
-                    SESSION CONFIRMÉE
-                  </h2>
-                  <p className="text-white/60 mb-4">
-                    Rendez-vous le {format(formData.appointmentDate, "dd/MM/yyyy")} à {formData.appointmentTime}
-                  </p>
-                  <p className="text-white/40 text-sm mb-12">
-                    Notre équipe vous contacte sous 24h pour confirmer votre session d'ingénierie.
-                  </p>
-                  <div className="flex gap-4 justify-center">
-                    <button 
-                      onClick={() => window.location.href = '/'}
-                      className="elite-button-secondary"
-                    >
-                      ← RETOUR ACCUEIL
-                    </button>
-                    <button 
-                      onClick={() => window.location.href = '/pricing'}
-                      className="elite-button"
-                    >
-                      VOIR NOS PACKAGES →
-                    </button>
                   </div>
-                </div>
-              )}
-            </section>
-          </article>
-        </main>
-      </div>
+                </section>
+              </article>
+            </main>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="success-view"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-[#050505]"
+          >
+            <div className="tunnel-card text-center py-20 max-w-2xl w-full border-[#FFD700]/30 shadow-[#FFD700]/5 shadow-2xl">
+              <h2 className="text-[#FFD700] text-4xl font-bold mb-8 tracking-tighter uppercase">
+                SESSION CONFIRMÉE
+              </h2>
+              <div className="w-20 h-20 bg-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-10 shadow-lg shadow-[#FFD700]/20">
+                <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-white text-xl mb-6 font-medium">
+                Rendez-vous le <strong>{format(formData.appointmentDate, "dd/MM/yyyy")}</strong> à <strong>{formData.appointmentTime}</strong>
+              </p>
+              <p className="text-white/50 text-base mb-12 max-w-sm mx-auto leading-relaxed">
+                Votre architecture est en cours de préparation. Notre équipe vous contactera sous 24h pour valider les pré-requis de votre session.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="elite-button-secondary px-10"
+                >
+                  ← ACCUEIL
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/pricing'}
+                  className="elite-button px-10"
+                >
+                  NOS PACKAGES →
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };
