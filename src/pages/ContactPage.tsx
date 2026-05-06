@@ -14,8 +14,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { X } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { motion, AnimatePresence } from "motion/react";
 
 const workspaces = [
   {
@@ -79,74 +81,184 @@ const workspaces = [
 export default function ContactPage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState(workspaces[0]);
   const [sector, setSector] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [region, setRegion] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { error } = await supabase
+        .from("enterprises")
+        .insert({
+          name: `${firstName} ${lastName}`.trim(),
+          email: email,
+          phone: phone || null,
+          sector: sector || null,
+          region: region || "AFRIQUE-OUEST",
+          message: message,
+          package_type: selectedWorkspace.title.toUpperCase(),
+          status: "PROSPECT",
+          is_test: false,
+          template_id: null,
+        });
+
+      if (error) throw error;
+
+      setIsSuccess(true);
+    } catch (err: any) {
+      setError("Une erreur est survenue. Veuillez réessayer.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center p-10 bg-white min-h-screen pt-32 font-sans">
+    <div className="flex items-center justify-center p-10 bg-white min-h-screen pt-32 font-['DM_Sans']">
       <div className="sm:mx-auto sm:max-w-2xl">
-        <h3 className="text-lg font-semibold text-neutral-900">
+        <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-4">
+          <span className="w-4 h-px bg-neutral-300" />
+          Autoslash AI — Infrastructure sur mesure
+          <span className="w-4 h-px bg-neutral-300" />
+        </span>
+        <h3 className="text-3xl font-black text-neutral-900 tracking-tighter" style={{ fontFamily: "'Playfair Display', serif" }}>
           Parlons de votre réussite
         </h3>
-        <p className="mt-1 text-sm leading-6 text-neutral-500">
+        <p className="mt-3 text-sm leading-7 text-neutral-400 max-w-md">
           Détaillez vos besoins pour que notre équipe d'experts Autoslash AI puisse concevoir votre infrastructure sur mesure.
         </p>
-        <form action="#" method="post" className="mt-8">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-6 text-neutral-900">
-            <div className="col-span-full sm:col-span-3">
-              <Label htmlFor="first-name" className="font-medium text-neutral-900">
-                Prénom<span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="text"
-                id="first-name"
-                name="first-name"
-                autoComplete="given-name"
-                required
-                placeholder="Emma"
-                className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
-              />
+
+        {isSuccess ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-24 text-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center mb-6">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+            <h3 className="text-2xl font-black text-neutral-900 uppercase tracking-tighter mb-2">
+              Demande envoyée
+            </h3>
+            <p className="text-sm text-neutral-500 max-w-sm">
+              Notre équipe Autoslash AI vous contacte dans les 24h pour construire votre infrastructure sur mesure.
+            </p>
+            <Button 
+              onClick={() => setIsSuccess(false)} 
+              variant="outline" 
+              className="mt-8 rounded-full border-neutral-200 text-xs font-bold uppercase tracking-widest"
+            >
+              Envoyer une autre demande
+            </Button>
+          </motion.div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-8">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-6 text-neutral-900">
+              <div className="col-span-full sm:col-span-3">
+                <Label htmlFor="first-name" className="font-medium text-neutral-900">
+                  Prénom<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  id="first-name"
+                  name="first-name"
+                  autoComplete="given-name"
+                  required
+                  placeholder="Emma"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
+              <div className="col-span-full sm:col-span-3">
+                <Label htmlFor="last-name" className="font-medium text-neutral-900">
+                  Nom
+                </Label>
+                <Input
+                  type="text"
+                  id="last-name"
+                  name="last-name"
+                  autoComplete="family-name"
+                  placeholder="Crown"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
+              <div className="col-span-full">
+                <Label htmlFor="email" className="font-medium text-neutral-900">
+                  Email professionnel<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  required
+                  placeholder="emma@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
+              <div className="col-span-full">
+                <Label htmlFor="phone" className="font-medium text-neutral-900">
+                  Téléphone / WhatsApp
+                </Label>
+                <Input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="+221 77 000 00 00"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
+              <div className="col-span-full sm:col-span-3">
+                <Label htmlFor="company" className="font-medium text-neutral-900">
+                  Société
+                </Label>
+                <Input
+                  type="text"
+                  id="company"
+                  name="company"
+                  autoComplete="organization"
+                  placeholder="Entreprise, Inc."
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
+              <div className="col-span-full sm:col-span-3">
+                <Label htmlFor="region" className="font-medium text-neutral-900">
+                  Pays / Région
+                </Label>
+                <Input
+                  type="text"
+                  id="region"
+                  name="region"
+                  placeholder="Sénégal, France, Canada..."
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                />
+              </div>
             <div className="col-span-full sm:col-span-3">
-              <Label htmlFor="last-name" className="font-medium text-neutral-900">
-                Nom
-              </Label>
-              <Input
-                type="text"
-                id="last-name"
-                name="last-name"
-                autoComplete="family-name"
-                placeholder="Crown"
-                className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
-              />
-            </div>
-            <div className="col-span-full">
-              <Label htmlFor="email" className="font-medium text-neutral-900">
-                Email professionnel<span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                autoComplete="email"
-                required
-                placeholder="emma@company.com"
-                className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
-              />
-            </div>
-            <div className="col-span-full sm:col-span-3">
-              <Label htmlFor="company" className="font-medium text-neutral-900">
-                Société
-              </Label>
-              <Input
-                type="text"
-                id="company"
-                name="company"
-                autoComplete="organization"
-                placeholder="Entreprise, Inc."
-                className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
-              />
-            </div>
-            <div className="col-span-full sm:col-span-3">
-              <Label htmlFor="size" className="font-medium text-neutral-900">
+              <Label htmlFor="sector" className="font-medium text-neutral-900">
                 Secteur d'activité
               </Label>
               <div className="relative mt-2">
@@ -159,6 +271,7 @@ export default function ContactPage() {
                       className="border-neutral-900 text-neutral-900 placeholder:text-neutral-400 pr-10"
                       required
                       autoFocus
+                      onChange={(e) => setSector(e.target.value)}
                     />
                     <button
                       type="button"
@@ -170,7 +283,7 @@ export default function ContactPage() {
                   </div>
                 ) : (
                   <Select onValueChange={setSector} value={sector}>
-                    <SelectTrigger id="size" name="size" className="border-neutral-200 text-neutral-900">
+                    <SelectTrigger id="sector" name="sector" className="border-neutral-200 text-neutral-900">
                       <SelectValue placeholder="Choisir un secteur" />
                     </SelectTrigger>
                     <SelectContent className="bg-white text-neutral-900">
@@ -262,11 +375,16 @@ export default function ContactPage() {
                 name="message"
                 required
                 placeholder="Expliquez-nous comment nous pouvons automatiser votre croissance..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="mt-2 border-neutral-200 min-h-[120px] text-neutral-900 placeholder:text-neutral-400"
               />
             </div>
           </div>
           <Separator className="my-6 bg-neutral-100" />
+          {error && (
+            <p className="text-sm text-red-500 text-center mb-4">{error}</p>
+          )}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-12">
             <Link 
               to="/pricing"
@@ -274,11 +392,16 @@ export default function ContactPage() {
             >
               Voir les templates
             </Link>
-            <Button type="submit" className="w-full sm:w-auto whitespace-nowrap bg-black text-white hover:bg-neutral-800 rounded-full px-12 h-12 font-bold tracking-widest uppercase text-xs shadow-lg shadow-neutral-900/20">
-              Passer à l'action
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full sm:w-auto whitespace-nowrap bg-black text-white hover:bg-neutral-800 rounded-full px-12 h-12 font-bold tracking-widest uppercase text-xs shadow-lg shadow-neutral-900/20"
+            >
+              {isLoading ? "Envoi en cours..." : "Passer à l'action"}
             </Button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
