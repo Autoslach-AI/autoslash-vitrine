@@ -88,12 +88,33 @@ export default function ContactPage() {
   const [company, setCompany] = useState("");
   const [region, setRegion] = useState("");
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
+  
+  const validate = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!firstName.trim()) {
+      newErrors.firstName = "Le prénom est obligatoire";
+    }
+    if (!email.trim()) {
+      newErrors.email = "L'email est obligatoire";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "L'adresse email n'est pas valide";
+    }
+    if (!message.trim()) {
+      newErrors.message = "Veuillez décrire votre projet";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
     setError("");
 
@@ -179,9 +200,19 @@ export default function ContactPage() {
                   required
                   placeholder="Emma"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (errors.firstName) setErrors(prev => ({ ...prev, firstName: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.firstName 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.firstName && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.firstName}</p>
+                )}
               </div>
               <div className="col-span-full sm:col-span-3">
                 <Label htmlFor="last-name" className="font-medium text-neutral-900">
@@ -210,9 +241,19 @@ export default function ContactPage() {
                   required
                   placeholder="emma@company.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 border-neutral-200 text-neutral-900 placeholder:text-neutral-400"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                  }}
+                  className={`mt-2 text-neutral-900 placeholder:text-neutral-400 ${
+                    errors.email 
+                      ? "border-red-400 focus:border-red-500" 
+                      : "border-neutral-200"
+                  }`}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.email}</p>
+                )}
               </div>
               <div className="col-span-full">
                 <Label htmlFor="phone" className="font-medium text-neutral-900">
@@ -376,9 +417,19 @@ export default function ContactPage() {
                 required
                 placeholder="Expliquez-nous comment nous pouvons automatiser votre croissance..."
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="mt-2 border-neutral-200 min-h-[120px] text-neutral-900 placeholder:text-neutral-400"
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  if (errors.message) setErrors(prev => ({ ...prev, message: "" }));
+                }}
+                className={`mt-2 min-h-[120px] text-neutral-900 placeholder:text-neutral-400 ${
+                  errors.message 
+                    ? "border-red-400 focus:border-red-500" 
+                    : "border-neutral-200"
+                }`}
               />
+              {errors.message && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{errors.message}</p>
+              )}
             </div>
           </div>
           <Separator className="my-6 bg-neutral-100" />
