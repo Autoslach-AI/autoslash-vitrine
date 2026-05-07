@@ -1,30 +1,8 @@
 "use client";
-
-/**
- * AgentsDemo.tsx — Autoslash AI
- * ─────────────────────────────
- * Page de démonstration interactive des agents IA
- * Architecture en 4 actes :
- *   ACTE 1 → Robot Spline plein écran + message d'accueil animé
- *   ACTE 2 → Question au visiteur + choix de l'agent
- *   ACTE 3 → Recommandation + carte agent + téléportation
- *   ACTE 4 → Chat plein écran immersif avec l'agent choisi
- *
- * Dépendances requises :
- *   npm install @splinetool/react-spline @splinetool/runtime
- *
- * Le composant SplineScene doit exister dans :
- *   src/components/ui/splite.tsx
- */
-
-import { Suspense, lazy, useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { supabase } from "@/lib/supabase";
-import { Send, RotateCcw, ArrowDown, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-
-// ─── Spline lazy load ────────────────────────────────────────────────────────
-const Spline = lazy(() => import("@splinetool/react-spline"));
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "motion/react";
+import { supabase } from "@/lib/supabaseClient";
+import { Send, RotateCcw, ArrowRight, ChevronRight } from "lucide-react";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -46,216 +24,262 @@ interface Agent {
 interface Message {
   role: "user" | "assistant";
   content: string;
+  isTyping?: boolean;
 }
 
-type Act = "intro" | "questions" | "recommendation" | "chat";
+// ─── AGENT VISUAL CONFIG ─────────────────────────────────────────────────────
 
-// ─── VISUAL CONFIG PAR AGENT ─────────────────────────────────────────────────
-
-const AGENT_CONFIG: Record<string, { color: string; glow: string; icon: string }> = {
-  "Agent Support":    { color: "#A8E6CF", glow: "rgba(168,230,207,0.25)", icon: "◎" },
-  "Agent Commercial": { color: "#FFD3B6", glow: "rgba(255,211,182,0.25)", icon: "◈" },
-  "Agent Contenu":    { color: "#FFEAA7", glow: "rgba(255,234,167,0.25)", icon: "◉" },
-  "Agent RAG":        { color: "#DDD6FE", glow: "rgba(221,214,254,0.25)", icon: "◍" },
-  "Agent Mentor":     { color: "#FFFFFF", glow: "rgba(255,255,255,0.18)", icon: "✦"  },
+const AGENT_CONFIG: Record<string, {
+  color: string;
+  glow: string;
+  icon: string;
+  grid: string;
+}> = {
+  "Agent Support":     { color: "#A8E6CF", glow: "rgba(168,230,207,0.15)", icon: "◎", grid: "rgba(168,230,207,0.03)" },
+  "Agent Commercial":  { color: "#FFD3B6", glow: "rgba(255,211,182,0.15)", icon: "◈", grid: "rgba(255,211,182,0.03)" },
+  "Agent Contenu":     { color: "#FFEAA7", glow: "rgba(255,234,167,0.15)", icon: "◉", grid: "rgba(255,234,167,0.03)" },
+  "Agent RAG":         { color: "#DDD6FE", glow: "rgba(221,214,254,0.15)", icon: "◍", grid: "rgba(221,214,254,0.03)" },
+  "Agent Mentor":      { color: "#FFFFFF", glow: "rgba(255,255,255,0.12)", icon: "✦",  grid: "rgba(255,255,255,0.03)" },
 };
 
-const getCfg = (name: string) =>
-  AGENT_CONFIG[name] ?? { color: "#ffffff", glow: "rgba(255,255,255,0.1)", icon: "◎" };
+const getConfig = (name: string) =>
+  AGENT_CONFIG[name] || { color: "#ffffff", glow: "rgba(255,255,255,0.1)", icon: "◎", grid: "rgba(255,255,255,0.03)" };
 
-// ─── MAPPING RÉPONSE → AGENT ──────────────────────────────────────────────────
+// ─── PARTICLE BACKGROUND ─────────────────────────────────────────────────────
 
-const INTRO_QUESTION = {
-  text: "Qu'attendez-vous vraiment de l'IA pour votre entreprise ?",
-  options: [
-    { label: "Automatiser mon support client",  value: "support"     },
-    { label: "Convertir plus de prospects",      value: "commercial"  },
-    { label: "Créer du contenu en masse",        value: "contenu"     },
-    { label: "Exploiter mes données internes",   value: "rag"         },
-    { label: "Être guidé stratégiquement",       value: "mentor"      },
-  ],
-};
-
-const AGENT_MAP: Record<string, string> = {
-  support:    "Agent Support",
-  commercial: "Agent Commercial",
-  contenu:    "Agent Contenu",
-  rag:        "Agent RAG",
-  mentor:     "Agent Mentor",
-};
-
-// ─── COMPOSANT : TEXTE ANIMÉ LETTRE PAR LETTRE ───────────────────────────────
-
-function TypingText({ text, speed = 28, onDone }: {
-  text: string;
-  speed?: number;
-  onDone?: () => void;
-}) {
-  const [displayed, setDisplayed] = useState("");
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    setDisplayed("");
-    setDone(false);
-    let i = 0;
-    const id = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(id);
-        setDone(true);
-        onDone?.();
-      }
-    }, speed);
-    return () => clearInterval(id);
-  }, [text, speed]);
-
+function ParticleField({ color }: { color: string }) {
   return (
-    <span>
-      {displayed}
-      {!done && (
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-          className="inline-block w-[2px] h-[0.85em] bg-white align-middle ml-1 rounded-full"
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Animated grid */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+            <path d="M 60 0 L 0 0 0 60" fill="none" stroke={color} strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
+
+      {/* Floating orbs */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: `${80 + i * 40}px`,
+            height: `${80 + i * 40}px`,
+            background: `radial-gradient(circle, ${color}15 0%, transparent 70%)`,
+            left: `${10 + i * 15}%`,
+            top: `${20 + (i % 3) * 25}%`,
+          }}
+          animate={{
+            x: [0, 20, -10, 0],
+            y: [0, -15, 10, 0],
+            scale: [1, 1.1, 0.95, 1],
+          }}
+          transition={{
+            duration: 8 + i * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 1.2,
+          }}
         />
-      )}
-    </span>
+      ))}
+
+      {/* Diagonal accent line */}
+      <div
+        className="absolute top-0 right-0 w-px h-full opacity-10"
+        style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}
+      />
+    </div>
   );
 }
 
-// ─── COMPOSANT : POINTS DE CHARGEMENT ────────────────────────────────────────
+// ─── TYPING ANIMATION ─────────────────────────────────────────────────────────
 
 function TypingDots({ color }: { color: string }) {
   return (
-    <div className="flex items-center gap-1.5 py-1">
+    <div className="flex items-center gap-1 px-4 py-3">
       {[0, 1, 2].map(i => (
         <motion.div
           key={i}
-          className="w-2 h-2 rounded-full"
+          className="w-1.5 h-1.5 rounded-full"
           style={{ backgroundColor: color }}
           animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.2 }}
+          transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
         />
       ))}
     </div>
   );
 }
 
-// ─── COMPOSANT : CURSEUR PERSONNALISÉ ────────────────────────────────────────
+// ─── AGENT CARD (HERO) ────────────────────────────────────────────────────────
 
-function CustomCursor({ act }: { act: Act }) {
-  const [pos, setPos] = useState({ x: -100, y: -100 });
-  const [visible, setVisible] = useState(false);
+function AgentCard({
+  agent,
+  isSelected,
+  onClick,
+  index,
+}: {
+  agent: Agent;
+  isSelected: boolean;
+  onClick: () => void;
+  index: number;
+  key?: any;
+}) {
+  const cfg = getConfig(agent.name);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useTransform(mouseY, [-60, 60], [8, -8]);
+  const rotateY = useTransform(mouseX, [-60, 60], [-8, 8]);
 
-  useEffect(() => {
-    const move = (e: MouseEvent) => { setPos({ x: e.clientX, y: e.clientY }); setVisible(true); };
-    const leave = () => setVisible(false);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseleave", leave);
-    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseleave", leave); };
-  }, []);
-
-  if (act === "chat") return null;
+  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left - rect.width / 2);
+    mouseY.set(e.clientY - rect.top - rect.height / 2);
+  };
+  const resetMouse = () => { mouseX.set(0); mouseY.set(0); };
 
   return (
     <motion.div
-      className="fixed pointer-events-none z-50 rounded-full mix-blend-screen"
-      style={{
-        width: 12,
-        height: 12,
-        background: "rgba(255,255,255,0.9)",
-        left: pos.x - 6,
-        top: pos.y - 6,
-        boxShadow: "0 0 20px 6px rgba(255,255,255,0.3)",
-      }}
-      animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0 }}
-      transition={{ duration: 0.15 }}
-    />
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      style={{ perspective: 800 }}
+      className="flex-1 min-w-[180px] max-w-[220px]"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        onMouseMove={handleMouse}
+        onMouseLeave={resetMouse}
+        onClick={onClick}
+        whileTap={{ scale: 0.97 }}
+        className="cursor-pointer h-full"
+      >
+        <div
+          className="relative h-[200px] rounded-2xl p-5 flex flex-col justify-between overflow-hidden transition-all duration-500"
+          style={{
+            background: isSelected
+              ? `linear-gradient(135deg, ${cfg.color}15 0%, ${cfg.color}05 100%)`
+              : "rgba(255,255,255,0.05)",
+            border: `1px solid ${isSelected ? cfg.color + "40" : "rgba(255,255,255,0.12)"}`,
+            boxShadow: isSelected ? `0 0 40px ${cfg.glow}, inset 0 0 20px ${cfg.color}08` : "none",
+          }}
+        >
+          {/* Active pulse */}
+          {isSelected && (
+            <motion.div
+              className="absolute top-3 right-3 w-2 h-2 rounded-full"
+              style={{ backgroundColor: cfg.color }}
+              animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+          )}
+
+          {/* Icon */}
+          <div
+            className="text-3xl font-black leading-none"
+            style={{ color: isSelected ? cfg.color : "rgba(255,255,255,0.2)" }}
+          >
+            {cfg.icon}
+          </div>
+
+          {/* Info */}
+          <div>
+            <p
+              className="text-[11px] font-black uppercase tracking-widest mb-1"
+              style={{ color: isSelected ? cfg.color : "rgba(255,255,255,0.4)" }}
+            >
+              {agent.name.replace("Agent ", "")}
+            </p>
+            <p className="text-white/20 text-[10px] leading-tight">{agent.sector}</p>
+          </div>
+
+          {/* Shimmer on selected */}
+          {isSelected && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `linear-gradient(105deg, transparent 40%, ${cfg.color}08 50%, transparent 60%)`,
+              }}
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-// ─── PAGE PRINCIPALE ──────────────────────────────────────────────────────────
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export default function AgentsDemo() {
-  // ── State global
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [act, setAct] = useState<Act>("intro");
-  const [questionReady, setQuestionReady] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [recommendedAgent, setRecommendedAgent] = useState<Agent | null>(null);
-  const [activeAgent, setActiveAgent] = useState<Agent | null>(null);
-  const [splineReady, setSplineReady] = useState(false);
-
-  // ── State chat
+  const [selected, setSelected] = useState<Agent | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [msgCount, setMsgCount] = useState(0);
+  const [redirectTarget, setRedirectTarget] = useState<Agent | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
-
-  // ── State téléportation
-  const [teleporting, setTeleporting] = useState(false);
-  const [teleportColor, setTeleportColor] = useState("#ffffff");
-
-  // ── Refs
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ── Fetch agents depuis Supabase
+  // ── Fetch agents
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
+      setIsFetching(true);
+      const { data } = await supabase
         .from("demo_agents")
         .select("*")
         .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      if (!error && data) setAgents(data);
+        .order("display_order");
+      if (data?.length) {
+        setAgents(data);
+        initAgent(data[0]);
+      }
+      setIsFetching(false);
     })();
   }, []);
 
-  // ── Auto-scroll chat
+  // ── Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // ── Sélection réponse → recommandation
-  const handleAnswer = useCallback((value: string) => {
-    setSelectedAnswer(value);
-    const agentName = AGENT_MAP[value];
-    const agent = agents.find(a => a.name === agentName) ?? agents[0];
-    setRecommendedAgent(agent);
-    setTimeout(() => setAct("recommendation"), 500);
+  // ── Init agent conversation
+  const initAgent = useCallback((agent: Agent) => {
+    setSelected(agent);
+    setMsgCount(0);
+    setRedirectTarget(null);
+    setShowSuggestions(true);
+    setInput("");
+    setMessages([{
+      role: "assistant",
+      content: agent.opening_questions?.[0] ??
+        `Bonjour ! Je suis ${agent.name}. Comment puis-je vous aider ?`,
+    }]);
+    setTimeout(() => inputRef.current?.focus(), 300);
   }, [agents]);
 
-  // ── Téléportation vers le chat
-  const handleTeleport = useCallback((agent: Agent) => {
-    const c = getCfg(agent.name);
-    setTeleportColor(c.color);
-    setTeleporting(true);
+  // ── Check redirect
+  const checkRedirect = useCallback((text: string, agent: Agent) => {
+    if (!agent.redirect_rules) return;
+    for (const [sector, targetName] of Object.entries(agent.redirect_rules)) {
+      if (text.toLowerCase().includes(sector.toLowerCase())) {
+        const target = agents.find(a =>
+          a.name.toLowerCase().includes(targetName.replace("agent-", ""))
+        );
+        if (target) { setRedirectTarget(target); return; }
+      }
+    }
+  }, [agents]);
 
-    setTimeout(() => {
-      setActiveAgent(agent);
-      setMessages([{
-        role: "assistant",
-        content: agent.opening_questions?.[0] ??
-          `Bonjour ! Je suis ${agent.name}. Comment puis-je vous aider ?`,
-      }]);
-      setMsgCount(0);
-      setShowSuggestions(true);
-      setInput("");
-    }, 700);
-
-    setTimeout(() => {
-      setAct("chat");
-      setTeleporting(false);
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }, 1400);
-  }, []);
-
-  // ── Envoi message → Claude API
+  // ── Send message
   const send = useCallback(async (content: string) => {
-    if (!content.trim() || !activeAgent || isLoading || msgCount >= activeAgent.max_messages) return;
+    if (!content.trim() || !selected || isLoading || msgCount >= selected.max_messages) return;
 
     const userMsg: Message = { role: "user", content };
     setMessages(prev => [...prev, userMsg]);
@@ -263,6 +287,7 @@ export default function AgentsDemo() {
     setIsLoading(true);
     setMsgCount(c => c + 1);
     setShowSuggestions(false);
+    checkRedirect(content, selected);
 
     const history = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
 
@@ -271,9 +296,9 @@ export default function AgentsDemo() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-3-5-sonnet-20240620",
           max_tokens: 1000,
-          system: activeAgent.system_prompt,
+          system: selected.system_prompt,
           messages: history,
         }),
       });
@@ -290,446 +315,175 @@ export default function AgentsDemo() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeAgent, isLoading, msgCount, messages]);
+  }, [selected, isLoading, msgCount, messages, checkRedirect]);
 
-  // ── Helpers
-  const cfg = activeAgent ? getCfg(activeAgent.name) : { color: "#fff", glow: "", icon: "◎" };
-  const recCfg = recommendedAgent ? getCfg(recommendedAgent.name) : { color: "#fff", glow: "", icon: "◎" };
-  const isMaxReached = msgCount >= (activeAgent?.max_messages ?? 5);
+  const cfg = selected ? getConfig(selected.name) : getConfig("");
+  const isMaxReached = msgCount >= (selected?.max_messages ?? 5);
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // FLASH DE TÉLÉPORTATION
-  // ══════════════════════════════════════════════════════════════════════════
-
-  if (teleporting) {
+  // ─── LOADING STATE
+  if (isFetching) {
     return (
-      <motion.div
-        className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden"
-        style={{ background: "#000" }}
-        initial={{ opacity: 1 }}
-        animate={{ opacity: [1, 1, 0] }}
-        transition={{ duration: 1.4, times: [0, 0.6, 1] }}
-      >
-        {/* Explosion de couleur */}
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <motion.div
-          className="rounded-full"
-          style={{ width: 60, height: 60, background: teleportColor }}
-          animate={{
-            scale: [0, 1, 40],
-            opacity: [0, 1, 0],
-          }}
-          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-        />
-        {/* Rayons */}
-        {[...Array(8)].map((_, i) => (
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           <motion.div
-            key={i}
-            className="absolute w-px origin-center"
-            style={{
-              height: "60vh",
-              background: `linear-gradient(to top, ${teleportColor}, transparent)`,
-              rotate: `${i * 45}deg`,
-              transformOrigin: "50% 100%",
-              bottom: "50%",
-              left: "50%",
-            }}
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: [0, 1, 0], opacity: [0, 0.6, 0] }}
-            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+            className="w-12 h-12 border border-white/20 rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           />
-        ))}
-      </motion.div>
+          <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
+            Initialisation des agents
+          </p>
+        </motion.div>
+      </div>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // RENDU PRINCIPAL
-  // ══════════════════════════════════════════════════════════════════════════
-
   return (
-    <div
-      className="min-h-screen bg-black overflow-hidden"
-      style={{ fontFamily: "'DM Sans', sans-serif", cursor: act !== "chat" ? "none" : "auto" }}
-    >
-      {/* Curseur personnalisé */}
-      <CustomCursor act={act} />
+    <div className="min-h-screen bg-black relative overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          SCÈNE ROBOT — ACTES 1, 2, 3
-      ════════════════════════════════════════════════════════════════════ */}
-
-      <AnimatePresence>
-        {act !== "chat" && (
-          <motion.div
-            key="robot-scene"
-            className="fixed inset-0 z-10"
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* ── Robot Spline plein écran */}
-            <div className="absolute inset-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-full flex items-center justify-center bg-black">
-                    <motion.div
-                      className="w-20 h-20 border border-white/10 rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
-                  </div>
-                }
-              >
-                <Spline
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full"
-                  onLoad={() => setSplineReady(true)}
-                />
-              </Suspense>
-            </div>
-
-            {/* ── Overlays de profondeur */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Fondu bas */}
-              <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/50 to-transparent" />
-              {/* Fondu gauche */}
-              <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-black/75 to-transparent" />
-              {/* Grain subtil */}
-              <div
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-                  backgroundSize: "200px 200px",
-                }}
-              />
-            </div>
-
-            {/* ── Zone de texte — bas gauche */}
-            <div className="absolute bottom-0 left-0 right-0 px-8 md:px-16 lg:px-24 pb-12 md:pb-20">
-
-              <AnimatePresence mode="wait">
-
-                {/* ── ACTE 1 — Message d'accueil */}
-                {act === "intro" && (
-                  <motion.div
-                    key="intro"
-                    className="max-w-2xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: splineReady ? 1 : 0, y: splineReady ? 0 : 60 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <motion.div
-                      className="flex items-center gap-3 mb-6"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <motion.div
-                        className="w-2 h-2 rounded-full bg-white"
-                        animate={{ opacity: [1, 0.3, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                      <span className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase">
-                        Autoslash AI — Interface
-                      </span>
-                    </motion.div>
-
-                    <h1
-                      className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.05]"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      {splineReady ? (
-                        <TypingText
-                          text="Bonjour. Je suis votre interface Autoslash AI."
-                          onDone={() => setTimeout(() => setAct("questions"), 1000)}
-                        />
-                      ) : (
-                        <span className="opacity-0">.</span>
-                      )}
-                    </h1>
-                  </motion.div>
-                )}
-
-                {/* ── ACTE 2 — Question */}
-                {act === "questions" && (
-                  <motion.div
-                    key="questions"
-                    className="max-w-3xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <p className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase mb-5">
-                      Avant tout
-                    </p>
-
-                    <h2
-                      className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[1.1] mb-10"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      <TypingText
-                        text={INTRO_QUESTION.text}
-                        speed={22}
-                        onDone={() => setQuestionReady(true)}
-                      />
-                    </h2>
-
-                    {/* Options cliquables */}
-                    <AnimatePresence>
-                      {questionReady && (
-                        <motion.div
-                          className="flex flex-wrap gap-3"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          {INTRO_QUESTION.options.map((opt, i) => (
-                            <motion.button
-                              key={opt.value}
-                              initial={{ opacity: 0, y: 24, scale: 0.95 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              transition={{ delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                              onClick={() => handleAnswer(opt.value)}
-                              whileHover={{ scale: 1.05, y: -3 }}
-                              whileTap={{ scale: 0.97 }}
-                              className="relative px-6 py-3 rounded-full text-sm font-bold transition-all duration-300"
-                              style={{
-                                background: selectedAnswer === opt.value
-                                  ? "rgba(255,255,255,0.95)"
-                                  : "rgba(255,255,255,0.07)",
-                                border: `1px solid ${selectedAnswer === opt.value
-                                  ? "rgba(255,255,255,0.95)"
-                                  : "rgba(255,255,255,0.15)"}`,
-                                color: selectedAnswer === opt.value ? "#000" : "rgba(255,255,255,0.85)",
-                                backdropFilter: "blur(16px)",
-                                boxShadow: selectedAnswer === opt.value
-                                  ? "0 0 30px rgba(255,255,255,0.2)"
-                                  : "none",
-                              }}
-                            >
-                              {opt.label}
-                            </motion.button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                )}
-
-                {/* ── ACTE 3 — Recommandation */}
-                {act === "recommendation" && recommendedAgent && (
-                  <motion.div
-                    key="recommendation"
-                    className="max-w-4xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <p className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase mb-5">
-                      Ma recommandation
-                    </p>
-
-                    <h2
-                      className="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-[1.1] mb-10"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      <TypingText
-                        text={`J'ai l'agent qu'il vous faut. Rencontrez ${recommendedAgent.name}.`}
-                        speed={20}
-                      />
-                    </h2>
-
-                    <div className="flex flex-wrap gap-5 items-start">
-
-                      {/* Carte agent recommandé */}
-                      <motion.button
-                        initial={{ opacity: 0, y: 40, scale: 0.93 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: 0.7, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={() => handleTeleport(recommendedAgent)}
-                        whileHover={{ scale: 1.03, y: -6 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="relative overflow-hidden rounded-3xl p-7 text-left"
-                        style={{
-                          background: `linear-gradient(135deg, ${recCfg.color}20 0%, ${recCfg.color}06 100%)`,
-                          border: `1px solid ${recCfg.color}40`,
-                          boxShadow: `0 0 80px ${recCfg.glow}, 0 24px 80px rgba(0,0,0,0.7)`,
-                          minWidth: 260,
-                          maxWidth: 320,
-                          backdropFilter: "blur(20px)",
-                        }}
-                      >
-                        {/* Shimmer animé */}
-                        <motion.div
-                          className="absolute inset-0 pointer-events-none"
-                          style={{
-                            background: `linear-gradient(110deg, transparent 25%, ${recCfg.color}12 50%, transparent 75%)`,
-                          }}
-                          animate={{ x: ["-120%", "220%"] }}
-                          transition={{ duration: 2.8, repeat: Infinity, ease: "linear", delay: 1 }}
-                        />
-
-                        {/* Header carte */}
-                        <div className="flex items-start justify-between mb-6">
-                          <span
-                            className="text-4xl leading-none"
-                            style={{ color: recCfg.color }}
-                          >
-                            {recCfg.icon}
-                          </span>
-                          <motion.div
-                            className="flex items-center gap-1.5"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1.2 }}
-                          >
-                            <motion.div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: recCfg.color }}
-                              animate={{ scale: [1, 1.6, 1], opacity: [1, 0.4, 1] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                            />
-                            <span
-                              className="text-[9px] font-black uppercase tracking-widest"
-                              style={{ color: recCfg.color }}
-                            >
-                              Recommandé
-                            </span>
-                          </motion.div>
-                        </div>
-
-                        {/* Infos agent */}
-                        <p
-                          className="text-xl font-black uppercase tracking-tight mb-2"
-                          style={{ color: recCfg.color, fontFamily: "'Playfair Display', serif" }}
-                        >
-                          {recommendedAgent.name}
-                        </p>
-                        <p className="text-white/35 text-xs leading-relaxed mb-7">
-                          {recommendedAgent.tagline}
-                        </p>
-
-                        {/* CTA */}
-                        <div
-                          className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all"
-                          style={{ color: recCfg.color }}
-                        >
-                          Entrer dans l'espace <ArrowRight size={12} />
-                        </div>
-                      </motion.button>
-
-                      {/* Liste autres agents */}
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1.3, duration: 0.6 }}
-                        className="flex flex-col gap-2"
-                      >
-                        <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest mb-2">
-                          Autres agents disponibles
-                        </p>
-                        {agents
-                          .filter(a => a.id !== recommendedAgent.id)
-                          .map((agent, i) => {
-                            const c = getCfg(agent.name);
-                            return (
-                              <motion.button
-                                key={agent.id}
-                                initial={{ opacity: 0, x: 16 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.4 + i * 0.08 }}
-                                onClick={() => handleTeleport(agent)}
-                                whileHover={{ x: 5 }}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                                style={{
-                                  background: "rgba(255,255,255,0.03)",
-                                  border: `1px solid ${c.color}18`,
-                                  backdropFilter: "blur(10px)",
-                                }}
-                              >
-                                <span style={{ color: c.color }} className="text-sm">{c.icon}</span>
-                                <span className="text-white/40 text-xs font-bold">
-                                  {agent.name.replace("Agent ", "")}
-                                </span>
-                                <ArrowRight size={10} className="text-white/15 ml-auto" />
-                              </motion.button>
-                            );
-                          })}
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                )}
-
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
+      {/* ── DYNAMIC BACKGROUND */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={selected?.id}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+        >
+          <ParticleField color={cfg.color} />
+          {/* Ambient glow bottom */}
+          <div
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20"
+            style={{ background: cfg.color }}
+          />
+        </motion.div>
       </AnimatePresence>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          ACTE 4 — CHAT PLEIN ÉCRAN IMMERSIF
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── CONTENT */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-28 pb-16">
 
-      <AnimatePresence>
-        {act === "chat" && activeAgent && (
+        {/* ── HERO HEADER */}
+        <div className="mb-16">
           <motion.div
-            key="chat"
-            className="fixed inset-0 z-20 flex flex-col"
-            style={{ background: "#020202" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.15 }}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex items-center gap-3 mb-8"
           >
-            {/* Ambient glow selon la couleur de l'agent */}
             <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 2 }}
-              style={{
-                background: `radial-gradient(ellipse 60% 40% at 50% 100%, ${cfg.color}07 0%, transparent 70%)`,
-              }}
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: cfg.color }}
+              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
             />
+            <span className="text-white/30 text-[10px] font-bold tracking-[0.5em] uppercase">
+              Démonstration Live — Autoslash AI
+            </span>
+          </motion.div>
 
-            {/* Grille subtile */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none">
-              <defs>
-                <pattern id="chat-grid" width="52" height="52" patternUnits="userSpaceOnUse">
-                  <path d="M 52 0 L 0 0 0 52" fill="none" stroke={cfg.color} strokeWidth="0.4" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#chat-grid)" />
-            </svg>
-
-            {/* ── HEADER */}
-            <div
-              className="relative z-10 flex items-center justify-between px-6 md:px-10 py-4 shrink-0"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+          <div className="overflow-hidden mb-4">
+            <motion.h1
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="text-6xl md:text-8xl font-black text-white tracking-tighter leading-none"
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              {/* Identité agent */}
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl font-black shrink-0"
-                  style={{
-                    background: `${cfg.color}10`,
-                    border: `1px solid ${cfg.color}28`,
-                    color: cfg.color,
-                    boxShadow: `0 0 20px ${cfg.color}15`,
-                  }}
-                >
-                  {cfg.icon}
-                </div>
-                <div>
-                  <p className="text-white font-black text-sm uppercase tracking-tight">
-                    {activeAgent.name}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
+              NOS AGENTS
+            </motion.h1>
+          </div>
+          <div className="overflow-hidden mb-8">
+            <motion.h1
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="text-6xl md:text-8xl font-black tracking-tighter leading-none"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                color: cfg.color,
+                opacity: 0.25,
+              }}
+            >
+              EN ACTION.
+            </motion.h1>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="max-w-md text-white/40 text-sm leading-relaxed"
+          >
+            Chaque agent est entraîné pour répondre comme un expert humain.
+            Sélectionnez un agent et engagez une vraie conversation.
+          </motion.p>
+        </div>
+
+        {/* ── AGENT SELECTOR CARDS */}
+        <div className="flex gap-4 mb-12 overflow-x-auto pb-2 scrollbar-hide">
+          {agents.map((agent, i) => (
+            <AgentCard
+              key={agent.id}
+              agent={agent}
+              isSelected={selected?.id === agent.id}
+              onClick={() => initAgent(agent)}
+              index={i}
+            />
+          ))}
+        </div>
+
+        {/* ── CHAT INTERFACE */}
+        <AnimatePresence mode="wait">
+          {selected && (
+            <motion.div
+              key={selected.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-3xl overflow-hidden"
+              style={{
+                background: "rgba(10,10,10,0.8)",
+                border: `1px solid ${cfg.color}20`,
+                backdropFilter: "blur(20px)",
+                boxShadow: `0 0 60px ${cfg.glow}`,
+              }}
+            >
+
+              {/* Chat header */}
+              <div
+                className="px-8 py-5 flex items-center justify-between"
+                style={{ borderBottom: `1px solid ${cfg.color}10` }}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Agent avatar */}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black"
+                    style={{
+                      background: `${cfg.color}10`,
+                      border: `1px solid ${cfg.color}30`,
+                      color: cfg.color,
+                    }}
+                  >
+                    {cfg.icon}
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-sm uppercase tracking-tight">
+                      {selected.name}
+                    </p>
+                    <p className="text-white/30 text-[11px]">{selected.tagline}</p>
+                  </div>
+                  {/* Online indicator */}
+                  <div className="flex items-center gap-1.5 ml-2">
                     <motion.div
                       className="w-1.5 h-1.5 rounded-full"
                       style={{ backgroundColor: cfg.color }}
-                      animate={{ opacity: [1, 0.3, 1] }}
+                      animate={{ opacity: [1, 0.4, 1] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     />
                     <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
@@ -737,278 +491,274 @@ export default function AgentsDemo() {
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-4">
-                {/* Barre de progression messages */}
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: activeAgent.max_messages }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="transition-all duration-500 rounded-full"
-                      style={{
-                        width: i < msgCount ? "16px" : "6px",
-                        height: "6px",
-                        backgroundColor: i < msgCount ? cfg.color : "rgba(255,255,255,0.08)",
-                        boxShadow: i < msgCount ? `0 0 8px ${cfg.color}80` : "none",
-                      }}
-                    />
-                  ))}
-                  <span className="text-white/15 text-[10px] ml-2 font-mono">
-                    {msgCount}/{activeAgent.max_messages}
-                  </span>
-                </div>
-
-                {/* Reset conversation */}
-                <motion.button
-                  onClick={() => {
-                    setMessages([{
-                      role: "assistant",
-                      content: activeAgent.opening_questions?.[0] ?? "Bonjour !",
-                    }]);
-                    setMsgCount(0);
-                    setShowSuggestions(true);
-                  }}
-                  whileHover={{ rotate: -180 }}
-                  transition={{ duration: 0.4 }}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-                >
-                  <RotateCcw size={13} className="text-white/25" />
-                </motion.button>
-
-                {/* Recommencer depuis le début */}
-                <button
-                  onClick={() => {
-                    setAct("intro");
-                    setQuestionReady(false);
-                    setSelectedAnswer(null);
-                    setSplineReady(false);
-                    setTimeout(() => setSplineReady(true), 100);
-                  }}
-                  className="text-white/15 text-[10px] font-bold uppercase tracking-widest hover:text-white/40 transition-colors hidden md:block"
-                >
-                  Recommencer
-                </button>
-              </div>
-            </div>
-
-            {/* ── MESSAGES */}
-            <div className="relative z-10 flex-1 overflow-y-auto px-6 md:px-16 lg:px-24 py-8 space-y-5">
-              <AnimatePresence initial={false}>
-                {messages.map((msg, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    {/* Avatar agent */}
-                    {msg.role === "assistant" && (
+                <div className="flex items-center gap-4">
+                  {/* Message counter dots */}
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: selected.max_messages }).map((_, i) => (
                       <div
-                        className="w-9 h-9 rounded-2xl flex items-center justify-center text-base shrink-0 mt-1"
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full transition-all duration-300"
                         style={{
-                          background: `${cfg.color}10`,
-                          border: `1px solid ${cfg.color}22`,
-                          color: cfg.color,
+                          backgroundColor: i < msgCount ? cfg.color : "rgba(255,255,255,0.1)",
+                          boxShadow: i < msgCount ? `0 0 6px ${cfg.color}` : "none",
                         }}
+                      />
+                    ))}
+                    <span className="text-white/20 text-[10px] ml-2">
+                      {msgCount}/{selected.max_messages}
+                    </span>
+                  </div>
+
+                  {/* Reset */}
+                  <motion.button
+                    onClick={() => initAgent(selected)}
+                    whileHover={{ rotate: -180 }}
+                    transition={{ duration: 0.4 }}
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <RotateCcw size={13} className="text-white/30" />
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div 
+                className="overflow-y-auto px-8 py-6 space-y-5 scroll-smooth"
+                style={{ minHeight: "200px", maxHeight: "420px" }}
+              >
+                <AnimatePresence initial={false}>
+                  {messages.map((msg, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      {/* Agent avatar */}
+                      {msg.role === "assistant" && (
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 mt-1"
+                          style={{ background: `${cfg.color}10`, border: `1px solid ${cfg.color}20`, color: cfg.color }}
+                        >
+                          {cfg.icon}
+                        </div>
+                      )}
+
+                      {/* Bubble */}
+                      <div
+                        className="max-w-[72%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed"
+                        style={msg.role === "user" ? {
+                          background: cfg.color,
+                          color: "#000",
+                          fontWeight: 600,
+                          borderRadius: "18px 18px 4px 18px",
+                        } : {
+                          background: "rgba(255,255,255,0.04)",
+                          color: "rgba(255,255,255,0.75)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                          borderRadius: "18px 18px 18px 4px",
+                        }}
+                      >
+                        {msg.content}
+                      </div>
+
+                      {/* User avatar */}
+                      {msg.role === "user" && (
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 mt-1"
+                          style={{ background: cfg.color, color: "#000" }}
+                        >
+                          Vs
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+
+                  {/* Typing indicator */}
+                  {isLoading && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex gap-3 justify-start"
+                    >
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0"
+                        style={{ background: `${cfg.color}10`, border: `1px solid ${cfg.color}20`, color: cfg.color }}
                       >
                         {cfg.icon}
                       </div>
-                    )}
-
-                    {/* Bulle de message */}
-                    <div
-                      className="max-w-[68%] md:max-w-[60%] px-5 py-4 text-sm leading-relaxed"
-                      style={msg.role === "user" ? {
-                        background: cfg.color,
-                        color: "#000",
-                        fontWeight: 600,
-                        borderRadius: "20px 20px 5px 20px",
-                        boxShadow: `0 4px 20px ${cfg.color}25`,
-                      } : {
-                        background: "rgba(255,255,255,0.04)",
-                        color: "rgba(255,255,255,0.78)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        borderRadius: "20px 20px 20px 5px",
-                      }}
-                    >
-                      {msg.content}
-                    </div>
-
-                    {/* Avatar utilisateur */}
-                    {msg.role === "user" && (
                       <div
-                        className="w-9 h-9 rounded-2xl flex items-center justify-center text-[10px] font-black shrink-0 mt-1"
-                        style={{ background: cfg.color, color: "#000" }}
+                        className="px-4 py-3 rounded-2xl rounded-tl-sm"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
                       >
-                        Vs
+                        <TypingDots color={cfg.color} />
                       </div>
-                    )}
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <div ref={bottomRef} />
+              </div>
 
-                {/* Indicateur de frappe */}
-                {isLoading && (
+              {/* Redirect suggestion */}
+              <AnimatePresence>
+                {redirectTarget && (
                   <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex gap-3 justify-start"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-8 py-3 flex items-center justify-between"
+                    style={{ borderTop: `1px solid ${cfg.color}10`, background: `${cfg.color}05` }}
                   >
-                    <div
-                      className="w-9 h-9 rounded-2xl flex items-center justify-center text-base shrink-0"
-                      style={{ background: `${cfg.color}10`, border: `1px solid ${cfg.color}22`, color: cfg.color }}
+                    <p className="text-white/40 text-xs">
+                      💡 <span style={{ color: cfg.color }}>{redirectTarget.name}</span> serait plus adapté à votre secteur
+                    </p>
+                    <button
+                      onClick={() => { initAgent(redirectTarget); setRedirectTarget(null); }}
+                      className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest hover:gap-2.5 transition-all"
+                      style={{ color: cfg.color }}
                     >
-                      {cfg.icon}
-                    </div>
-                    <div
-                      className="px-5 py-3 rounded-3xl rounded-tl-sm"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                    >
-                      <TypingDots color={cfg.color} />
+                      Essayer <ChevronRight size={12} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Suggested prompts */}
+              <AnimatePresence>
+                {showSuggestions && !isMaxReached && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-8 py-4"
+                    style={{ borderTop: `1px solid rgba(255,255,255,0.04)` }}
+                  >
+                    <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-3">
+                      Exemples de cas d'usage
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selected.suggested_prompts?.slice(0, 3).map((sp, i) => (
+                        <motion.button
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.08 }}
+                          onClick={() => send(sp.prompt)}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="px-4 py-2 rounded-full text-[11px] font-medium transition-all"
+                          style={{
+                            background: `${cfg.color}10`,
+                            border: `1px solid ${cfg.color}25`,
+                            color: cfg.color,
+                          }}
+                        >
+                          {sp.label}
+                        </motion.button>
+                      ))}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div ref={bottomRef} />
-            </div>
 
-            {/* ── PROMPTS SUGGÉRÉS */}
-            <AnimatePresence>
-              {showSuggestions && !isMaxReached && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="relative z-10 px-6 md:px-16 lg:px-24 py-4 shrink-0"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-                >
-                  <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest mb-3">
-                    Exemples de cas d'usage
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {activeAgent.suggested_prompts?.slice(0, 3).map((sp, i) => (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        onClick={() => send(sp.prompt)}
-                        whileHover={{ scale: 1.03, y: -2 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="px-4 py-2 rounded-full text-[11px] font-medium transition-all"
-                        style={{
-                          background: `${cfg.color}0D`,
-                          border: `1px solid ${cfg.color}25`,
-                          color: cfg.color,
-                        }}
-                      >
-                        {sp.label}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ── LIMITE ATTEINTE → CTA */}
-            <AnimatePresence>
-              {isMaxReached && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="relative z-10 px-6 md:px-16 lg:px-24 py-5 flex items-center justify-between shrink-0"
-                  style={{
-                    borderTop: `1px solid ${cfg.color}18`,
-                    background: `${cfg.color}05`,
-                  }}
-                >
-                  <div>
-                    <p className="text-white/60 text-sm font-medium mb-1">
-                      Vous avez découvert {activeAgent.name}.
-                    </p>
-                    <p className="text-white/25 text-xs">
-                      Prêt à le déployer dans votre entreprise ?
-                    </p>
-                  </div>
-                  <Link
-                    to="/contact"
-                    className="flex items-center gap-2 px-7 py-3 rounded-full font-black text-[11px] uppercase tracking-widest hover:gap-3 transition-all"
-                    style={{ background: cfg.color, color: "#000", boxShadow: `0 0 30px ${cfg.color}40` }}
+              {/* Max reached CTA */}
+              <AnimatePresence>
+                {isMaxReached && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="px-8 py-5 flex items-center justify-between"
+                    style={{ borderTop: `1px solid ${cfg.color}15`, background: `${cfg.color}05` }}
                   >
-                    Démarrer <ArrowRight size={13} />
-                  </Link>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <div>
+                      <p className="text-white/60 text-sm font-medium mb-0.5">
+                        Vous avez découvert le potentiel de {selected.name}.
+                      </p>
+                      <p className="text-white/25 text-xs">
+                        Prêt à le déployer dans votre entreprise ?
+                      </p>
+                    </div>
+                    <a
+                      href="/contact"
+                      className="flex items-center gap-2 px-6 py-3 rounded-full font-black text-[11px] uppercase tracking-widest transition-all hover:gap-3"
+                      style={{ background: cfg.color, color: "#000" }}
+                    >
+                      Démarrer <ArrowRight size={13} />
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* ── INPUT */}
-            {!isMaxReached && (
-              <div
-                className="relative z-10 px-6 md:px-16 lg:px-24 py-5 shrink-0"
-                style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-              >
+              {/* Input */}
+              {!isMaxReached && (
                 <div
-                  className="flex items-center gap-3 rounded-2xl px-5 py-4 transition-all duration-300 focus-within:border-opacity-50"
-                  style={{
-                    background: "rgba(255,255,255,0.025)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                  }}
+                  className="px-8 py-5"
+                  style={{ borderTop: `1px solid rgba(255,255,255,0.04)` }}
                 >
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-                    placeholder={`Parlez à ${activeAgent.name}...`}
-                    disabled={isLoading}
-                    className="flex-1 bg-transparent outline-none text-white/70 text-sm placeholder:text-white/12 disabled:opacity-30"
-                  />
-                  <motion.button
-                    onClick={() => send(input)}
-                    disabled={isLoading || !input.trim()}
-                    whileHover={{ scale: 1.12 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center disabled:opacity-20 shrink-0 transition-all"
-                    style={{ background: cfg.color, boxShadow: `0 0 20px ${cfg.color}40` }}
+                  <div
+                    className="flex items-center gap-3 rounded-2xl px-5 py-3.5 transition-all duration-300 focus-within:shadow-lg"
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      border: `1px solid rgba(255,255,255,0.08)`,
+                    }}
+                    onFocus={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = cfg.color + "40";
+                    }}
+                    onBlur={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
+                    }}
                   >
-                    <Send size={15} className="text-black" />
-                  </motion.button>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && send(input)}
+                      placeholder={`Parlez à ${selected.name}...`}
+                      disabled={isLoading}
+                      className="flex-1 bg-transparent outline-none text-white/70 text-sm placeholder:text-white/15 disabled:opacity-50"
+                    />
+                    <motion.button
+                      onClick={() => send(input)}
+                      disabled={isLoading || !input.trim()}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-30 transition-all"
+                      style={{ background: cfg.color }}
+                    >
+                      <Send size={14} className="text-black" />
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ── FLÈCHE CONTACT DISCRÈTE */}
-            <motion.div
-              className="relative z-10 flex justify-center pb-3 shrink-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 3 }}
-            >
-              <Link
-                to="/contact"
-                className="flex flex-col items-center gap-1 group"
-                style={{ color: "rgba(255,255,255,0.1)" }}
-              >
-                <span className="text-[9px] font-bold uppercase tracking-[0.3em] group-hover:opacity-50 transition-opacity">
-                  Déployer dans mon entreprise
-                </span>
-                <motion.div
-                  animate={{ y: [0, 5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <ArrowDown size={11} />
-                </motion.div>
-              </Link>
             </motion.div>
+          )}
+        </AnimatePresence>
 
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* ── BOTTOM CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-12 flex items-center justify-between"
+        >
+          <p className="text-white/15 text-xs">
+            Les agents sont alimentés par Claude AI — Anthropic
+          </p>
+          <a
+            href="/contact"
+            className="flex items-center gap-2 text-white/30 text-xs font-bold uppercase tracking-widest hover:text-white hover:gap-3 transition-all"
+          >
+            Déployer dans mon entreprise <ArrowRight size={12} />
+          </a>
+        </motion.div>
+
+      </div>
     </div>
   );
 }
