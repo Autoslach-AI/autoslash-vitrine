@@ -88,6 +88,7 @@ function AppLayout() {
                           location.pathname.startsWith("/enterprise-package") ||
                           location.pathname.startsWith("/enterprise-details") ||
                           location.pathname === "/client-projects" ||
+                          location.pathname === "/agents-demo" ||
                           location.pathname === "/contact";
 
   const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan";
