@@ -1,150 +1,968 @@
 "use client";
 
 /**
- * AgentsDemo.tsx — Autoslash AI
- * ─────────────────────────────
- * Page de démonstration interactive des agents IA
- * Architecture en 4 actes :
- *   ACTE 1 → Robot Spline plein écran + message d'accueil animé
- *   ACTE 2 → Question au visiteur + choix de l'agent
- *   ACTE 3 → Recommandation + carte agent + téléportation
- *   ACTE 4 → Chat plein écran immersif avec l'agent choisi
+ * AgentsDemo.tsx — Autoslash AI Oracle
+ * ══════════════════════════════════════
+ * Une expérience en 5 actes :
  *
- * Dépendances requises :
- *   npm install @splinetool/react-spline @splinetool/runtime
+ * ACTE 0 — ÉVEIL        : Robot dormant → s'éveille au mouvement du curseur
+ * ACTE 1 — ORACLE       : Robot parle (Web Speech), pose questions dynamiques (Claude)
+ * ACTE 2 — ÉCOUTE       : Visiteur répond à voix haute (SpeechRecognition)
+ * ACTE 3 — PORTAIL      : Portail tourbillonnant + carte holographique flottante
+ * ACTE 4 — VOYAGE       : Distorsion temporelle → arrivée dans l'autre monde
  *
- * Le composant SplineScene doit exister dans :
- *   src/components/ui/splite.tsx
+ * APIs utilisées (zéro coût) :
+ *   - Web Speech API (SpeechSynthesis + SpeechRecognition) — natif navigateur
+ *   - Claude API — questions dynamiques + guidage intelligent
+ *   - Spline — robot 3D interactif
  */
 
-import { Suspense, lazy, useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { supabase } from "@/lib/supabase";
-import { Send, RotateCcw, ArrowDown, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import {
+  Suspense, lazy, useEffect, useState, useRef,
+  useCallback, useMemo,
+} from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring } from "motion/react";
+import { useNavigate } from "react-router-dom";
+import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 
-// ─── Spline lazy load ────────────────────────────────────────────────────────
 const Spline = lazy(() => import("@splinetool/react-spline"));
 
-// ─── TYPES ───────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════
 
-interface Agent {
-  id: string;
-  name: string;
-  tagline: string;
-  sector: string;
-  use_case: string;
-  system_prompt: string;
-  opening_questions: string[];
-  suggested_prompts: { label: string; prompt: string }[];
-  compatible_sectors: string[];
-  redirect_rules: Record<string, string>;
-  max_messages: number;
-  display_order: number;
+type Act = "dormant" | "awakening" | "oracle" | "listening" | "thinking" | "portal" | "traveling";
+
+interface Destination {
+  path: string;
+  label: string;
+  description: string;
+  color: string;
+  icon: string;
+  glow: string;
 }
 
-interface Message {
+interface OracleMessage {
   role: "user" | "assistant";
   content: string;
 }
 
-type Act = "intro" | "questions" | "recommendation" | "chat";
+// ═══════════════════════════════════════════════════════════════
+// CONFIG DESTINATIONS
+// ═══════════════════════════════════════════════════════════════
 
-// ─── VISUAL CONFIG PAR AGENT ─────────────────────────────────────────────────
-
-const AGENT_CONFIG: Record<string, { color: string; glow: string; icon: string }> = {
-  "Agent Support":    { color: "#A8E6CF", glow: "rgba(168,230,207,0.25)", icon: "◎" },
-  "Agent Commercial": { color: "#FFD3B6", glow: "rgba(255,211,182,0.25)", icon: "◈" },
-  "Agent Contenu":    { color: "#FFEAA7", glow: "rgba(255,234,167,0.25)", icon: "◉" },
-  "Agent RAG":        { color: "#DDD6FE", glow: "rgba(221,214,254,0.25)", icon: "◍" },
-  "Agent Mentor":     { color: "#FFFFFF", glow: "rgba(255,255,255,0.18)", icon: "✦"  },
+const DESTINATIONS: Record<string, Destination> = {
+  "agents-demo": {
+    path: "/agents-demo",
+    label: "Les Agents IA",
+    description: "Testez nos agents en conditions réelles",
+    color: "#A8E6CF",
+    glow: "rgba(168,230,207,0.4)",
+    icon: "◎",
+  },
+  "client-projects": {
+    path: "/client-projects",
+    label: "Nos Réalisations",
+    description: "Découvrez l'impact de nos déploiements",
+    color: "#FFD3B6",
+    glow: "rgba(255,211,182,0.4)",
+    icon: "◈",
+  },
+  "pricing": {
+    path: "/pricing",
+    label: "Nos Offres",
+    description: "Choisissez votre package Autoslash AI",
+    color: "#FFEAA7",
+    glow: "rgba(255,234,167,0.4)",
+    icon: "◉",
+  },
+  "blog": {
+    path: "/blog",
+    label: "Le Blog",
+    description: "Actualités, études de cas et innovation",
+    color: "#DDD6FE",
+    glow: "rgba(221,214,254,0.4)",
+    icon: "◍",
+  },
+  "contact": {
+    path: "/contact",
+    label: "Nous Contacter",
+    description: "Parlez à l'équipe Autoslash AI",
+    color: "#FFFFFF",
+    glow: "rgba(255,255,255,0.35)",
+    icon: "✦",
+  },
 };
 
-const getCfg = (name: string) =>
-  AGENT_CONFIG[name] ?? { color: "#ffffff", glow: "rgba(255,255,255,0.1)", icon: "◎" };
+// ═══════════════════════════════════════════════════════════════
+// SYSTEM PROMPT ORACLE
+// ═══════════════════════════════════════════════════════════════
 
-// ─── MAPPING RÉPONSE → AGENT ──────────────────────────────────────────────────
+const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une présence intelligente et bienveillante qui accueille les visiteurs du site vitrine.
 
-const INTRO_QUESTION = {
-  text: "Qu'attendez-vous vraiment de l'IA pour votre entreprise ?",
-  options: [
-    { label: "Automatiser mon support client",  value: "support"     },
-    { label: "Convertir plus de prospects",      value: "commercial"  },
-    { label: "Créer du contenu en masse",        value: "contenu"     },
-    { label: "Exploiter mes données internes",   value: "rag"         },
-    { label: "Être guidé stratégiquement",       value: "mentor"      },
-  ],
-};
+TON RÔLE :
+- Poser des questions naturelles et dynamiques pour comprendre les besoins du visiteur
+- Ne JAMAIS poser deux fois la même question
+- Adapter ton ton : chaleureux, direct, jamais robotique
+- Parler en phrases courtes (max 2 phrases par réponse) pour être dit à voix haute
+- Recadrer poliment si le visiteur parle d'autre chose qu'Autoslash AI
 
-const AGENT_MAP: Record<string, string> = {
-  support:    "Agent Support",
-  commercial: "Agent Commercial",
-  contenu:    "Agent Contenu",
-  rag:        "Agent RAG",
-  mentor:     "Agent Mentor",
-};
+DESTINATIONS DISPONIBLES :
+- "agents-demo" → tester les agents IA, voir une démonstration, curiosité technique
+- "client-projects" → voir des réalisations, projets livrés, preuves concrètes
+- "pricing" → tarifs, packages, offres, prix, combien ça coûte
+- "blog" → articles, actualités, études de cas, apprendre
+- "contact" → parler à l'équipe, poser une question, démarrer un projet
 
-// ─── COMPOSANT : TEXTE ANIMÉ LETTRE PAR LETTRE ───────────────────────────────
+RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication.
 
-function TypingText({ text, speed = 28, onDone }: {
-  text: string;
-  speed?: number;
-  onDone?: () => void;
-}) {
-  const [displayed, setDisplayed] = useState("");
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    setDisplayed("");
-    setDone(false);
-    let i = 0;
-    const id = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(id);
-        setDone(true);
-        onDone?.();
-      }
-    }, speed);
-    return () => clearInterval(id);
-  }, [text, speed]);
-
-  return (
-    <span>
-      {displayed}
-      {!done && (
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-          className="inline-block w-[2px] h-[0.85em] bg-white align-middle ml-1 rounded-full"
-        />
-      )}
-    </span>
-  );
+FORMAT DE RÉPONSE :
+{
+  "speech": "texte à dire à voix haute (court, naturel, 1-2 phrases max)",
+  "subtitle": "même texte pour le sous-titre",
+  "action": null ou une clé parmi: agents-demo, client-projects, pricing, blog, contact,
+  "confidence": 0 à 1 (certitude que tu as bien compris le besoin),
+  "recadrage": false ou true si le visiteur sort du sujet
 }
 
-// ─── COMPOSANT : POINTS DE CHARGEMENT ────────────────────────────────────────
+Si confidence > 0.7 → inclure l'action et diriger le visiteur.
+Si confidence < 0.7 → action: null, poser une question de précision.
+Si recadrage: true → ramener poliment sur l'écosystème Autoslash AI.
 
-function TypingDots({ color }: { color: string }) {
+EXEMPLES DE QUESTIONS QUE TU PEUX POSER (varie-les !) :
+- "Qu'est-ce qui vous a amené ici aujourd'hui ?"
+- "Avez-vous déjà utilisé des agents IA dans votre entreprise ?"
+- "Quel est votre secteur d'activité ?"
+- "Cherchez-vous à automatiser quelque chose de précis ?"
+- "Êtes-vous plutôt curieux ou avez-vous un projet concret ?"`;
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK : SYNTHÈSE VOCALE
+// ═══════════════════════════════════════════════════════════════
+
+function useSpeechSynthesis() {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  const speak = useCallback((text: string, onEnd?: () => void) => {
+    if (muted || !("speechSynthesis" in window)) {
+      onEnd?.();
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "fr-FR";
+    utterance.rate = 0.88;
+    utterance.pitch = 0.75;
+    utterance.volume = 1;
+
+    // Chercher une voix française
+    const voices = window.speechSynthesis.getVoices();
+    const frVoice = voices.find(v => v.lang.startsWith("fr")) ?? voices[0];
+    if (frVoice) utterance.voice = frVoice;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
+    utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
+    window.speechSynthesis.speak(utterance);
+  }, [muted]);
+
+  const stop = useCallback(() => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  }, []);
+
+  return { speak, stop, isSpeaking, muted, setMuted };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK : RECONNAISSANCE VOCALE
+// ═══════════════════════════════════════════════════════════════
+
+function useSpeechRecognition(onResult: (text: string) => void) {
+  const [isListening, setIsListening] = useState(false);
+  const [interim, setInterim] = useState("");
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const start = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+
+    const rec = new SR();
+    rec.lang = "fr-FR";
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => setIsListening(true);
+    rec.onend = () => { setIsListening(false); setInterim(""); };
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      let interimText = "";
+      let finalText = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t;
+        else interimText += t;
+      }
+      setInterim(interimText);
+      if (finalText) onResult(finalText);
+    };
+
+    rec.onerror = () => setIsListening(false);
+    recognitionRef.current = rec;
+    rec.start();
+  }, [onResult]);
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  return { start, stop, isListening, interim };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPOSANT : PORTAIL TOURBILLONNANT
+// ═══════════════════════════════════════════════════════════════
+
+function Portal({ color, active }: { color: string; active: boolean }) {
   return (
-    <div className="flex items-center gap-1.5 py-1">
-      {[0, 1, 2].map(i => (
+    <div className="relative flex items-center justify-center" style={{ width: 320, height: 320 }}>
+      {/* Anneaux concentriques */}
+      {[1, 0.8, 0.6, 0.4, 0.2].map((scale, i) => (
         <motion.div
           key={i}
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: color }}
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.2 }}
+          className="absolute rounded-full border"
+          style={{
+            width: 320 * scale,
+            height: 320 * scale,
+            borderColor: `${color}${Math.floor((1 - i * 0.15) * 255).toString(16).padStart(2, "0")}`,
+            borderWidth: 1.5 - i * 0.2,
+          }}
+          animate={active ? {
+            rotate: i % 2 === 0 ? [0, 360] : [360, 0],
+            scale: [scale, scale * 1.04, scale],
+          } : { opacity: 0 }}
+          transition={{
+            rotate: { duration: 4 + i * 1.5, repeat: Infinity, ease: "linear" },
+            scale: { duration: 2 + i * 0.5, repeat: Infinity, ease: "easeInOut" },
+          }}
         />
       ))}
+
+      {/* Spirale SVG centrale */}
+      <motion.svg
+        width="180" height="180" viewBox="0 0 180 180"
+        animate={active ? { rotate: [0, 360] } : { opacity: 0 }}
+        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+        style={{ position: "absolute" }}
+      >
+        <defs>
+          <radialGradient id="spiral-grad">
+            <stop offset="0%" stopColor={color} stopOpacity="0.9" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {[...Array(12)].map((_, i) => {
+          const angle = (i / 12) * Math.PI * 2;
+          const r = 20 + i * 5;
+          const x = 90 + r * Math.cos(angle);
+          const y = 90 + r * Math.sin(angle);
+          return (
+            <circle
+              key={i}
+              cx={x} cy={y} r={3 - i * 0.15}
+              fill={color}
+              opacity={1 - i * 0.07}
+            />
+          );
+        })}
+      </motion.svg>
+
+      {/* Cœur lumineux */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 60, height: 60, background: `radial-gradient(circle, ${color} 0%, transparent 70%)` }}
+        animate={active ? { scale: [0.8, 1.3, 0.8], opacity: [0.6, 1, 0.6] } : { opacity: 0 }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Particules orbitales */}
+      {[...Array(8)].map((_, i) => {
+        const angle = (i / 8) * 360;
+        return (
+          <motion.div
+            key={i}
+            className="absolute w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: color, top: "50%", left: "50%", marginTop: -3, marginLeft: -3 }}
+            animate={active ? {
+              x: [0, Math.cos((angle * Math.PI) / 180) * 120, 0],
+              y: [0, Math.sin((angle * Math.PI) / 180) * 120, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+            } : { opacity: 0 }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              delay: i * 0.3,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
 
-// ─── COMPOSANT : CURSEUR PERSONNALISÉ ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// COMPOSANT : CARTE HOLOGRAPHIQUE FLOTTANTE
+// ═══════════════════════════════════════════════════════════════
 
-function CustomCursor({ act }: { act: Act }) {
+function HoloCard({
+  dest,
+  onTravel,
+}: {
+  dest: Destination;
+  onTravel: () => void;
+}) {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useSpring(useMotionValue(0), { stiffness: 100, damping: 20 });
+  const rotateY = useSpring(useMotionValue(0), { stiffness: 100, damping: 20 });
+
+  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+    const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+    rotateX.set(-y * 18);
+    rotateY.set(x * 18);
+  };
+  const resetMouse = () => { rotateX.set(0); rotateY.set(0); };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 80, scale: 0.6 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      style={{ perspective: 800 }}
+    >
+      {/* Effet eau / flottement */}
+      <motion.div
+        animate={{
+          y: [0, -14, 0, -8, 0],
+          rotate: [0, 0.5, 0, -0.5, 0],
+        }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <motion.div
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          onMouseMove={handleMouse}
+          onMouseLeave={resetMouse}
+          onClick={onTravel}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.97 }}
+          className="cursor-pointer relative"
+        >
+          {/* Halo arc-en-ciel rotatif */}
+          <motion.div
+            className="absolute -inset-3 rounded-3xl opacity-60"
+            style={{
+              background: `conic-gradient(from 0deg, ${dest.color}, #ff6b9d, #c084fc, #60a5fa, #34d399, ${dest.color})`,
+              filter: "blur(12px)",
+            }}
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+
+          {/* Corps de la carte */}
+          <div
+            className="relative overflow-hidden rounded-3xl p-8"
+            style={{
+              background: `linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(20,20,20,0.9) 100%)`,
+              border: `1px solid ${dest.color}50`,
+              boxShadow: `0 0 60px ${dest.glow}, 0 30px 80px rgba(0,0,0,0.8)`,
+              width: 280,
+              backdropFilter: "blur(20px)",
+            }}
+          >
+            {/* Shimmer */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `linear-gradient(110deg, transparent 20%, ${dest.color}15 50%, transparent 80%)`,
+              }}
+              animate={{ x: ["-120%", "220%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            />
+
+            {/* Icône */}
+            <motion.div
+              className="text-5xl mb-5 leading-none"
+              style={{ color: dest.color }}
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {dest.icon}
+            </motion.div>
+
+            {/* Nom */}
+            <p
+              className="text-xl font-black uppercase tracking-tight mb-2"
+              style={{ color: dest.color, fontFamily: "'Playfair Display', serif" }}
+            >
+              {dest.label}
+            </p>
+            <p className="text-white/40 text-xs leading-relaxed mb-6">
+              {dest.description}
+            </p>
+
+            {/* CTA */}
+            <div
+              className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest"
+              style={{ color: dest.color }}
+            >
+              <motion.span
+                animate={{ x: [0, 4, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              >
+                Voyager →
+              </motion.span>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPOSANT : DISTORSION VOYAGE TEMPOREL
+// ═══════════════════════════════════════════════════════════════
+
+function TimeTravel({ color }: { color: string }) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden bg-black"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 1, 1, 0] }}
+      transition={{ duration: 2.2, times: [0, 0.15, 0.6, 0.85, 1] }}
+    >
+      {/* Tunnel lumineux */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full border"
+          style={{
+            width: `${(i + 1) * 5}vw`,
+            height: `${(i + 1) * 5}vw`,
+            borderColor: `${color}${Math.floor((1 - i / 20) * 255).toString(16).padStart(2, "0")}`,
+            borderWidth: 1,
+          }}
+          initial={{ scale: 0, opacity: 1 }}
+          animate={{ scale: [0, 4], opacity: [1, 0] }}
+          transition={{
+            duration: 1.4,
+            delay: i * 0.04,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        />
+      ))}
+
+      {/* Lignes de vitesse */}
+      {[...Array(24)].map((_, i) => {
+        const angle = (i / 24) * 360;
+        return (
+          <motion.div
+            key={i}
+            className="absolute origin-left"
+            style={{
+              width: "50vw",
+              height: 1,
+              background: `linear-gradient(to right, ${color}, transparent)`,
+              left: "50%",
+              top: "50%",
+              rotate: `${angle}deg`,
+              transformOrigin: "0 0",
+            }}
+            initial={{ scaleX: 0, opacity: 1 }}
+            animate={{ scaleX: [0, 1, 0], opacity: [0, 0.8, 0] }}
+            transition={{ duration: 1, delay: 0.3 + i * 0.02, ease: "easeOut" }}
+          />
+        );
+      })}
+
+      {/* Flash central */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{ background: color, width: 20, height: 20 }}
+        animate={{ scale: [1, 60], opacity: [1, 0] }}
+        transition={{ duration: 0.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      {/* Texte */}
+      <motion.p
+        className="absolute font-black text-white/60 text-[11px] uppercase tracking-[0.5em]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 2.2, times: [0, 0.2, 0.8, 1] }}
+        style={{ fontFamily: "'DM Sans', sans-serif" }}
+      >
+        Voyage en cours...
+      </motion.p>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPOSANT : SOUS-TITRES ANIMÉS
+// ═══════════════════════════════════════════════════════════════
+
+function Subtitle({ text, visible }: { text: string; visible: boolean }) {
+  return (
+    <AnimatePresence>
+      {visible && text && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-2xl text-center px-8"
+        >
+          <p
+            className="text-white text-xl md:text-2xl font-black leading-tight"
+            style={{ fontFamily: "'Playfair Display', serif", textShadow: "0 2px 20px rgba(0,0,0,0.8)" }}
+          >
+            {text}
+          </p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAGE PRINCIPALE
+// ═══════════════════════════════════════════════════════════════
+
+export default function AgentsDemo() {
+  const navigate = useNavigate();
+
+  // ── State
+  const [act, setAct] = useState<Act>("dormant");
+  const [splineReady, setSplineReady] = useState(false);
+  const [subtitle, setSubtitle] = useState("");
+  const [showSubtitle, setShowSubtitle] = useState(false);
+  const [userTranscript, setUserTranscript] = useState("");
+  const [destination, setDestination] = useState<Destination | null>(null);
+  const [isTimeTravel, setIsTimeTravel] = useState(false);
+  const [history, setHistory] = useState<OracleMessage[]>([]);
+  const [turnCount, setTurnCount] = useState(0);
+
+  const { speak, stop: stopSpeech, isSpeaking, muted, setMuted } = useSpeechSynthesis();
+
+  // ── Reconnaissance vocale
+  const handleVoiceResult = useCallback((text: string) => {
+    setUserTranscript(text);
+    setAct("thinking");
+    askOracle(text);
+  }, [history, turnCount]);
+
+  const { start: startListening, stop: stopListening, isListening, interim } =
+    useSpeechRecognition(handleVoiceResult);
+
+  // ── Oracle Claude — question dynamique
+  const askOracle = useCallback(async (userText: string) => {
+    const newHistory: OracleMessage[] = [
+      ...history,
+      { role: "user", content: userText },
+    ];
+    setHistory(newHistory);
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 300,
+          system: ORACLE_SYSTEM,
+          messages: newHistory.map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text ?? "{}";
+
+      let parsed: {
+        speech: string;
+        subtitle: string;
+        action: string | null;
+        confidence: number;
+        recadrage: boolean;
+      };
+
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        parsed = {
+          speech: "Pouvez-vous me préciser ce que vous cherchez sur Autoslash AI ?",
+          subtitle: "Pouvez-vous me préciser ce que vous cherchez sur Autoslash AI ?",
+          action: null,
+          confidence: 0,
+          recadrage: false,
+        };
+      }
+
+      setHistory(prev => [...prev, { role: "assistant", content: parsed.speech }]);
+      setTurnCount(c => c + 1);
+
+      // Parler
+      oracleSay(parsed.subtitle || parsed.speech, () => {
+        if (parsed.action && parsed.confidence >= 0.7 && DESTINATIONS[parsed.action]) {
+          // → montrer le portail
+          setDestination(DESTINATIONS[parsed.action]);
+          setAct("portal");
+        } else {
+          // → continuer l'écoute
+          setAct("listening");
+          setTimeout(() => startListening(), 400);
+        }
+      });
+
+    } catch {
+      oracleSay("Une erreur est survenue. Permettez-moi de vous demander — que cherchez-vous sur notre site ?", () => {
+        setAct("listening");
+        setTimeout(() => startListening(), 400);
+      });
+    }
+  }, [history, turnCount, startListening, speak]);
+
+  // ── Dire quelque chose et afficher sous-titre
+  const oracleSay = useCallback((text: string, onEnd?: () => void) => {
+    setSubtitle(text);
+    setShowSubtitle(true);
+    speak(text, () => {
+      setTimeout(() => setShowSubtitle(false), 800);
+      onEnd?.();
+    });
+  }, [speak]);
+
+  // ── ÉVEIL au mouvement du curseur
+  useEffect(() => {
+    if (act !== "dormant" || !splineReady) return;
+    const wake = () => {
+      setAct("awakening");
+      window.removeEventListener("mousemove", wake);
+      window.removeEventListener("touchstart", wake);
+    };
+    window.addEventListener("mousemove", wake);
+    window.addEventListener("touchstart", wake);
+    return () => {
+      window.removeEventListener("mousemove", wake);
+      window.removeEventListener("touchstart", wake);
+    };
+  }, [act, splineReady]);
+
+  // ── Séquence d'éveil
+  useEffect(() => {
+    if (act !== "awakening") return;
+    const timer = setTimeout(() => {
+      setAct("oracle");
+      oracleSay(
+        "Bonjour. Je suis l'Oracle d'Autoslash AI. Je suis ici pour vous guider. Qu'est-ce qui vous amène aujourd'hui ?",
+        () => {
+          setAct("listening");
+          setTimeout(() => startListening(), 500);
+        }
+      );
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [act]);
+
+  // ── Voyage temporel → navigation
+  const handleTravel = useCallback(() => {
+    if (!destination) return;
+    stopListening();
+    stopSpeech();
+    setIsTimeTravel(true);
+    setTimeout(() => {
+      navigate(destination.path);
+    }, 1800);
+  }, [destination, navigate, stopListening, stopSpeech]);
+
+  // ── Couleur active
+  const activeColor = destination?.color ?? "#ffffff";
+  const activeGlow = destination?.glow ?? "rgba(255,255,255,0.2)";
+
+  return (
+    <div
+      className="fixed inset-0 bg-black overflow-hidden"
+      style={{ fontFamily: "'DM Sans', sans-serif", cursor: "none" }}
+    >
+      {/* ── CURSEUR PERSONNALISÉ */}
+      <CursorDot act={act} />
+
+      {/* ── VOYAGE TEMPOREL */}
+      <AnimatePresence>
+        {isTimeTravel && destination && (
+          <TimeTravel color={destination.color} />
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════
+          ROBOT SPLINE — toujours présent sauf voyage
+      ══════════════════════════════════════════ */}
+      <AnimatePresence>
+        {!isTimeTravel && (
+          <motion.div
+            key="robot"
+            className="absolute inset-0"
+            animate={{
+              // Robot glisse à droite quand portail actif
+              x: act === "portal" ? "25%" : "0%",
+              scale: act === "dormant" ? 0.95 : 1,
+            }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Suspense fallback={
+              <div className="w-full h-full flex items-center justify-center">
+                <motion.div
+                  className="w-16 h-16 border border-white/10 rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              </div>
+            }>
+              <Spline
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+                onLoad={() => {
+                  setSplineReady(true);
+                  // Charger les voix
+                  window.speechSynthesis?.getVoices();
+                }}
+              />
+            </Suspense>
+
+            {/* Overlays */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent" />
+              <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-black/60 to-transparent" />
+            </div>
+
+            {/* Effet dormant */}
+            <AnimatePresence>
+              {act === "dormant" && (
+                <motion.div
+                  className="absolute inset-0 bg-black"
+                  initial={{ opacity: 0.6 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2 }}
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════
+          PORTAIL + CARTE — côté gauche
+      ══════════════════════════════════════════ */}
+      <AnimatePresence>
+        {act === "portal" && destination && !isTimeTravel && (
+          <motion.div
+            key="portal-zone"
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center"
+            style={{ width: "55%" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex flex-col items-center gap-8">
+              {/* Portail */}
+              <Portal color={activeColor} active={true} />
+
+              {/* Carte holographique — émerge du portail */}
+              <motion.div
+                initial={{ opacity: 0, y: 40, scale: 0.5 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.8, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <HoloCard dest={destination} onTravel={handleTravel} />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════
+          SOUS-TITRES — centre bas
+      ══════════════════════════════════════════ */}
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-20 px-8 gap-6 pointer-events-none z-20">
+
+        {/* Transcript utilisateur */}
+        <AnimatePresence>
+          {(isListening || userTranscript) && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="px-5 py-2.5 rounded-full"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              <p className="text-white/50 text-sm">
+                {isListening ? (interim || "Je vous écoute...") : userTranscript}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sous-titre Oracle */}
+        <Subtitle text={subtitle} visible={showSubtitle} />
+
+        {/* Indicateur état */}
+        <div className="flex items-center gap-3">
+          {act === "dormant" && splineReady && (
+            <motion.p
+              className="text-white/20 text-[10px] font-bold uppercase tracking-[0.5em]"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Bougez votre curseur pour éveiller l'Oracle
+            </motion.p>
+          )}
+
+          {act === "listening" && (
+            <motion.div
+              className="flex items-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div
+                className="w-3 h-3 rounded-full bg-red-400"
+                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+              <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">
+                Parlez maintenant
+              </span>
+            </motion.div>
+          )}
+
+          {act === "thinking" && (
+            <div className="flex items-center gap-1.5">
+              {[0, 1, 2].map(i => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-white/40"
+                  animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                  transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+                />
+              ))}
+              <span className="text-white/30 text-[10px] font-bold uppercase tracking-widest ml-2">
+                Analyse en cours...
+              </span>
+            </div>
+          )}
+
+          {act === "portal" && (
+            <motion.p
+              className="text-white/30 text-[11px] font-bold uppercase tracking-widest"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              Cliquez sur la carte pour voyager
+            </motion.p>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════
+          CONTRÔLES — coin supérieur droit
+      ══════════════════════════════════════════ */}
+      <div className="absolute top-6 right-6 flex items-center gap-3 z-30">
+        {/* Couper/activer le son */}
+        <motion.button
+          onClick={() => setMuted(m => !m)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+        >
+          {muted
+            ? <VolumeX size={15} className="text-white/30" />
+            : <Volume2 size={15} className="text-white/60" />
+          }
+        </motion.button>
+
+        {/* Micro manuel */}
+        {(act === "oracle" || act === "listening") && (
+          <motion.button
+            onClick={() => isListening ? stopListening() : startListening()}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{
+              background: isListening ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.06)",
+              border: `1px solid ${isListening ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.1)"}`,
+            }}
+          >
+            {isListening
+              ? <Mic size={15} className="text-red-400" />
+              : <MicOff size={15} className="text-white/40" />
+            }
+          </motion.button>
+        )}
+
+        {/* Recommencer */}
+        {act !== "dormant" && (
+          <motion.button
+            onClick={() => {
+              stopSpeech();
+              stopListening();
+              setAct("dormant");
+              setHistory([]);
+              setTurnCount(0);
+              setDestination(null);
+              setSubtitle("");
+              setUserTranscript("");
+            }}
+            whileHover={{ scale: 1.05 }}
+            className="text-white/15 text-[10px] font-bold uppercase tracking-widest hover:text-white/35 transition-colors"
+          >
+            Recommencer
+          </motion.button>
+        )}
+      </div>
+
+      {/* Badge Autoslash */}
+      <div className="absolute top-6 left-6 z-30">
+        <motion.div
+          className="flex items-center gap-2"
+          animate={act === "dormant" ? { opacity: 0.3 } : { opacity: 1 }}
+        >
+          <motion.div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: act === "portal" && destination ? destination.color : "#ffffff" }}
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <span className="text-white/30 text-[9px] font-bold tracking-[0.5em] uppercase">
+            Oracle — Autoslash AI
+          </span>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPOSANT : CURSEUR PERSONNALISÉ
+// ═══════════════════════════════════════════════════════════════
+
+function CursorDot({ act }: { act: Act }) {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [visible, setVisible] = useState(false);
 
@@ -156,859 +974,21 @@ function CustomCursor({ act }: { act: Act }) {
     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseleave", leave); };
   }, []);
 
-  if (act === "chat") return null;
+  const size = act === "portal" ? 20 : 10;
 
   return (
     <motion.div
       className="fixed pointer-events-none z-50 rounded-full mix-blend-screen"
       style={{
-        width: 12,
-        height: 12,
+        width: size,
+        height: size,
         background: "rgba(255,255,255,0.9)",
-        left: pos.x - 6,
-        top: pos.y - 6,
-        boxShadow: "0 0 20px 6px rgba(255,255,255,0.3)",
+        left: pos.x - size / 2,
+        top: pos.y - size / 2,
+        boxShadow: `0 0 ${size * 2}px ${size}px rgba(255,255,255,0.2)`,
       }}
       animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: 0.12 }}
     />
-  );
-}
-
-// ─── PAGE PRINCIPALE ──────────────────────────────────────────────────────────
-
-export default function AgentsDemo() {
-  // ── State global
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [act, setAct] = useState<Act>("intro");
-  const [questionReady, setQuestionReady] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [recommendedAgent, setRecommendedAgent] = useState<Agent | null>(null);
-  const [activeAgent, setActiveAgent] = useState<Agent | null>(null);
-  const [splineReady, setSplineReady] = useState(false);
-
-  // ── State chat
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [msgCount, setMsgCount] = useState(0);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-
-  // ── State téléportation
-  const [teleporting, setTeleporting] = useState(false);
-  const [teleportColor, setTeleportColor] = useState("#ffffff");
-
-  // ── Refs
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // ── Fetch agents depuis Supabase
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("demo_agents")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      if (!error && data) setAgents(data);
-    })();
-  }, []);
-
-  // ── Auto-scroll chat
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
-
-  // ── Sélection réponse → recommandation
-  const handleAnswer = useCallback((value: string) => {
-    setSelectedAnswer(value);
-    const agentName = AGENT_MAP[value];
-    const agent = agents.find(a => a.name === agentName) ?? agents[0];
-    setRecommendedAgent(agent);
-    setTimeout(() => setAct("recommendation"), 500);
-  }, [agents]);
-
-  // ── Téléportation vers le chat
-  const handleTeleport = useCallback((agent: Agent) => {
-    const c = getCfg(agent.name);
-    setTeleportColor(c.color);
-    setTeleporting(true);
-
-    setTimeout(() => {
-      setActiveAgent(agent);
-      setMessages([{
-        role: "assistant",
-        content: agent.opening_questions?.[0] ??
-          `Bonjour ! Je suis ${agent.name}. Comment puis-je vous aider ?`,
-      }]);
-      setMsgCount(0);
-      setShowSuggestions(true);
-      setInput("");
-    }, 700);
-
-    setTimeout(() => {
-      setAct("chat");
-      setTeleporting(false);
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }, 1400);
-  }, []);
-
-  // ── Envoi message → Claude API
-  const send = useCallback(async (content: string) => {
-    if (!content.trim() || !activeAgent || isLoading || msgCount >= activeAgent.max_messages) return;
-
-    const userMsg: Message = { role: "user", content };
-    setMessages(prev => [...prev, userMsg]);
-    setInput("");
-    setIsLoading(true);
-    setMsgCount(c => c + 1);
-    setShowSuggestions(false);
-
-    const history = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
-
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: activeAgent.system_prompt,
-          messages: history,
-        }),
-      });
-      const data = await res.json();
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: data.content?.[0]?.text ?? "Une erreur est survenue.",
-      }]);
-    } catch {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "Connexion interrompue. Veuillez réessayer.",
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeAgent, isLoading, msgCount, messages]);
-
-  // ── Helpers
-  const cfg = activeAgent ? getCfg(activeAgent.name) : { color: "#fff", glow: "", icon: "◎" };
-  const recCfg = recommendedAgent ? getCfg(recommendedAgent.name) : { color: "#fff", glow: "", icon: "◎" };
-  const isMaxReached = msgCount >= (activeAgent?.max_messages ?? 5);
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // FLASH DE TÉLÉPORTATION
-  // ══════════════════════════════════════════════════════════════════════════
-
-  if (teleporting) {
-    return (
-      <motion.div
-        className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden"
-        style={{ background: "#000" }}
-        initial={{ opacity: 1 }}
-        animate={{ opacity: [1, 1, 0] }}
-        transition={{ duration: 1.4, times: [0, 0.6, 1] }}
-      >
-        {/* Explosion de couleur */}
-        <motion.div
-          className="rounded-full"
-          style={{ width: 60, height: 60, background: teleportColor }}
-          animate={{
-            scale: [0, 1, 40],
-            opacity: [0, 1, 0],
-          }}
-          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-        />
-        {/* Rayons */}
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-px origin-center"
-            style={{
-              height: "60vh",
-              background: `linear-gradient(to top, ${teleportColor}, transparent)`,
-              rotate: `${i * 45}deg`,
-              transformOrigin: "50% 100%",
-              bottom: "50%",
-              left: "50%",
-            }}
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: [0, 1, 0], opacity: [0, 0.6, 0] }}
-            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          />
-        ))}
-      </motion.div>
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // RENDU PRINCIPAL
-  // ══════════════════════════════════════════════════════════════════════════
-
-  return (
-    <div
-      className="min-h-screen bg-black overflow-hidden"
-      style={{ fontFamily: "'DM Sans', sans-serif", cursor: act !== "chat" ? "none" : "auto" }}
-    >
-      {/* Curseur personnalisé */}
-      <CustomCursor act={act} />
-
-      {/* ════════════════════════════════════════════════════════════════════
-          SCÈNE ROBOT — ACTES 1, 2, 3
-      ════════════════════════════════════════════════════════════════════ */}
-
-      <AnimatePresence>
-        {act !== "chat" && (
-          <motion.div
-            key="robot-scene"
-            className="fixed inset-0 z-10"
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* ── Robot Spline plein écran */}
-            <div className="absolute inset-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-full flex items-center justify-center bg-black">
-                    <motion.div
-                      className="w-20 h-20 border border-white/10 rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
-                  </div>
-                }
-              >
-                <Spline
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full"
-                  onLoad={() => setSplineReady(true)}
-                />
-              </Suspense>
-            </div>
-
-            {/* ── Overlays de profondeur */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Fondu bas */}
-              <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/50 to-transparent" />
-              {/* Fondu gauche */}
-              <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-black/75 to-transparent" />
-              {/* Grain subtil */}
-              <div
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-                  backgroundSize: "200px 200px",
-                }}
-              />
-            </div>
-
-            {/* ── Zone de texte — bas gauche */}
-            <div className="absolute bottom-0 left-0 right-0 px-8 md:px-16 lg:px-24 pb-12 md:pb-20">
-
-              <AnimatePresence mode="wait">
-
-                {/* ── ACTE 1 — Message d'accueil */}
-                {act === "intro" && (
-                  <motion.div
-                    key="intro"
-                    className="max-w-2xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: splineReady ? 1 : 0, y: splineReady ? 0 : 60 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <motion.div
-                      className="flex items-center gap-3 mb-6"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <motion.div
-                        className="w-2 h-2 rounded-full bg-white"
-                        animate={{ opacity: [1, 0.3, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                      <span className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase">
-                        Autoslash AI — Interface
-                      </span>
-                    </motion.div>
-
-                    <h1
-                      className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.05]"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      {splineReady ? (
-                        <TypingText
-                          text="Bonjour. Je suis votre interface Autoslash AI."
-                          onDone={() => setTimeout(() => setAct("questions"), 1000)}
-                        />
-                      ) : (
-                        <span className="opacity-0">.</span>
-                      )}
-                    </h1>
-                  </motion.div>
-                )}
-
-                {/* ── ACTE 2 — Question */}
-                {act === "questions" && (
-                  <motion.div
-                    key="questions"
-                    className="max-w-3xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <p className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase mb-5">
-                      Avant tout
-                    </p>
-
-                    <h2
-                      className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[1.1] mb-10"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      <TypingText
-                        text={INTRO_QUESTION.text}
-                        speed={22}
-                        onDone={() => setQuestionReady(true)}
-                      />
-                    </h2>
-
-                    {/* Options cliquables */}
-                    <AnimatePresence>
-                      {questionReady && (
-                        <motion.div
-                          className="flex flex-wrap gap-3"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          {INTRO_QUESTION.options.map((opt, i) => (
-                            <motion.button
-                              key={opt.value}
-                              initial={{ opacity: 0, y: 24, scale: 0.95 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              transition={{ delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                              onClick={() => handleAnswer(opt.value)}
-                              whileHover={{ scale: 1.05, y: -3 }}
-                              whileTap={{ scale: 0.97 }}
-                              className="relative px-6 py-3 rounded-full text-sm font-bold transition-all duration-300"
-                              style={{
-                                background: selectedAnswer === opt.value
-                                  ? "rgba(255,255,255,0.95)"
-                                  : "rgba(255,255,255,0.07)",
-                                border: `1px solid ${selectedAnswer === opt.value
-                                  ? "rgba(255,255,255,0.95)"
-                                  : "rgba(255,255,255,0.15)"}`,
-                                color: selectedAnswer === opt.value ? "#000" : "rgba(255,255,255,0.85)",
-                                backdropFilter: "blur(16px)",
-                                boxShadow: selectedAnswer === opt.value
-                                  ? "0 0 30px rgba(255,255,255,0.2)"
-                                  : "none",
-                              }}
-                            >
-                              {opt.label}
-                            </motion.button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                )}
-
-                {/* ── ACTE 3 — Recommandation */}
-                {act === "recommendation" && recommendedAgent && (
-                  <motion.div
-                    key="recommendation"
-                    className="max-w-4xl"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <p className="text-white/25 text-[10px] font-bold tracking-[0.6em] uppercase mb-5">
-                      Ma recommandation
-                    </p>
-
-                    <h2
-                      className="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-[1.1] mb-10"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      <TypingText
-                        text={`J'ai l'agent qu'il vous faut. Rencontrez ${recommendedAgent.name}.`}
-                        speed={20}
-                      />
-                    </h2>
-
-                    <div className="flex flex-wrap gap-5 items-start">
-
-                      {/* Carte agent recommandé */}
-                      <motion.button
-                        initial={{ opacity: 0, y: 40, scale: 0.93 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: 0.7, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={() => handleTeleport(recommendedAgent)}
-                        whileHover={{ scale: 1.03, y: -6 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="relative overflow-hidden rounded-3xl p-7 text-left"
-                        style={{
-                          background: `linear-gradient(135deg, ${recCfg.color}20 0%, ${recCfg.color}06 100%)`,
-                          border: `1px solid ${recCfg.color}40`,
-                          boxShadow: `0 0 80px ${recCfg.glow}, 0 24px 80px rgba(0,0,0,0.7)`,
-                          minWidth: 260,
-                          maxWidth: 320,
-                          backdropFilter: "blur(20px)",
-                        }}
-                      >
-                        {/* Shimmer animé */}
-                        <motion.div
-                          className="absolute inset-0 pointer-events-none"
-                          style={{
-                            background: `linear-gradient(110deg, transparent 25%, ${recCfg.color}12 50%, transparent 75%)`,
-                          }}
-                          animate={{ x: ["-120%", "220%"] }}
-                          transition={{ duration: 2.8, repeat: Infinity, ease: "linear", delay: 1 }}
-                        />
-
-                        {/* Header carte */}
-                        <div className="flex items-start justify-between mb-6">
-                          <span
-                            className="text-4xl leading-none"
-                            style={{ color: recCfg.color }}
-                          >
-                            {recCfg.icon}
-                          </span>
-                          <motion.div
-                            className="flex items-center gap-1.5"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1.2 }}
-                          >
-                            <motion.div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: recCfg.color }}
-                              animate={{ scale: [1, 1.6, 1], opacity: [1, 0.4, 1] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                            />
-                            <span
-                              className="text-[9px] font-black uppercase tracking-widest"
-                              style={{ color: recCfg.color }}
-                            >
-                              Recommandé
-                            </span>
-                          </motion.div>
-                        </div>
-
-                        {/* Infos agent */}
-                        <p
-                          className="text-xl font-black uppercase tracking-tight mb-2"
-                          style={{ color: recCfg.color, fontFamily: "'Playfair Display', serif" }}
-                        >
-                          {recommendedAgent.name}
-                        </p>
-                        <p className="text-white/35 text-xs leading-relaxed mb-7">
-                          {recommendedAgent.tagline}
-                        </p>
-
-                        {/* CTA */}
-                        <div
-                          className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all"
-                          style={{ color: recCfg.color }}
-                        >
-                          Entrer dans l'espace <ArrowRight size={12} />
-                        </div>
-                      </motion.button>
-
-                      {/* Liste autres agents */}
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1.3, duration: 0.6 }}
-                        className="flex flex-col gap-2"
-                      >
-                        <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest mb-2">
-                          Autres agents disponibles
-                        </p>
-                        {agents
-                          .filter(a => a.id !== recommendedAgent.id)
-                          .map((agent, i) => {
-                            const c = getCfg(agent.name);
-                            return (
-                              <motion.button
-                                key={agent.id}
-                                initial={{ opacity: 0, x: 16 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.4 + i * 0.08 }}
-                                onClick={() => handleTeleport(agent)}
-                                whileHover={{ x: 5 }}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                                style={{
-                                  background: "rgba(255,255,255,0.03)",
-                                  border: `1px solid ${c.color}18`,
-                                  backdropFilter: "blur(10px)",
-                                }}
-                              >
-                                <span style={{ color: c.color }} className="text-sm">{c.icon}</span>
-                                <span className="text-white/40 text-xs font-bold">
-                                  {agent.name.replace("Agent ", "")}
-                                </span>
-                                <ArrowRight size={10} className="text-white/15 ml-auto" />
-                              </motion.button>
-                            );
-                          })}
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                )}
-
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ════════════════════════════════════════════════════════════════════
-          ACTE 4 — CHAT PLEIN ÉCRAN IMMERSIF
-      ════════════════════════════════════════════════════════════════════ */}
-
-      <AnimatePresence>
-        {act === "chat" && activeAgent && (
-          <motion.div
-            key="chat"
-            className="fixed inset-0 z-20 flex flex-col"
-            style={{ background: "#020202" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.15 }}
-          >
-            {/* Ambient glow selon la couleur de l'agent */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 2 }}
-              style={{
-                background: `radial-gradient(ellipse 60% 40% at 50% 100%, ${cfg.color}07 0%, transparent 70%)`,
-              }}
-            />
-
-            {/* Grille subtile */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none">
-              <defs>
-                <pattern id="chat-grid" width="52" height="52" patternUnits="userSpaceOnUse">
-                  <path d="M 52 0 L 0 0 0 52" fill="none" stroke={cfg.color} strokeWidth="0.4" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#chat-grid)" />
-            </svg>
-
-            {/* ── HEADER */}
-            <div
-              className="relative z-10 flex items-center justify-between px-6 md:px-10 py-4 shrink-0"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-            >
-              {/* Identité agent */}
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl font-black shrink-0"
-                  style={{
-                    background: `${cfg.color}10`,
-                    border: `1px solid ${cfg.color}28`,
-                    color: cfg.color,
-                    boxShadow: `0 0 20px ${cfg.color}15`,
-                  }}
-                >
-                  {cfg.icon}
-                </div>
-                <div>
-                  <p className="text-white font-black text-sm uppercase tracking-tight">
-                    {activeAgent.name}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <motion.div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: cfg.color }}
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    />
-                    <span className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
-                      En ligne
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-4">
-                {/* Barre de progression messages */}
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: activeAgent.max_messages }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="transition-all duration-500 rounded-full"
-                      style={{
-                        width: i < msgCount ? "16px" : "6px",
-                        height: "6px",
-                        backgroundColor: i < msgCount ? cfg.color : "rgba(255,255,255,0.08)",
-                        boxShadow: i < msgCount ? `0 0 8px ${cfg.color}80` : "none",
-                      }}
-                    />
-                  ))}
-                  <span className="text-white/15 text-[10px] ml-2 font-mono">
-                    {msgCount}/{activeAgent.max_messages}
-                  </span>
-                </div>
-
-                {/* Reset conversation */}
-                <motion.button
-                  onClick={() => {
-                    setMessages([{
-                      role: "assistant",
-                      content: activeAgent.opening_questions?.[0] ?? "Bonjour !",
-                    }]);
-                    setMsgCount(0);
-                    setShowSuggestions(true);
-                  }}
-                  whileHover={{ rotate: -180 }}
-                  transition={{ duration: 0.4 }}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-                >
-                  <RotateCcw size={13} className="text-white/25" />
-                </motion.button>
-
-                {/* Recommencer depuis le début */}
-                <button
-                  onClick={() => {
-                    setAct("intro");
-                    setQuestionReady(false);
-                    setSelectedAnswer(null);
-                    setSplineReady(false);
-                    setTimeout(() => setSplineReady(true), 100);
-                  }}
-                  className="text-white/15 text-[10px] font-bold uppercase tracking-widest hover:text-white/40 transition-colors hidden md:block"
-                >
-                  Recommencer
-                </button>
-              </div>
-            </div>
-
-            {/* ── MESSAGES */}
-            <div className="relative z-10 flex-1 overflow-y-auto px-6 md:px-16 lg:px-24 py-8 space-y-5">
-              <AnimatePresence initial={false}>
-                {messages.map((msg, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    {/* Avatar agent */}
-                    {msg.role === "assistant" && (
-                      <div
-                        className="w-9 h-9 rounded-2xl flex items-center justify-center text-base shrink-0 mt-1"
-                        style={{
-                          background: `${cfg.color}10`,
-                          border: `1px solid ${cfg.color}22`,
-                          color: cfg.color,
-                        }}
-                      >
-                        {cfg.icon}
-                      </div>
-                    )}
-
-                    {/* Bulle de message */}
-                    <div
-                      className="max-w-[68%] md:max-w-[60%] px-5 py-4 text-sm leading-relaxed"
-                      style={msg.role === "user" ? {
-                        background: cfg.color,
-                        color: "#000",
-                        fontWeight: 600,
-                        borderRadius: "20px 20px 5px 20px",
-                        boxShadow: `0 4px 20px ${cfg.color}25`,
-                      } : {
-                        background: "rgba(255,255,255,0.04)",
-                        color: "rgba(255,255,255,0.78)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        borderRadius: "20px 20px 20px 5px",
-                      }}
-                    >
-                      {msg.content}
-                    </div>
-
-                    {/* Avatar utilisateur */}
-                    {msg.role === "user" && (
-                      <div
-                        className="w-9 h-9 rounded-2xl flex items-center justify-center text-[10px] font-black shrink-0 mt-1"
-                        style={{ background: cfg.color, color: "#000" }}
-                      >
-                        Vs
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-
-                {/* Indicateur de frappe */}
-                {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex gap-3 justify-start"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-2xl flex items-center justify-center text-base shrink-0"
-                      style={{ background: `${cfg.color}10`, border: `1px solid ${cfg.color}22`, color: cfg.color }}
-                    >
-                      {cfg.icon}
-                    </div>
-                    <div
-                      className="px-5 py-3 rounded-3xl rounded-tl-sm"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                    >
-                      <TypingDots color={cfg.color} />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <div ref={bottomRef} />
-            </div>
-
-            {/* ── PROMPTS SUGGÉRÉS */}
-            <AnimatePresence>
-              {showSuggestions && !isMaxReached && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="relative z-10 px-6 md:px-16 lg:px-24 py-4 shrink-0"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-                >
-                  <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest mb-3">
-                    Exemples de cas d'usage
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {activeAgent.suggested_prompts?.slice(0, 3).map((sp, i) => (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        onClick={() => send(sp.prompt)}
-                        whileHover={{ scale: 1.03, y: -2 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="px-4 py-2 rounded-full text-[11px] font-medium transition-all"
-                        style={{
-                          background: `${cfg.color}0D`,
-                          border: `1px solid ${cfg.color}25`,
-                          color: cfg.color,
-                        }}
-                      >
-                        {sp.label}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ── LIMITE ATTEINTE → CTA */}
-            <AnimatePresence>
-              {isMaxReached && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="relative z-10 px-6 md:px-16 lg:px-24 py-5 flex items-center justify-between shrink-0"
-                  style={{
-                    borderTop: `1px solid ${cfg.color}18`,
-                    background: `${cfg.color}05`,
-                  }}
-                >
-                  <div>
-                    <p className="text-white/60 text-sm font-medium mb-1">
-                      Vous avez découvert {activeAgent.name}.
-                    </p>
-                    <p className="text-white/25 text-xs">
-                      Prêt à le déployer dans votre entreprise ?
-                    </p>
-                  </div>
-                  <Link
-                    to="/contact"
-                    className="flex items-center gap-2 px-7 py-3 rounded-full font-black text-[11px] uppercase tracking-widest hover:gap-3 transition-all"
-                    style={{ background: cfg.color, color: "#000", boxShadow: `0 0 30px ${cfg.color}40` }}
-                  >
-                    Démarrer <ArrowRight size={13} />
-                  </Link>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ── INPUT */}
-            {!isMaxReached && (
-              <div
-                className="relative z-10 px-6 md:px-16 lg:px-24 py-5 shrink-0"
-                style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-              >
-                <div
-                  className="flex items-center gap-3 rounded-2xl px-5 py-4 transition-all duration-300 focus-within:border-opacity-50"
-                  style={{
-                    background: "rgba(255,255,255,0.025)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                  }}
-                >
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-                    placeholder={`Parlez à ${activeAgent.name}...`}
-                    disabled={isLoading}
-                    className="flex-1 bg-transparent outline-none text-white/70 text-sm placeholder:text-white/12 disabled:opacity-30"
-                  />
-                  <motion.button
-                    onClick={() => send(input)}
-                    disabled={isLoading || !input.trim()}
-                    whileHover={{ scale: 1.12 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center disabled:opacity-20 shrink-0 transition-all"
-                    style={{ background: cfg.color, boxShadow: `0 0 20px ${cfg.color}40` }}
-                  >
-                    <Send size={15} className="text-black" />
-                  </motion.button>
-                </div>
-              </div>
-            )}
-
-            {/* ── FLÈCHE CONTACT DISCRÈTE */}
-            <motion.div
-              className="relative z-10 flex justify-center pb-3 shrink-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 3 }}
-            >
-              <Link
-                to="/contact"
-                className="flex flex-col items-center gap-1 group"
-                style={{ color: "rgba(255,255,255,0.1)" }}
-              >
-                <span className="text-[9px] font-bold uppercase tracking-[0.3em] group-hover:opacity-50 transition-opacity">
-                  Déployer dans mon entreprise
-                </span>
-                <motion.div
-                  animate={{ y: [0, 5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <ArrowDown size={11} />
-                </motion.div>
-              </Link>
-            </motion.div>
-
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
   );
 }
