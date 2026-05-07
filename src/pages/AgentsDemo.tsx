@@ -13,18 +13,30 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Scene1Intro from "@/components/agents/Scene1Intro";
+import Scene2Robot from "@/components/agents/Scene2Robot";
 
 type Scene = "scene1" | "scene2" | "scene3";
 
 export default function AgentsDemo() {
   const [scene, setScene] = useState<Scene>("scene1");
   const [flash, setFlash] = useState(false);
+  const [finalDestination, setFinalDestination] = useState<string | null>(null);
 
   // Quand le portail est traversé → flash blanc → Scène 2
   const handleScene1Complete = () => {
     setFlash(true);
     setTimeout(() => {
       setScene("scene2");
+      setFlash(false);
+    }, 800);
+  };
+
+  // Quand l'Oracle a fini → transition vers Scène 3 (ou destination finale)
+  const handleScene2Complete = (destination: string) => {
+    setFinalDestination(destination);
+    setFlash(true);
+    setTimeout(() => {
+      setScene("scene3");
       setFlash(false);
     }, 800);
   };
@@ -46,33 +58,47 @@ export default function AgentsDemo() {
         )}
       </AnimatePresence>
 
-      {/* ── SCÈNE 2 — Placeholder robot (à construire) */}
+      {/* ── SCÈNE 2 — Le Robot Oracle */}
       <AnimatePresence>
         {scene === "scene2" && (
           <motion.div
             key="s2"
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+          >
+            <Scene2Robot onComplete={handleScene2Complete} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SCÈNE 3 — Placeholder voyage (à construire) */}
+      <AnimatePresence>
+        {scene === "scene3" && (
+          <motion.div
+            key="s3"
+            className="absolute inset-0 flex items-center justify-center text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
           >
-            <div className="text-center">
-              <motion.div
-                className="w-3 h-3 rounded-full bg-blue-400 mx-auto mb-6"
-                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
+            <div>
               <p
-                className="text-white/40 text-sm font-bold uppercase tracking-widest"
+                className="text-white/40 text-sm font-bold uppercase tracking-widest mb-4"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                Scène 2 — Robot en cours de construction
+                Voyage vers : {finalDestination}
+              </p>
+              <p className="text-white/10 text-[10px] uppercase tracking-[0.4em]">
+                Scène 3 en cours de construction
               </p>
               <button
                 onClick={() => setScene("scene1")}
-                className="mt-8 text-white/20 text-xs hover:text-white/40 transition-colors uppercase tracking-widest"
+                className="mt-12 text-white/20 text-xs hover:text-white/40 transition-colors uppercase tracking-widest"
               >
-                ← Recommencer
+                ← Recommencer le test
               </button>
             </div>
           </motion.div>
