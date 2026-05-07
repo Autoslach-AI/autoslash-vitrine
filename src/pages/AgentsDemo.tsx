@@ -24,6 +24,7 @@ import React, {
 import { motion, AnimatePresence, useMotionValue, useSpring } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { GoogleGenAI } from "@google/genai";
 
 const Spline = lazy(() => import("@splinetool/react-spline"));
 
@@ -31,6 +32,11 @@ const Spline = lazy(() => import("@splinetool/react-spline"));
 type SpeechRecognition = any;
 // @ts-ignore
 type SpeechRecognitionEvent = any;
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIG GEMINI
+// ═══════════════════════════════════════════════════════════════
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -48,8 +54,8 @@ interface Destination {
 }
 
 interface OracleMessage {
-  role: "user" | "assistant";
-  content: string;
+  role: "user" | "model";
+  parts: { text: string }[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -103,79 +109,93 @@ const DESTINATIONS: Record<string, Destination> = {
 // SYSTEM PROMPT ORACLE
 // ═══════════════════════════════════════════════════════════════
 
-const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une présence intelligente et bienveillante qui accueille les visiteurs du site vitrine.
+const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une présence intelligente, masculine et professionnelle (ton Copilot/Gemini) qui accueille les visiteurs du site vitrine d'une agence de développement d'agents IA basée à Dakar.
 
 TON RÔLE :
-- Poser des questions naturelles et dynamiques pour comprendre les besoins du visiteur
-- Ne JAMAIS poser deux fois la même question
-- Adapter ton ton : chaleureux, direct, jamais robotique
-- Parler en phrases courtes (max 2 phrases par réponse) pour être dit à voix haute
-- Recadrer poliment si le visiteur parle d'autre chose qu'Autoslash AI
+- Poser des questions naturelles et dynamiques de manière très humaine et professionnelle.
+- Ne JAMAIS poser deux fois la même question.
+- Utiliser un ton calme, confiant et technique mais accessible.
+- Parler en phrases courtes (max 2 phrases par réponse) pour être dit à voix haute.
+- Si le visiteur dérive, ramène-le sur Autoslash AI avec élégance.
 
 DESTINATIONS DISPONIBLES :
-- "agents-demo" → tester les agents IA, voir une démonstration, curiosité technique
-- "client-projects" → voir des réalisations, projets livrés, preuves concrètes
-- "pricing" → tarifs, packages, offres, prix, combien ça coûte
-- "blog" → articles, actualités, études de cas, apprendre
-- "contact" → parler à l'équipe, poser une question, démarrer un projet
+- "agents-demo" → tester les agents IA, démonstration.
+- "client-projects" → réalisations, projets livrés.
+- "pricing" → tarifs, packages BUSINESS ou ENTERPRISE.
+- "blog" → articles, innovation.
+- "contact" → parler à l'équipe.
 
-RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication.
+RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide.
 
 FORMAT DE RÉPONSE :
 {
-  "speech": "texte à dire à voix haute (court, naturel, 1-2 phrases max)",
-  "subtitle": "même texte pour le sous-titre",
-  "action": null ou une clé parmi: agents-demo, client-projects, pricing, blog, contact,
-  "confidence": 0 à 1 (certitude que tu as bien compris le besoin),
-  "recadrage": false ou true si le visiteur sort du sujet
+  "speech": "texte court et professionnel à dire",
+  "action": "clé_destination" ou null,
+  "confidence": 0.0 à 1.0
 }
 
-Si confidence > 0.7 → inclure l'action et diriger le visiteur.
-Si confidence < 0.7 → action: null, poser une question de précision.
-Si recadrage: true → ramener poliment sur l'écosystème Autoslash AI.
-
-EXEMPLES DE QUESTIONS QUE TU PEUX POSER (varie-les !) :
-- "Qu'est-ce qui vous a amené ici aujourd'hui ?"
-- "Avez-vous déjà utilisé des agents IA dans votre entreprise ?"
-- "Quel est votre secteur d'activité ?"
-- "Cherchez-vous à automatiser quelque chose de précis ?"
-- "Êtes-vous plutôt curieux ou avez-vous un projet concret ?"`;
+Utilise des expressions comme "Je comprends parfaitement", "C'est une excellente question", "Laissez-moi vous orienter".`;
 
 // ═══════════════════════════════════════════════════════════════
-// HOOK : SYNTHÈSE VOCALE
+// HOOK : SYNTHÈSE VOCALE AMÉLIORÉE
 // ═══════════════════════════════════════════════════════════════
 
-function useSpeechSynthesis() {
+function useSpeechSynthesis(onStart?: () => void, onEnd?: () => void) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [muted, setMuted] = useState(false);
 
-  const speak = useCallback((text: string, onEnd?: () => void) => {
+  const speak = useCallback((text: string, callback?: () => void) => {
     if (muted || !("speechSynthesis" in window)) {
-      onEnd?.();
+      callback?.();
       return;
     }
+    
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "fr-FR";
-    utterance.rate = 0.88;
-    utterance.pitch = 0.75;
+    utterance.rate = 1.0; // Vitesse plus naturelle (Gemini-like)
+    utterance.pitch = 0.9; // Ton légèrement plus grave/masculin
     utterance.volume = 1;
 
-    // Chercher une voix française
+    // Sélection de la meilleure voix masculine
     const voices = window.speechSynthesis.getVoices();
-    const frVoice = voices.find(v => v.lang.startsWith("fr")) ?? voices[0];
-    if (frVoice) utterance.voice = frVoice;
+    const preferredVoices = [
+      "Google français",
+      "Microsoft Paul",
+      "Microsoft Claude", // Parfois disponible
+      "fr-FR-Standard-D",
+      "fr-FR-Neural-B"
+    ];
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => { setIsSpeaking(false); onEnd?.(); };
-    utterance.onerror = () => { setIsSpeaking(false); onEnd?.(); };
+    let voice = voices.find(v => preferredVoices.some(p => v.name.includes(p)));
+    if (!voice) voice = voices.find(v => v.lang.startsWith("fr") && (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("homme")));
+    if (!voice) voice = voices.find(v => v.lang.startsWith("fr")) || voices[0];
+    
+    if (voice) utterance.voice = voice;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      onStart?.();
+    };
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      onEnd?.();
+      callback?.();
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      onEnd?.();
+      callback?.();
+    };
+
     window.speechSynthesis.speak(utterance);
-  }, [muted]);
+  }, [muted, onStart, onEnd]);
 
   const stop = useCallback(() => {
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
-  }, []);
+    onEnd?.();
+  }, [onEnd]);
 
   return { speak, stop, isSpeaking, muted, setMuted };
 }
@@ -187,11 +207,15 @@ function useSpeechSynthesis() {
 function useSpeechRecognition(onResult: (text: string) => void) {
   const [isListening, setIsListening] = useState(false);
   const [interim, setInterim] = useState("");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   const start = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
+
+    if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+    }
 
     const rec = new SR();
     rec.lang = "fr-FR";
@@ -200,9 +224,12 @@ function useSpeechRecognition(onResult: (text: string) => void) {
     rec.maxAlternatives = 1;
 
     rec.onstart = () => setIsListening(true);
-    rec.onend = () => { setIsListening(false); setInterim(""); };
+    rec.onend = () => { 
+        setIsListening(false); 
+        setInterim(""); 
+    };
 
-    rec.onresult = (e: SpeechRecognitionEvent) => {
+    rec.onresult = (e: any) => {
       let interimText = "";
       let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -211,16 +238,25 @@ function useSpeechRecognition(onResult: (text: string) => void) {
         else interimText += t;
       }
       setInterim(interimText);
-      if (finalText) onResult(finalText);
+      if (finalText) {
+          onResult(finalText.trim());
+          rec.stop();
+      }
     };
 
-    rec.onerror = () => setIsListening(false);
+    rec.onerror = (e: any) => {
+        console.error("SR Error:", e.error);
+        setIsListening(false);
+    };
+
     recognitionRef.current = rec;
     rec.start();
   }, [onResult]);
 
   const stop = useCallback(() => {
-    recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+        recognitionRef.current.stop();
+    }
     setIsListening(false);
   }, []);
 
@@ -552,6 +588,7 @@ function Subtitle({ text, visible }: { text: string; visible: boolean }) {
 
 export default function AgentsDemo() {
   const navigate = useNavigate();
+  const splineRef = useRef<any>(null);
 
   // ── State
   const [act, setAct] = useState<Act>("dormant");
@@ -564,10 +601,33 @@ export default function AgentsDemo() {
   const [history, setHistory] = useState<OracleMessage[]>([]);
   const [turnCount, setTurnCount] = useState(0);
 
-  const { speak, stop: stopSpeech, isSpeaking, muted, setMuted } = useSpeechSynthesis();
+  // ── Animations Spline (Bouche + Bras)
+  const startRobotAnimation = useCallback(() => {
+    if (!splineRef.current) return;
+    try {
+      // On assume que le robot a des variables ou des événements standard
+      splineRef.current.setVariable("isTalking", true);
+      splineRef.current.emitEvent("talk_start");
+    } catch (e) {}
+  }, []);
+
+  const stopRobotAnimation = useCallback(() => {
+    if (!splineRef.current) return;
+    try {
+      splineRef.current.setVariable("isTalking", false);
+      splineRef.current.emitEvent("talk_end");
+    } catch (e) {}
+  }, []);
+
+  // ── Synthèse vocale avec Sync Robot
+  const { speak, stop: stopSpeech, isSpeaking, muted, setMuted } = useSpeechSynthesis(
+    startRobotAnimation,
+    stopRobotAnimation
+  );
 
   // ── Reconnaissance vocale
   const handleVoiceResult = useCallback((text: string) => {
+    if (!text) return;
     setUserTranscript(text);
     setAct("thinking");
     askOracle(text);
@@ -576,66 +636,59 @@ export default function AgentsDemo() {
   const { start: startListening, stop: stopListening, isListening, interim } =
     useSpeechRecognition(handleVoiceResult);
 
-  // ── Oracle Claude — question dynamique
+  // ── Oracle Gemini — Raisonnement Naturel
   const askOracle = useCallback(async (userText: string) => {
-    const newHistory: OracleMessage[] = [
-      ...history,
-      { role: "user", content: userText },
-    ];
+    const userMsg = { role: "user" as const, parts: [{ text: userText }] };
+    const newHistory: OracleMessage[] = [...history, userMsg];
     setHistory(newHistory);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 300,
-          system: ORACLE_SYSTEM,
-          messages: newHistory.map(m => ({ role: m.role, content: m.content })),
-        }),
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+            { role: "user", parts: [{ text: ORACLE_SYSTEM }] },
+            ...newHistory
+        ],
+        config: {
+            temperature: 0.7,
+            responseMimeType: "application/json",
+        }
       });
-      const data = await res.json();
-      const raw = data.content?.[0]?.text ?? "{}";
 
+      const raw = response.text || "{}";
       let parsed: {
         speech: string;
-        subtitle: string;
         action: string | null;
         confidence: number;
-        recadrage: boolean;
       };
 
       try {
-        parsed = JSON.parse(raw);
+        parsed = JSON.parse(raw.replace(/```json/g, "").replace(/```/g, ""));
       } catch {
         parsed = {
-          speech: "Pouvez-vous me préciser ce que vous cherchez sur Autoslash AI ?",
-          subtitle: "Pouvez-vous me préciser ce que vous cherchez sur Autoslash AI ?",
+          speech: "Je n'ai pas tout saisi. Pouvez-vous me dire comment je peux aider votre entreprise avec l'IA ?",
           action: null,
           confidence: 0,
-          recadrage: false,
         };
       }
 
-      setHistory(prev => [...prev, { role: "assistant", content: parsed.speech }]);
+      setHistory(prev => [...prev, { role: "model" as const, parts: [{ text: parsed.speech }] }]);
       setTurnCount(c => c + 1);
 
-      // Parler
-      oracleSay(parsed.subtitle || parsed.speech, () => {
+      // Parler avec les sous-titres
+      oracleSay(parsed.speech, () => {
         if (parsed.action && parsed.confidence >= 0.7 && DESTINATIONS[parsed.action]) {
-          // → montrer le portail
           setDestination(DESTINATIONS[parsed.action]);
           setAct("portal");
         } else {
-          // → continuer l'écoute
           setAct("listening");
           setTimeout(() => startListening(), 400);
         }
       });
 
-    } catch {
-      oracleSay("Une erreur est survenue. Permettez-moi de vous demander — que cherchez-vous sur notre site ?", () => {
+    } catch (error) {
+      console.error("Gemini Error:", error);
+      oracleSay("Désolé, ma connexion est instable. Que souhaitez-vous découvrir chez Autoslash ?", () => {
         setAct("listening");
         setTimeout(() => startListening(), 400);
       });
@@ -741,7 +794,8 @@ export default function AgentsDemo() {
               <Spline
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
-                onLoad={() => {
+                onLoad={(spline) => {
+                  splineRef.current = spline;
                   setSplineReady(true);
                   // Charger les voix
                   window.speechSynthesis?.getVoices();
