@@ -101,9 +101,8 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
 
     // ── Sphère centrale avec shader bleu ──────────────────────────────────
     const sphereGeo = new THREE.SphereGeometry(0.75, 64, 32);
-    const sphereMat = new THREE.MeshBasicMaterial({
-      color: "#000",
-      onBeforeCompile: (shader) => {
+    const sphereMat = new THREE.MeshBasicMaterial({ color: "#000" });
+    sphereMat.onBeforeCompile = (shader) => {
         shader.uniforms.time     = uniforms.time;
         shader.uniforms.progress = uniforms.progress;
         shader.vertexShader = `
@@ -153,8 +152,7 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
           diffuseColor.rgb = col;
           `
         );
-      }
-    });
+    };
     (sphereMat as any).defines = { USE_UV: "" };
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     sphere.position.y = -0.25;
@@ -210,14 +208,14 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
     const MAX_SCROLL = 600; // px pour traverser le portail
 
     const onWheel = (e: WheelEvent) => {
-      targetScroll = Math.min(targetScroll + e.deltaY * 0.6, MAX_SCROLL);
+      targetScroll = Math.min(Math.max(targetScroll + e.deltaY * 0.6, 0), MAX_SCROLL);
     };
     const onTouch = (() => {
       let startY = 0;
       const start = (e: TouchEvent) => { startY = e.touches[0].clientY; };
       const move  = (e: TouchEvent) => {
         const dy = startY - e.touches[0].clientY;
-        targetScroll = Math.min(targetScroll + dy * 1.2, MAX_SCROLL);
+        targetScroll = Math.min(Math.max(targetScroll + dy * 1.2, 0), MAX_SCROLL);
         startY = e.touches[0].clientY;
       };
       return { start, move };
@@ -242,12 +240,13 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
 
     const animate = () => {
       raf = requestAnimationFrame(animate);
-      const dt = 0.016;
-      t += dt;
 
       // Smooth scroll
       scrollY += (targetScroll - scrollY) * 0.05;
       const progress = Math.min(scrollY / MAX_SCROLL, 1);
+
+      // Le temps (t) suit maintenant le scroll pour figer les effets textures/rotations
+      const t = scrollY * 0.01;
 
       uniforms.time.value     = t;
       uniforms.progress.value = progress;
@@ -255,12 +254,12 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
       // Camera zoom
       camera.position.z = CAM_START_Z + (CAM_END_Z - CAM_START_Z) * progress;
 
-      // Rotation lente
-      sphere.rotation.y   = t * 0.1;
-      ring.rotation.x     = t * 0.05;
-      ring.rotation.y     = t * 0.08;
-      particles.rotation.y = t * 0.06;
-      hut.rotation.z      = Math.sin(t * 0.2) * 0.02;
+      // Rotation et animations liées au scroll
+      sphere.rotation.y   = scrollY * 0.001;
+      ring.rotation.x     = scrollY * 0.0005;
+      ring.rotation.y     = scrollY * 0.0008;
+      particles.rotation.y = scrollY * 0.0006;
+      hut.rotation.z      = Math.sin(scrollY * 0.002) * 0.02;
 
       // Glow ring au fur et à mesure du zoom
       (ringMat as THREE.MeshBasicMaterial).color.setHSL(
@@ -278,23 +277,8 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
 
     animate();
 
-    // ── Auto-scroll hint ──────────────────────────────────────────────────
-    // Petite nudge automatique après 3s si l'utilisateur ne scrolle pas
-    const hintTimer = setTimeout(() => {
-      if (targetScroll < 10) {
-        const autoScroll = () => {
-          if (targetScroll < MAX_SCROLL && !crashed) {
-            targetScroll = Math.min(targetScroll + 4, MAX_SCROLL);
-            requestAnimationFrame(autoScroll);
-          }
-        };
-        autoScroll();
-      }
-    }, 3500);
-
     // ── Cleanup ───────────────────────────────────────────────────────────
     return () => {
-      clearTimeout(hintTimer);
       cancelAnimationFrame(raf);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouch.start);
