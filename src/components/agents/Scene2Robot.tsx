@@ -244,36 +244,36 @@ function SuggestionCards({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col gap-3"
+      className="flex flex-col gap-2.5"
     >
       {cards.map((card, i) => (
         <motion.button
           key={`${card.value}-${i}`}
           initial={{ opacity: 0, x: -30, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           onClick={() => !disabled && onSelect(card)}
           disabled={disabled}
-          whileHover={!disabled ? { x: 8, scale: 1.02 } : {}}
-          whileTap={!disabled ? { scale: 0.97 } : {}}
-          className="flex items-center gap-4 px-6 py-4 rounded-2xl text-left transition-all duration-300 group"
+          whileHover={!disabled ? { x: 6, scale: 1.01 } : {}}
+          whileTap={!disabled ? { scale: 0.98 } : {}}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all duration-300 group max-w-[280px]"
           style={{
             background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            backdropFilter: "blur(16px)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 2px 14px rgba(0,0,0,0.2)",
             cursor: disabled ? "default" : "pointer",
             opacity: disabled ? 0.5 : 1,
           }}
         >
           {/* Emoji */}
           {card.emoji && (
-            <span className="text-xl shrink-0">{card.emoji}</span>
+            <span className="text-lg shrink-0">{card.emoji}</span>
           )}
 
           {/* Label */}
           <span
-            className="text-white font-bold text-sm group-hover:text-blue-300 transition-colors"
+            className="text-white font-medium text-xs group-hover:text-blue-300 transition-colors"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             {card.label}
@@ -281,8 +281,8 @@ function SuggestionCards({
 
           {/* Flèche */}
           <motion.span
-            className="ml-auto text-white/20 group-hover:text-white/60 transition-colors text-sm"
-            animate={disabled ? {} : { x: [0, 3, 0] }}
+            className="ml-auto text-white/10 group-hover:text-white/40 transition-colors text-[10px]"
+            animate={disabled ? {} : { x: [0, 2, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
             →
@@ -396,6 +396,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const { speak, stop, speaking } = useSpeech();
+  const fallbackSaidRef = useRef(false);
 
   // ── Appel Oracle Claude ────────────────────────────────────────────────
   const callOracle = useCallback(async (userMessage: string) => {
@@ -410,16 +411,27 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     setHistory(newHistory);
 
     try {
+      // NOTE: Appel client-side direct à Anthropic bloqué par CORS normalement
+      // Ici on simule ou on attend une erreur pour déclencher le fallback
+      const API_KEY = process.env.ANTHROPIC_API_KEY; 
+
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY ?? "",
+          "anthropic-version": "2023-06-01"
+        },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-3-5-sonnet-20240620",
           max_tokens: 400,
           system: ORACLE_SYSTEM,
           messages: newHistory,
         }),
       });
+      
+      if (!res.ok) throw new Error("API Error");
+
       const data = await res.json();
       const raw  = data.content?.[0]?.text ?? "{}";
 
@@ -427,16 +439,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       try {
         parsed = JSON.parse(raw);
       } catch {
-        parsed = {
-          speech: "Permettez-moi de vous orienter. Que cherchez-vous exactement ?",
-          cards: [
-            { label: "Voir les agents IA",  value: "agents",   emoji: "🤖" },
-            { label: "Nos réalisations",     value: "projects", emoji: "🏆" },
-            { label: "Les tarifs",           value: "pricing",  emoji: "💡" },
-            { label: "Contacter l'équipe",   value: "contact",  emoji: "✉️" },
-          ],
-          destination: null,
-        };
+        throw new Error("JSON Parse Error");
       }
 
       setHistory(prev => [...prev, { role: "assistant", content: parsed.speech }]);
@@ -466,12 +469,28 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
         }
       });
 
-    } catch {
+    } catch (error) {
+      console.warn("Oracle Fallback Triggered", error);
       const fallback = "Une perturbation dans mes circuits. Dites-moi simplement ce que vous cherchez.";
-      setSpeech(fallback);
+      
       setRobotState("speaking");
-      setShowBubble(true);
-      speak(fallback, () => {
+      
+      // On ne montre pas la bulle pour le fallback (demande utilisateur)
+      setShowBubble(false);
+      
+      // On ne dit la phrase qu'une seule fois (demande utilisateur)
+      if (!fallbackSaidRef.current) {
+        speak(fallback, () => {
+          setRobotState("waiting");
+          fallbackSaidRef.current = true;
+          setCards([
+            { label: "Tester les agents IA",  value: "agents",   emoji: "🤖" },
+            { label: "Voir les réalisations",  value: "projects", emoji: "🏆" },
+            { label: "Découvrir les offres",   value: "pricing",  emoji: "💡" },
+            { label: "Parler à l'équipe",      value: "contact",  emoji: "✉️" },
+          ]);
+        });
+      } else {
         setRobotState("waiting");
         setCards([
           { label: "Tester les agents IA",  value: "agents",   emoji: "🤖" },
@@ -479,7 +498,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           { label: "Découvrir les offres",   value: "pricing",  emoji: "💡" },
           { label: "Parler à l'équipe",      value: "contact",  emoji: "✉️" },
         ]);
-      });
+      }
     }
   }, [history, speak, onComplete]);
 
@@ -551,9 +570,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           <div className="absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-black/80 to-transparent" />
         </div>
       </motion.div>
-
-      {/* ── Glow bouche robot ─────────────────────────────────────────── */}
-      <MouthGlow speaking={speaking} robotShifted={robotShifted} />
 
       {/* ── Zone gauche — bulle + cartes ─────────────────────────────── */}
       <div
