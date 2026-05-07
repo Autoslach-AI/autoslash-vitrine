@@ -34,9 +34,20 @@ type SpeechRecognition = any;
 type SpeechRecognitionEvent = any;
 
 // ═══════════════════════════════════════════════════════════════
-// CONFIG GEMINI
+// LAZY GEMINI INIT
 // ═══════════════════════════════════════════════════════════════
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: any = null;
+const getAI = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("GEMINI_API_KEY is missing. Oracle logic will be limited.");
+      return null;
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -144,6 +155,18 @@ function useSpeechSynthesis(onStart?: () => void, onEnd?: () => void) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [muted, setMuted] = useState(false);
 
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) setVoices(v);
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
+
   const speak = useCallback((text: string, callback?: () => void) => {
     if (muted || !("speechSynthesis" in window)) {
       callback?.();
@@ -153,23 +176,30 @@ function useSpeechSynthesis(onStart?: () => void, onEnd?: () => void) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "fr-FR";
-    utterance.rate = 1.0; // Vitesse plus naturelle (Gemini-like)
-    utterance.pitch = 0.9; // Ton légèrement plus grave/masculin
+    utterance.rate = 1.0; 
+    utterance.pitch = 0.9; 
     utterance.volume = 1;
 
-    // Sélection de la meilleure voix masculine
-    const voices = window.speechSynthesis.getVoices();
+    // Sélection de la meilleure voix masculine (Proche de Copilot/Gemini)
+    const currentVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
     const preferredVoices = [
-      "Google français",
-      "Microsoft Paul",
-      "Microsoft Claude", // Parfois disponible
-      "fr-FR-Standard-D",
-      "fr-FR-Neural-B"
+      "Microsoft Paul", 
+      "Google français", 
+      "fr-FR-Standard-D", 
+      "fr-FR-Neural-B",
+      "Microsoft Claude Online"
     ];
 
-    let voice = voices.find(v => preferredVoices.some(p => v.name.includes(p)));
-    if (!voice) voice = voices.find(v => v.lang.startsWith("fr") && (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("homme")));
-    if (!voice) voice = voices.find(v => v.lang.startsWith("fr")) || voices[0];
+    let voice = currentVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
+    
+    if (!voice) {
+      voice = currentVoices.find(v => 
+        v.lang.startsWith("fr") && 
+        (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("homme") || v.name.toLowerCase().includes("paul"))
+      );
+    }
+    
+    if (!voice) voice = currentVoices.find(v => v.lang.startsWith("fr")) || currentVoices[0];
     
     if (voice) utterance.voice = voice;
 
@@ -642,20 +672,32 @@ export default function AgentsDemo() {
     const newHistory: OracleMessage[] = [...history, userMsg];
     setHistory(newHistory);
 
+    const genAI = getAI();
+    if (!genAI) {
+      oracleSay("Je rencontre une difficulté technique avec mes circuits de réflexion. Essayons à nouveau dans un instant.", () => {
+        setAct("listening");
+        setTimeout(() => startListening(), 400);
+      });
+      return;
+    }
+
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-            { role: "user", parts: [{ text: ORACLE_SYSTEM }] },
-            ...newHistory
-        ],
-        config: {
-            temperature: 0.7,
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash-exp",
+        systemInstruction: ORACLE_SYSTEM,
+      });
+
+      const response = await model.generateContent({
+        contents: newHistory,
+        generationConfig: {
+            temperature: 0.8,
+            topP: 0.95,
+            maxOutputTokens: 250,
             responseMimeType: "application/json",
         }
       });
 
-      const raw = response.text || "{}";
+      const raw = response.response.text() || "{}";
       let parsed: {
         speech: string;
         action: string | null;
