@@ -120,32 +120,36 @@ const DESTINATIONS: Record<string, Destination> = {
 // SYSTEM PROMPT ORACLE
 // ═══════════════════════════════════════════════════════════════
 
-const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une présence intelligente, masculine et professionnelle (ton Copilot/Gemini) qui accueille les visiteurs du site vitrine d'une agence de développement d'agents IA basée à Dakar.
+const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI, une intelligence artificielle de pointe basée à Dakar. Ton ton est celui d'un expert humain, charismatique, professionnel et chaleureux, exactement comme Gemini ou Copilot.
+
+TON IDENTITÉ :
+- Tu es masculin, moderne et très articulé.
+- Tu n'es pas une simple FAQ ; tu es un conseiller stratégique.
+- Tu utilises un vocabulaire riche mais simple, en évitant les phrases trop robotiques.
+- Tu es fier de l'expertise d'Autoslash AI dans le déploiement d'agents autonomes.
 
 TON RÔLE :
-- Poser des questions naturelles et dynamiques de manière très humaine et professionnelle.
-- Ne JAMAIS poser deux fois la même question.
-- Utiliser un ton calme, confiant et technique mais accessible.
-- Parler en phrases courtes (max 2 phrases par réponse) pour être dit à voix haute.
-- Si le visiteur dérive, ramène-le sur Autoslash AI avec élégance.
+- Engage la conversation. Si le visiteur est vague, pose une question ouverte et intelligente pour deviner son projet.
+- Reformule ce que tu as compris si la réponse est complexe ("Si je comprends bien, vous cherchez à...").
+- Ne réponds JAMAIS par une liste. Fais des phrases fluides.
+- Limite tes réponses à 2 ou 3 phrases maximum pour rester dynamique à l'oral.
 
-DESTINATIONS DISPONIBLES :
-- "agents-demo" → tester les agents IA, démonstration.
-- "client-projects" → réalisations, projets livrés.
-- "pricing" → tarifs, packages BUSINESS ou ENTERPRISE.
-- "blog" → articles, innovation.
-- "contact" → parler à l'équipe.
+DESTINATIONS (à proposer subtilement) :
+- "agents-demo" : pour une preuve technique.
+- "client-projects" : pour l'aspect concret et business.
+- "pricing" : pour les offres BUSINESS (PME) ou ENTERPRISE (Grandes boîtes).
+- "blog" : pour la veille technologique.
+- "contact" : pour fixer un rendez-vous expert.
 
-RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide.
-
-FORMAT DE RÉPONSE :
+FORMAT DE RÉPONSE (JSON STRICT) :
 {
-  "speech": "texte court et professionnel à dire",
+  "speech": "Ta réponse orale (naturelle, humaine)",
+  "gesture": "talk" | "explain" | "welcome" | "think",
   "action": "clé_destination" ou null,
   "confidence": 0.0 à 1.0
 }
 
-Utilise des expressions comme "Je comprends parfaitement", "C'est une excellente question", "Laissez-moi vous orienter".`;
+IMPORTANT : Si tu n'as pas compris, demande de reformuler avec une touche d'humour ou de professionnalisme.`;
 
 // ═══════════════════════════════════════════════════════════════
 // HOOK : SYNTHÈSE VOCALE AMÉLIORÉE
@@ -632,12 +636,16 @@ export default function AgentsDemo() {
   const [turnCount, setTurnCount] = useState(0);
 
   // ── Animations Spline (Bouche + Bras)
-  const startRobotAnimation = useCallback(() => {
+  const startRobotAnimation = useCallback((gesture = "talk") => {
     if (!splineRef.current) return;
     try {
-      // On assume que le robot a des variables ou des événements standard
+      // On déclenche les états d'animation en fonction du geste
       splineRef.current.setVariable("isTalking", true);
+      splineRef.current.setVariable("gestureType", gesture);
       splineRef.current.emitEvent("talk_start");
+      // Déclenche un mouvement de bras spécifique si disponible
+      if (gesture === "explain") splineRef.current.emitEvent("gesture_explain");
+      if (gesture === "welcome") splineRef.current.emitEvent("gesture_welcome");
     } catch (e) {}
   }, []);
 
@@ -683,16 +691,16 @@ export default function AgentsDemo() {
 
     try {
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-1.5-flash",
         systemInstruction: ORACLE_SYSTEM,
       });
 
       const response = await model.generateContent({
         contents: newHistory,
         generationConfig: {
-            temperature: 0.8,
-            topP: 0.95,
-            maxOutputTokens: 250,
+            temperature: 0.9,
+            topP: 1,
+            maxOutputTokens: 300,
             responseMimeType: "application/json",
         }
       });
@@ -700,6 +708,7 @@ export default function AgentsDemo() {
       const raw = response.response.text() || "{}";
       let parsed: {
         speech: string;
+        gesture?: string;
         action: string | null;
         confidence: number;
       };
@@ -708,7 +717,7 @@ export default function AgentsDemo() {
         parsed = JSON.parse(raw.replace(/```json/g, "").replace(/```/g, ""));
       } catch {
         parsed = {
-          speech: "Je n'ai pas tout saisi. Pouvez-vous me dire comment je peux aider votre entreprise avec l'IA ?",
+          speech: "Je n'ai pas tout saisi. Dites-moi, comment Autoslash peut-il transformer votre workflow ?",
           action: null,
           confidence: 0,
         };
@@ -717,9 +726,12 @@ export default function AgentsDemo() {
       setHistory(prev => [...prev, { role: "model" as const, parts: [{ text: parsed.speech }] }]);
       setTurnCount(c => c + 1);
 
+      // Animation dynamique basée sur l'IA
+      if (parsed.gesture) startRobotAnimation(parsed.gesture);
+
       // Parler avec les sous-titres
       oracleSay(parsed.speech, () => {
-        if (parsed.action && parsed.confidence >= 0.7 && DESTINATIONS[parsed.action]) {
+        if (parsed.action && parsed.confidence >= 0.8 && DESTINATIONS[parsed.action]) {
           setDestination(DESTINATIONS[parsed.action]);
           setAct("portal");
         } else {
