@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 
 const navItems = [
 	{
-		heading: "Solutions",
+		heading: "Nos Offres",
 		href: "/pricing",
 	},
 	{
@@ -16,6 +16,10 @@ const navItems = [
 	{
 		heading: "Article de blog",
 		href: "/blog",
+	},
+	{
+		heading: "AGENTS IA",
+		href: "/agents-demo",
 	},
 	{
 		heading: "À propos",

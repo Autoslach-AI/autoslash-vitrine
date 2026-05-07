@@ -27,6 +27,7 @@ const ElitePlanPage = lazy(() => import("./pages/ElitePlanPage"));
 const ClientProjects = lazy(() => import("./pages/ClientProjects"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
+const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 
 class ErrorBoundary extends React.Component<any, any> {
   state = { hasError: false, error: null };
@@ -114,6 +115,7 @@ function AppLayout() {
             <Route path="/client-projects" element={<ClientProjects />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/agents-demo" element={<AgentsDemo />} />
           </Routes>
         </Suspense>
       </main>

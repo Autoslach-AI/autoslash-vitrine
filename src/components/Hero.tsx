@@ -52,7 +52,7 @@ export default function Hero() {
                                         L'IA qui travaille, vous qui dominez.
                                     </h1>
                                     <p className="mx-auto mt-8 max-w-xl text-balance text-lg md:text-xl text-white/60">
-                                        Highly customizable components for building modern websites and applications that look and feel the way you mean it.
+                                        Des agents IA entraînés sur vos données. Livrés en moins de 7 jours. Opérationnels 24h/24.
                                     </p>
                                 </AnimatedGroup>
 
