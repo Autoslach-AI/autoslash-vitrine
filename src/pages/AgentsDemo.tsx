@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "motion/react";
 import { supabase } from "@/lib/supabaseClient";
 import { Send, RotateCcw, ArrowRight, ChevronRight } from "lucide-react";
@@ -51,7 +51,7 @@ function ParticleField({ color }: { color: string }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Animated grid */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
             <path d="M 60 0 L 0 0 0 60" fill="none" stroke={color} strokeWidth="0.5"/>
@@ -68,7 +68,7 @@ function ParticleField({ color }: { color: string }) {
           style={{
             width: `${80 + i * 40}px`,
             height: `${80 + i * 40}px`,
-            background: `radial-gradient(circle, ${color}08 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${color}15 0%, transparent 70%)`,
             left: `${10 + i * 15}%`,
             top: `${20 + (i % 3) * 25}%`,
           }}
@@ -125,6 +125,7 @@ function AgentCard({
   isSelected: boolean;
   onClick: () => void;
   index: number;
+  key?: any;
 }) {
   const cfg = getConfig(agent.name);
   const mouseX = useMotionValue(0);
@@ -160,8 +161,8 @@ function AgentCard({
           style={{
             background: isSelected
               ? `linear-gradient(135deg, ${cfg.color}15 0%, ${cfg.color}05 100%)`
-              : "rgba(255,255,255,0.02)",
-            border: `1px solid ${isSelected ? cfg.color + "40" : "rgba(255,255,255,0.06)"}`,
+              : "rgba(255,255,255,0.05)",
+            border: `1px solid ${isSelected ? cfg.color + "40" : "rgba(255,255,255,0.12)"}`,
             boxShadow: isSelected ? `0 0 40px ${cfg.glow}, inset 0 0 20px ${cfg.color}08` : "none",
           }}
         >
@@ -523,7 +524,10 @@ export default function AgentsDemo() {
               </div>
 
               {/* Messages */}
-              <div className="h-[420px] overflow-y-auto px-8 py-6 space-y-5 scroll-smooth">
+              <div 
+                className="overflow-y-auto px-8 py-6 space-y-5 scroll-smooth"
+                style={{ minHeight: "200px", maxHeight: "420px" }}
+              >
                 <AnimatePresence initial={false}>
                   {messages.map((msg, idx) => (
                     <motion.div
