@@ -49,12 +49,19 @@ FORMAT DE RÉPONSE (JSON STRICT) :
 
   // Route API pour l'Oracle
   app.post("/api/oracle", async (req, res) => {
-    if (!genAI) {
-      return res.status(500).json({ error: "Gemini API key is missing on server." });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("Critical: GEMINI_API_KEY is not set in environment variables.");
+      return res.status(500).json({ error: "Configuration manquante sur le serveur." });
     }
 
     try {
+      const genAI = new GoogleGenAI({ apiKey });
       const { messages } = req.body;
+      
+      // Nettoyage des messages pour Gemini (s'assurer de l'alternance des rôles)
+      const validMessages = messages.filter((m: any) => m.parts && m.parts[0]?.text);
+
       const model = (genAI as any).getGenerativeModel({ 
         model: "gemini-1.5-flash",
         systemInstruction: {
@@ -63,21 +70,26 @@ FORMAT DE RÉPONSE (JSON STRICT) :
         }
       });
 
-      const response = await model.generateContent({
-        contents: messages,
+      const result = await model.generateContent({
+        contents: validMessages,
         generationConfig: {
-          temperature: 0.9,
-          topP: 1,
-          maxOutputTokens: 300,
+          temperature: 0.8,
+          topP: 0.95,
+          maxOutputTokens: 400,
           responseMimeType: "application/json",
         }
       });
 
-      const text = response.response.text();
-      res.json(JSON.parse(text.replace(/```json/g, "").replace(/```/g, "")));
-    } catch (error) {
-      console.error("Oracle Error:", error);
-      res.status(500).json({ error: "Failed to reach Oracle circuits." });
+      const text = result.response.text();
+      // Nettoyage rigoureux du JSON
+      const cleanJson = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      res.json(JSON.parse(cleanJson));
+    } catch (error: any) {
+      console.error("Oracle Server Error:", error);
+      res.status(500).json({ 
+        error: "Erreur de connexion aux circuits neurologiques.",
+        details: error.message 
+      });
     }
   });
 

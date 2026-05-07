@@ -538,33 +538,6 @@ function TimeTravel({ color }: { color: string }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// COMPOSANT : SOUS-TITRES ANIMÉS
-// ═══════════════════════════════════════════════════════════════
-
-function Subtitle({ text, visible }: { text: string; visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && text && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.4 }}
-          className="max-w-2xl text-center px-8"
-        >
-          <p
-            className="text-white text-xl md:text-2xl font-black leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif", textShadow: "0 2px 20px rgba(0,0,0,0.8)" }}
-          >
-            {text}
-          </p>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
 // PAGE PRINCIPALE
 // ═══════════════════════════════════════════════════════════════
 
@@ -575,8 +548,6 @@ export default function AgentsDemo() {
   // ── State
   const [act, setAct] = useState<Act>("dormant");
   const [splineReady, setSplineReady] = useState(false);
-  const [subtitle, setSubtitle] = useState("");
-  const [showSubtitle, setShowSubtitle] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
   const [destination, setDestination] = useState<Destination | null>(null);
   const [isTimeTravel, setIsTimeTravel] = useState(false);
@@ -587,47 +558,36 @@ export default function AgentsDemo() {
   const startRobotAnimation = useCallback((gesture = "talk") => {
     if (!splineRef.current) return;
     try {
-      // On déclenche les états d'animation en fonction du geste
       splineRef.current.setVariable("isTalking", true);
-      splineRef.current.setVariable("gestureType", gesture);
-      splineRef.current.emitEvent("talk_start");
-      // Déclenche un mouvement de bras spécifique si disponible
-      if (gesture === "explain") splineRef.current.emitEvent("gesture_explain");
-      if (gesture === "welcome") splineRef.current.emitEvent("gesture_welcome");
-    } catch (e) {}
+      splineRef.current.setVariable("mouthMovement", 1); 
+      splineRef.current.emitEvent("talk_start", "Robot");
+      
+      if (gesture === "explain") splineRef.current.emitEvent("gesture_explain", "Robot");
+      if (gesture === "welcome") splineRef.current.emitEvent("gesture_welcome", "Robot");
+      if (gesture === "think") splineRef.current.emitEvent("gesture_think", "Robot");
+    } catch (e) {
+      console.warn("Spline Animation Error:", e);
+    }
   }, []);
 
   const stopRobotAnimation = useCallback(() => {
     if (!splineRef.current) return;
     try {
       splineRef.current.setVariable("isTalking", false);
-      splineRef.current.emitEvent("talk_end");
+      splineRef.current.setVariable("mouthMovement", 0);
+      splineRef.current.emitEvent("talk_stop", "Robot");
     } catch (e) {}
   }, []);
 
-  // ── Synthèse vocale avec Sync Robot
+  // ── Synthèse vocale
   const { speak, stop: stopSpeech, isSpeaking, muted, setMuted } = useSpeechSynthesis(
-    startRobotAnimation,
+    () => startRobotAnimation("talk"),
     stopRobotAnimation
   );
 
-  // ── Reconnaissance vocale
-  const handleVoiceResult = useCallback((text: string) => {
-    if (!text) return;
-    setUserTranscript(text);
-    setAct("thinking");
-    askOracle(text);
-  }, [history, turnCount]);
-
-  const { start: startListening, stop: stopListening, isListening, interim } =
-    useSpeechRecognition(handleVoiceResult);
-
-  // ── Dire quelque chose et afficher sous-titre
+  // ── Dire quelque chose
   const oracleSay = useCallback((text: string, onEnd?: () => void) => {
-    setSubtitle(text);
-    setShowSubtitle(true);
     speak(text, () => {
-      setTimeout(() => setShowSubtitle(false), 800);
       onEnd?.();
     });
   }, [speak]);
@@ -635,7 +595,7 @@ export default function AgentsDemo() {
   // ── Oracle Gemini — Via Backend Sécurisé
   const askOracle = useCallback(async (userText: string) => {
     const userMsg = { role: "user" as const, parts: [{ text: userText }] };
-    const newHistory: OracleMessage[] = [...history, userMsg];
+    const newHistory = [...history, userMsg];
     setHistory(newHistory);
 
     try {
@@ -645,7 +605,10 @@ export default function AgentsDemo() {
         body: JSON.stringify({ messages: newHistory }),
       });
 
-      if (!response.ok) throw new Error("Backend connection failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Backend failure");
+      }
 
       const parsed: {
         speech: string;
@@ -657,28 +620,49 @@ export default function AgentsDemo() {
       setHistory(prev => [...prev, { role: "model" as const, parts: [{ text: parsed.speech }] }]);
       setTurnCount(c => c + 1);
 
-      // Animation dynamique basée sur l'IA
       if (parsed.gesture) startRobotAnimation(parsed.gesture);
 
-      // Parler avec les sous-titres
       oracleSay(parsed.speech, () => {
         if (parsed.action && parsed.confidence >= 0.8 && DESTINATIONS[parsed.action]) {
           setDestination(DESTINATIONS[parsed.action]);
           setAct("portal");
         } else {
           setAct("listening");
-          setTimeout(() => startListening(), 400);
+          // Re-démarrer l'écoute
+          setTimeout(() => startListening(), 600);
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Oracle API Error:", error);
-      oracleSay("Je rencontre une petite perturbation dans mes circuits de réflexion. Pouvons-nous reprendre ?", () => {
+      const errorMsg = error.message.includes("Configuration") 
+        ? "Mon accès à Gemini est limité. Veuillez vérifier votre clé API dans les paramètres."
+        : "Je n'ai pas pu joindre mes circuits. Pouvons-nous reprendre notre discussion ?";
+      
+      oracleSay(errorMsg, () => {
         setAct("listening");
-        setTimeout(() => startListening(), 400);
+        setTimeout(() => startListening(), 800);
       });
     }
-  }, [history, turnCount, startListening, speak, startRobotAnimation, oracleSay]);
+  }, [history, startRobotAnimation, oracleSay]);
+
+  const handleVoiceResultRef = useRef<(text: string) => void>(() => {});
+
+  const { start: startListening, stop: stopListening, isListening, interim } =
+    useSpeechRecognition((text: string) => handleVoiceResultRef.current(text));
+
+  // ── Reconnaissance vocale
+  const handleVoiceResult = useCallback((text: string) => {
+    if (!text || text.length < 2) return;
+    stopListening();
+    setUserTranscript(text);
+    setAct("thinking");
+    askOracle(text);
+  }, [askOracle, stopListening]);
+
+  useEffect(() => {
+    handleVoiceResultRef.current = handleVoiceResult;
+  }, [handleVoiceResult]);
 
   // ── ÉVEIL au mouvement du curseur
   useEffect(() => {
@@ -851,9 +835,6 @@ export default function AgentsDemo() {
           )}
         </AnimatePresence>
 
-        {/* Sous-titre Oracle */}
-        <Subtitle text={subtitle} visible={showSubtitle} />
-
         {/* Indicateur état */}
         <div className="flex items-center gap-3">
           {act === "dormant" && splineReady && (
@@ -960,7 +941,6 @@ export default function AgentsDemo() {
               setHistory([]);
               setTurnCount(0);
               setDestination(null);
-              setSubtitle("");
               setUserTranscript("");
             }}
             whileHover={{ scale: 1.05 }}
