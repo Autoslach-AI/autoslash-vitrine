@@ -24,7 +24,6 @@ import React, {
 import { motion, AnimatePresence, useMotionValue, useSpring } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
-import { GoogleGenAI } from "@google/genai";
 
 const Spline = lazy(() => import("@splinetool/react-spline"));
 
@@ -32,22 +31,6 @@ const Spline = lazy(() => import("@splinetool/react-spline"));
 type SpeechRecognition = any;
 // @ts-ignore
 type SpeechRecognitionEvent = any;
-
-// ═══════════════════════════════════════════════════════════════
-// LAZY GEMINI INIT
-// ═══════════════════════════════════════════════════════════════
-let aiInstance: any = null;
-const getAI = () => {
-  if (!aiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.warn("GEMINI_API_KEY is missing. Oracle logic will be limited.");
-      return null;
-    }
-    aiInstance = new GoogleGenAI({ apiKey });
-  }
-  return aiInstance;
-};
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -115,41 +98,6 @@ const DESTINATIONS: Record<string, Destination> = {
     icon: "✦",
   },
 };
-
-// ═══════════════════════════════════════════════════════════════
-// SYSTEM PROMPT ORACLE
-// ═══════════════════════════════════════════════════════════════
-
-const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI, une intelligence artificielle de pointe basée à Dakar. Ton ton est celui d'un expert humain, charismatique, professionnel et chaleureux, exactement comme Gemini ou Copilot.
-
-TON IDENTITÉ :
-- Tu es masculin, moderne et très articulé.
-- Tu n'es pas une simple FAQ ; tu es un conseiller stratégique.
-- Tu utilises un vocabulaire riche mais simple, en évitant les phrases trop robotiques.
-- Tu es fier de l'expertise d'Autoslash AI dans le déploiement d'agents autonomes.
-
-TON RÔLE :
-- Engage la conversation. Si le visiteur est vague, pose une question ouverte et intelligente pour deviner son projet.
-- Reformule ce que tu as compris si la réponse est complexe ("Si je comprends bien, vous cherchez à...").
-- Ne réponds JAMAIS par une liste. Fais des phrases fluides.
-- Limite tes réponses à 2 ou 3 phrases maximum pour rester dynamique à l'oral.
-
-DESTINATIONS (à proposer subtilement) :
-- "agents-demo" : pour une preuve technique.
-- "client-projects" : pour l'aspect concret et business.
-- "pricing" : pour les offres BUSINESS (PME) ou ENTERPRISE (Grandes boîtes).
-- "blog" : pour la veille technologique.
-- "contact" : pour fixer un rendez-vous expert.
-
-FORMAT DE RÉPONSE (JSON STRICT) :
-{
-  "speech": "Ta réponse orale (naturelle, humaine)",
-  "gesture": "talk" | "explain" | "welcome" | "think",
-  "action": "clé_destination" ou null,
-  "confidence": 0.0 à 1.0
-}
-
-IMPORTANT : Si tu n'as pas compris, demande de reformuler avec une touche d'humour ou de professionnalisme.`;
 
 // ═══════════════════════════════════════════════════════════════
 // HOOK : SYNTHÈSE VOCALE AMÉLIORÉE
@@ -674,54 +622,37 @@ export default function AgentsDemo() {
   const { start: startListening, stop: stopListening, isListening, interim } =
     useSpeechRecognition(handleVoiceResult);
 
-  // ── Oracle Gemini — Raisonnement Naturel
+  // ── Dire quelque chose et afficher sous-titre
+  const oracleSay = useCallback((text: string, onEnd?: () => void) => {
+    setSubtitle(text);
+    setShowSubtitle(true);
+    speak(text, () => {
+      setTimeout(() => setShowSubtitle(false), 800);
+      onEnd?.();
+    });
+  }, [speak]);
+
+  // ── Oracle Gemini — Via Backend Sécurisé
   const askOracle = useCallback(async (userText: string) => {
     const userMsg = { role: "user" as const, parts: [{ text: userText }] };
     const newHistory: OracleMessage[] = [...history, userMsg];
     setHistory(newHistory);
 
-    const genAI = getAI();
-    if (!genAI) {
-      oracleSay("Je rencontre une difficulté technique avec mes circuits de réflexion. Essayons à nouveau dans un instant.", () => {
-        setAct("listening");
-        setTimeout(() => startListening(), 400);
-      });
-      return;
-    }
-
     try {
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: ORACLE_SYSTEM,
+      const response = await fetch("/api/oracle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newHistory }),
       });
 
-      const response = await model.generateContent({
-        contents: newHistory,
-        generationConfig: {
-            temperature: 0.9,
-            topP: 1,
-            maxOutputTokens: 300,
-            responseMimeType: "application/json",
-        }
-      });
+      if (!response.ok) throw new Error("Backend connection failed");
 
-      const raw = response.response.text() || "{}";
-      let parsed: {
+      const parsed: {
         speech: string;
         gesture?: string;
         action: string | null;
         confidence: number;
-      };
-
-      try {
-        parsed = JSON.parse(raw.replace(/```json/g, "").replace(/```/g, ""));
-      } catch {
-        parsed = {
-          speech: "Je n'ai pas tout saisi. Dites-moi, comment Autoslash peut-il transformer votre workflow ?",
-          action: null,
-          confidence: 0,
-        };
-      }
+      } = await response.json();
 
       setHistory(prev => [...prev, { role: "model" as const, parts: [{ text: parsed.speech }] }]);
       setTurnCount(c => c + 1);
@@ -741,23 +672,13 @@ export default function AgentsDemo() {
       });
 
     } catch (error) {
-      console.error("Gemini Error:", error);
-      oracleSay("Désolé, ma connexion est instable. Que souhaitez-vous découvrir chez Autoslash ?", () => {
+      console.error("Oracle API Error:", error);
+      oracleSay("Je rencontre une petite perturbation dans mes circuits de réflexion. Pouvons-nous reprendre ?", () => {
         setAct("listening");
         setTimeout(() => startListening(), 400);
       });
     }
-  }, [history, turnCount, startListening, speak]);
-
-  // ── Dire quelque chose et afficher sous-titre
-  const oracleSay = useCallback((text: string, onEnd?: () => void) => {
-    setSubtitle(text);
-    setShowSubtitle(true);
-    speak(text, () => {
-      setTimeout(() => setShowSubtitle(false), 800);
-      onEnd?.();
-    });
-  }, [speak]);
+  }, [history, turnCount, startListening, speak, startRobotAnimation, oracleSay]);
 
   // ── ÉVEIL au mouvement du curseur
   useEffect(() => {
