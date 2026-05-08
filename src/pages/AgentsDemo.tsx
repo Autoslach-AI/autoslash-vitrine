@@ -139,10 +139,10 @@ export default function AgentsDemo() {
           <motion.div
             key={`s4-${agentParam}`}
             className="absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
           >
             {renderScene4()}
           </motion.div>

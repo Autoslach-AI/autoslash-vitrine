@@ -278,10 +278,6 @@ export default function Scene4Vocal() {
         >
           <Mic size={32} />
         </motion.button>
-
-        <button className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 text-white/40 hover:bg-white/10 transition-colors">
-          <Settings size={20} />
-        </button>
       </div>
 
       {/* Footer info */}
