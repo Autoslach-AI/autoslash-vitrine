@@ -14,6 +14,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Scene1Intro from "@/components/agents/Scene1Intro";
 import Scene2Robot from "@/components/agents/Scene2Robot";
+import Scene3Travel from "@/components/agents/Scene3Travel";
 
 type Scene = "scene1" | "scene2" | "scene3";
 
@@ -74,33 +75,18 @@ export default function AgentsDemo() {
         )}
       </AnimatePresence>
 
-      {/* ── SCÈNE 3 — Placeholder voyage (à construire) */}
+      {/* ── SCÈNE 3 — Voyage Hyperspace */}
       <AnimatePresence>
         {scene === "scene3" && (
           <motion.div
             key="s3"
-            className="absolute inset-0 flex items-center justify-center text-center"
+            className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
           >
-            <div>
-              <p
-                className="text-white/40 text-sm font-bold uppercase tracking-widest mb-4"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Voyage vers : {finalDestination}
-              </p>
-              <p className="text-white/10 text-[10px] uppercase tracking-[0.4em]">
-                Scène 3 en cours de construction
-              </p>
-              <button
-                onClick={() => setScene("scene1")}
-                className="mt-12 text-white/20 text-xs hover:text-white/40 transition-colors uppercase tracking-widest"
-              >
-                ← Recommencer le test
-              </button>
-            </div>
+            <Scene3Travel destination={finalDestination || "agents-demo"} />
           </motion.div>
         )}
       </AnimatePresence>
