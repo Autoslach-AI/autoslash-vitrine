@@ -23,9 +23,11 @@ import Scene4Vocal from "@/components/ui/siri-orb";
 type Scene = "scene1" | "scene2" | "scene3" | "scene4";
 
 export default function AgentsDemo() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const agentParam = searchParams.get("agent");
-  const [scene, setScene] = useState<Scene>(agentParam ? "scene4" : "scene1");
+  const sceneParam = searchParams.get("scene") as Scene | null;
+
+  const [scene, setScene] = useState<Scene>(sceneParam || (agentParam ? "scene4" : "scene1"));
   const [flash, setFlash] = useState(false);
   const [finalDestination, setFinalDestination] = useState<string | null>(null);
 
@@ -33,11 +35,13 @@ export default function AgentsDemo() {
   const [showIntroChat, setShowIntroChat] = useState(false);
   const [initialMsg, setInitialMsg] = useState<string | undefined>(undefined);
 
+  // Sync state with URL params for back/forward navigation support
   useEffect(() => {
-    if (agentParam && scene !== "scene4") {
-      setScene("scene4");
+    const s = (searchParams.get("scene") as Scene) || (agentParam ? "scene4" : "scene1");
+    if (s !== scene) {
+      setScene(s);
     }
-  }, [agentParam, scene]);
+  }, [searchParams, agentParam, scene]);
 
   // Si on vient de la Scene3 avec "business", on affiche l'intro chat d'abord
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function AgentsDemo() {
   const handleScene1Complete = () => {
     setFlash(true);
     setTimeout(() => {
-      setScene("scene2");
+      setSearchParams({ scene: "scene2" });
       setFlash(false);
     }, 800);
   };
@@ -62,10 +66,18 @@ export default function AgentsDemo() {
     setFinalDestination(destination);
     setFlash(true);
     setTimeout(() => {
-      setScene("scene3");
+      setSearchParams({ scene: "scene3", dest: destination });
       setFlash(false);
     }, 800);
   };
+
+  // Recover finalDestination from URL if needed (for scene3 reload)
+  useEffect(() => {
+    const dest = searchParams.get("dest");
+    if (dest && dest !== finalDestination) {
+      setFinalDestination(dest);
+    }
+  }, [searchParams, finalDestination]);
 
   const handleIntroMessage = (msg: string) => {
     setInitialMsg(msg);

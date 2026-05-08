@@ -123,7 +123,7 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
           // Au lieu de navigate directement vers la page externe
           // On revient à AgentsDemo avec le paramètre agent
           const dest = destination.includes("business") ? "business" : "commercial";
-          navigate(`/agents-demo?agent=${dest}&scene=4`);
+          navigate(`/agents-demo?agent=${dest}&scene=scene4`, { replace: true });
         }, 900);
       }
 
