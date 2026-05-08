@@ -201,10 +201,18 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
   )
 }
 
+// --- Vocal Agent Config (Easy to modify later) ---
+const VOCAL_CONFIG = {
+  greeting: "Je suis prêt. Cliquez sur l'icône micro pour lancer l'appel avec moi.",
+  listening: "Je vous écoute...",
+  hint: "Cliquez pour commencer",
+  hintActive: "Parlez maintenant"
+};
+
 // --- Scene4Vocal (The Commercial Agent Interface) ---
 export default function Scene4Vocal() {
   const [isListening, setIsListening] = useState(false);
-  const [status, setStatus] = useState("Bonjour ! Je suis votre Agent Commercial Vocal.");
+  const [status, setStatus] = useState(VOCAL_CONFIG.greeting);
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-between py-12 px-6">
@@ -249,12 +257,12 @@ export default function Scene4Vocal() {
           />
         </motion.div>
         
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {isListening ? "Je vous écoute..." : status}
+        <div className="text-center space-y-4 max-w-xl">
+          <h1 className="text-2xl font-bold text-white tracking-tight leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
+            {isListening ? VOCAL_CONFIG.listening : status}
           </h1>
           <p className="text-white/40 text-sm font-medium tracking-wide">
-            {isListening ? "Parlez maintenant" : "Cliquez sur le micro pour commencer"}
+            {isListening ? VOCAL_CONFIG.hintActive : VOCAL_CONFIG.hint}
           </p>
         </div>
       </div>
