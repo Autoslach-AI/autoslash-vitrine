@@ -168,6 +168,7 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
       emissiveIntensity: 0.3,
     });
     const hut = new THREE.Mesh(hutGeo, hutMat);
+    hut.position.z = -1.5;
 
     // ── Lumière point bleue ────────────────────────────────────────────────
     const pointLight = new THREE.PointLight(0x0066ff, 5, 2, 5);
