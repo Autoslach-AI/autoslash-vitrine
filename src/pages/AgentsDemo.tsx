@@ -18,6 +18,7 @@ import Scene2Robot from "@/components/agents/Scene2Robot";
 import Scene3Travel from "@/components/agents/Scene3Travel";
 import Scene4Chat from "@/components/agents/Scene4Chat";
 import RuixenMoonChat from "@/components/ui/ruixen-moon-chat";
+import Scene4Vocal from "@/components/ui/siri-orb";
 
 type Scene = "scene1" | "scene2" | "scene3" | "scene4";
 
@@ -69,6 +70,18 @@ export default function AgentsDemo() {
   const handleIntroMessage = (msg: string) => {
     setInitialMsg(msg);
     setShowIntroChat(false);
+  };
+
+  const renderScene4 = () => {
+    if (agentParam === "commercial") {
+      return <Scene4Vocal />;
+    }
+
+    if (showIntroChat) {
+      return <RuixenMoonChat onSendMessage={handleIntroMessage} />;
+    }
+
+    return <Scene4Chat initialMessage={initialMsg} />;
   };
 
   return (
@@ -124,18 +137,14 @@ export default function AgentsDemo() {
       <AnimatePresence mode="wait">
         {scene === "scene4" && (
           <motion.div
-            key="s4"
+            key={`s4-${agentParam}`}
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {showIntroChat ? (
-              <RuixenMoonChat onSendMessage={handleIntroMessage} />
-            ) : (
-              <Scene4Chat initialMessage={initialMsg} />
-            )}
+            {renderScene4()}
           </motion.div>
         )}
       </AnimatePresence>

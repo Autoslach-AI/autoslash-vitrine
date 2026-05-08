@@ -18,6 +18,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { useSearchParams } from "react-router-dom";
 import { Send, RotateCcw, Plus, Sparkles, ChevronDown } from "lucide-react";
 
+import { ShiningText } from "@/components/ui/shining-text";
+
 // ═══════════════════════════════════════════════════════════════
 // CONFIG PAR AGENT
 // ═══════════════════════════════════════════════════════════════
@@ -232,18 +234,7 @@ function TypingIndicator({ accent }: { accent: string; key?: React.Key }) {
         exit={{ opacity: 0 }}
         className="w-full max-w-2xl px-6 md:px-0 flex items-center gap-3"
       >
-        <div className="flex gap-1.5 pt-2">
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: accent }}
-              animate={{ opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-            />
-          ))}
-        </div>
-        <span className="text-[10px] uppercase tracking-widest text-white/20 font-bold">L'agent réfléchit</span>
+        <ShiningText text="L'agent réfléchit..." />
       </motion.div>
     </div>
   );
