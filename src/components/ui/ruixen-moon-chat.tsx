@@ -157,14 +157,11 @@ export default function RuixenMoonChat({ onSendMessage }: RuixenMoonChatProps) {
 
         {/* Quick Actions */}
         <div className="flex items-center justify-center flex-wrap gap-2 mt-8">
-          <QuickAction icon={<Code2 className="w-4 h-4" />} label="Générer du Code" onClick={() => setMessage("Aide-moi à coder mon site mobile")} />
-          <QuickAction icon={<Rocket className="w-4 h-4" />} label="Lancer un Projet" onClick={() => setMessage("Comment lancer un business en 1 semaine ?")} />
-          <QuickAction icon={<Layers className="w-4 h-4" />} label="Interface UI" onClick={() => setMessage("Design-moi un dashboard moderne")} />
-          <QuickAction icon={<Palette className="w-4 h-4" />} label="Identité Visuelle" onClick={() => setMessage("Idées de charte graphique tech")} />
-          <QuickAction icon={<CircleUserRound className="w-4 h-4" />} label="User Experience" onClick={() => setMessage("Optimiser mon parcours client")} />
-          <QuickAction icon={<MonitorIcon className="w-4 h-4" />} label="Landing Page" onClick={() => setMessage("Structure d'une landing page qui convertit")} />
-          <QuickAction icon={<FileUp className="w-4 h-4" />} label="Analyse Doc" onClick={() => setMessage("Analyse ce document stratégique")} />
-          <QuickAction icon={<ImageIcon className="w-4 h-4" />} label="Génération Image" onClick={() => setMessage("Génère une image de couverture futuriste")} />
+          <QuickAction icon={<Rocket className="w-4 h-4" />} label="Lancer mon projet avec l'IA" onClick={() => setMessage("Je souhaite lancer mon projet avec l'IA")} />
+          <QuickAction icon={<CircleUserRound className="w-4 h-4" />} label="Passer de 0 à mes 10 premiers clients" onClick={() => setMessage("Comment passer de 0 à mes 10 premiers clients ?")} />
+          <QuickAction icon={<Layers className="w-4 h-4" />} label="Automatiser mes opérations" onClick={() => setMessage("Je veux automatiser mes opérations")} />
+          <QuickAction icon={<Rocket className="w-4 h-4" />} label="Définir ma stratégie de croissance" onClick={() => setMessage("Aide-moi à définir ma stratégie de croissance")} />
+          <QuickAction icon={<Rocket className="w-4 h-4" />} label="Scaler mon business rapidement" onClick={() => setMessage("Je veux scaler mon business rapidement")} />
         </div>
       </div>
     </div>
