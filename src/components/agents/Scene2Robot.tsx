@@ -82,7 +82,7 @@ FORMAT :
 {
   "speech": "texte à dire à voix haute (1-2 phrases max, naturel)",
   "cards": [
-    {"label": "texte court", "value": "clé", "emoji": "emoji optionnel"},
+    {"label": "texte court", "value": "clé"},
     ...max 4 cartes
   ],
   "destination": null
@@ -99,10 +99,10 @@ PREMIER TOUR — Toujours commencer par :
 {
   "speech": "Bonjour. Mes circuits d'écoute sont en maintenance, j'utilise des cartes pour vous comprendre. Qu'est-ce qui vous amène ici ?",
   "cards": [
-    {"label": "Voir vos agents IA", "value": "agents", "emoji": "🤖"},
-    {"label": "Vos réalisations", "value": "projects", "emoji": "🏆"},
-    {"label": "Tarifs et offres", "value": "pricing", "emoji": "💡"},
-    {"label": "Parler à l'équipe", "value": "contact", "emoji": "✉️"}
+    {"label": "Voir vos agents IA", "value": "agents"},
+    {"label": "Vos réalisations", "value": "projects"},
+    {"label": "Tarifs et offres", "value": "pricing"},
+    {"label": "Parler à l'équipe", "value": "contact"}
   ],
   "destination": null
 }
@@ -266,11 +266,6 @@ function SuggestionCards({
             opacity: disabled ? 0.5 : 1,
           }}
         >
-          {/* Emoji */}
-          {card.emoji && (
-            <span className="text-lg shrink-0">{card.emoji}</span>
-          )}
-
           {/* Label */}
           <span
             className="text-white font-medium text-xs group-hover:text-blue-300 transition-colors"
@@ -484,19 +479,19 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           setRobotState("waiting");
           fallbackSaidRef.current = true;
           setCards([
-            { label: "Tester les agents IA",  value: "agents",   emoji: "🤖" },
-            { label: "Voir les réalisations",  value: "projects", emoji: "🏆" },
-            { label: "Découvrir les offres",   value: "pricing",  emoji: "💡" },
-            { label: "Parler à l'équipe",      value: "contact",  emoji: "✉️" },
+            { label: "Tester les agents IA",  value: "agents" },
+            { label: "Voir les réalisations",  value: "projects" },
+            { label: "Découvrir les offres",   value: "pricing" },
+            { label: "Parler à l'équipe",      value: "contact" },
           ]);
         });
       } else {
         setRobotState("waiting");
         setCards([
-          { label: "Tester les agents IA",  value: "agents",   emoji: "🤖" },
-          { label: "Voir les réalisations",  value: "projects", emoji: "🏆" },
-          { label: "Découvrir les offres",   value: "pricing",  emoji: "💡" },
-          { label: "Parler à l'équipe",      value: "contact",  emoji: "✉️" },
+          { label: "Tester les agents IA",  value: "agents" },
+          { label: "Voir les réalisations",  value: "projects" },
+          { label: "Découvrir les offres",   value: "pricing" },
+          { label: "Parler à l'équipe",      value: "contact" },
         ]);
       }
     }
