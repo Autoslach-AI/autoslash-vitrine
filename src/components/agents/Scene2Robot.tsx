@@ -515,24 +515,46 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   const handleCardSelect = useCallback((card: Card) => {
     if (robotState === "thinking" || robotState === "speaking") return;
 
-    setSelectedCard(card);
+    const DIRECT_DESTINATIONS: Record<string, string> = {
+      agents:   "agents-demo",
+      projects: "client-projects",
+      pricing:  "pricing",
+      blog:     "blog",
+      contact:  "contact",
+    };
+
+    const FAREWELL_SPEECHES: Record<string, string> = {
+      "agents-demo":     "Parfait. Je vous emmène voir nos agents en action.",
+      "client-projects": "Excellent. Découvrez nos réalisations concrètes.",
+      "pricing":         "Je vous guide vers nos offres et packages.",
+      "blog":            "Direction notre blog et actualités.",
+      "contact":         "Notre équipe vous attend.",
+    };
+
     stop();
     setCards([]);
     setShowBubble(false);
+    setRobotState("farewell");
     setRobotShifted(false);
 
-    // Mapper la valeur carte → message naturel
-    const messages: Record<string, string> = {
-      agents:   "Je souhaite tester vos agents IA en démonstration.",
-      projects: "J'aimerais voir vos réalisations et projets livrés.",
-      pricing:  "Je veux connaître vos tarifs et packages.",
-      blog:     "Je cherche à lire vos articles et actualités.",
-      contact:  "Je veux parler directement à votre équipe.",
-    };
+    const dest = DIRECT_DESTINATIONS[card.value] ?? "contact";
+    const speech = FAREWELL_SPEECHES[dest] ?? "Je vous guide vers votre destination.";
 
-    const message = messages[card.value] ?? card.label;
-    setTimeout(() => callOracle(message), 400);
-  }, [robotState, stop, callOracle]);
+    setSpeech(speech);
+    setShowBubble(true);
+
+    // Parler → puis déclencher Scène 3
+    speak(speech, () => {
+      setTimeout(() => onComplete(dest), 300);
+    });
+
+    // Failsafe si voix indisponible → déclenche après 2.5s
+    const failsafe = setTimeout(() => onComplete(dest), 2500);
+
+    // Annuler failsafe si voix a fonctionné
+    return () => clearTimeout(failsafe);
+
+  }, [robotState, stop, speak, onComplete]);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
