@@ -278,7 +278,11 @@ function GreetingText({ text, onDone }: { text: string; onDone: () => void }) {
 // SCÈNE 4 — COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════════════════════════════
 
-export default function Scene4Chat() {
+interface Scene4ChatProps {
+  initialMessage?: string;
+}
+
+export default function Scene4Chat({ initialMessage }: Scene4ChatProps) {
   const [searchParams]  = useSearchParams();
   const agentKey        = (searchParams.get("agent") ?? "business") as AgentKey;
   const cfg             = AGENT_CONFIG[agentKey] ?? AGENT_CONFIG.business;
@@ -293,30 +297,15 @@ export default function Scene4Chat() {
   const bottomRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLTextAreaElement>(null);
   const greetedRef = useRef(false);
+  const initialMessageHandled = useRef(false);
 
   // ── Scroll automatique ─────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // ── Greeting initial ───────────────────────────────────────────────────
-  useEffect(() => {
-    if (greetedRef.current) return;
-    greetedRef.current = true;
-
-    const timer = setTimeout(() => {
-      setMessages([{
-        id: "greeting",
-        role: "agent",
-        content: cfg.greeting,
-        ts: Date.now(),
-      }]);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [cfg.greeting]);
-
   // ── Appel Claude API ───────────────────────────────────────────────────
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, currentMessages?: Message[]) => {
     if (!text.trim() || isLoading) return;
 
     const userMsg: Message = {
@@ -326,13 +315,14 @@ export default function Scene4Chat() {
       ts: Date.now(),
     };
 
+    const msgs = currentMessages || messages;
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
     setAgentPulsing(true);
 
     // Historique pour Claude
-    const history = [...messages, userMsg]
+    const history = [...msgs, userMsg]
       .filter(m => m.id !== "greeting" || m.role === "agent")
       .map(m => ({
         role: m.role === "user" ? "user" : "assistant",
@@ -372,6 +362,30 @@ export default function Scene4Chat() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [messages, isLoading, systemPrompt]);
+
+  // ── Greeting initial ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (greetedRef.current) return;
+    greetedRef.current = true;
+
+    const timer = setTimeout(() => {
+      const gMsg: Message = {
+        id: "greeting",
+        role: "agent",
+        content: cfg.greeting,
+        ts: Date.now(),
+      };
+      setMessages([gMsg]);
+
+      // If initialMessage exists, handle it immediately after greeting is set
+      if (initialMessage && !initialMessageHandled.current) {
+        initialMessageHandled.current = true;
+        setGreetingDone(true); // Skip animation if message comes from intro
+        sendMessage(initialMessage, [gMsg]);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [cfg.greeting, initialMessage, sendMessage]);
 
   // ── Prompt rapide → envoi direct ──────────────────────────────────────
   const handleQuickPrompt = useCallback((p: string) => {

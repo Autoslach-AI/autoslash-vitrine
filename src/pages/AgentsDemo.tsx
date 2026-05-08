@@ -17,6 +17,7 @@ import Scene1Intro from "@/components/agents/Scene1Intro";
 import Scene2Robot from "@/components/agents/Scene2Robot";
 import Scene3Travel from "@/components/agents/Scene3Travel";
 import Scene4Chat from "@/components/agents/Scene4Chat";
+import RuixenMoonChat from "@/components/ui/ruixen-moon-chat";
 
 type Scene = "scene1" | "scene2" | "scene3" | "scene4";
 
@@ -27,11 +28,24 @@ export default function AgentsDemo() {
   const [flash, setFlash] = useState(false);
   const [finalDestination, setFinalDestination] = useState<string | null>(null);
 
+  // State for the intro chat (Ruixen moon style)
+  const [showIntroChat, setShowIntroChat] = useState(false);
+  const [initialMsg, setInitialMsg] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     if (agentParam && scene !== "scene4") {
       setScene("scene4");
     }
   }, [agentParam, scene]);
+
+  // Si on vient de la Scene3 avec "business", on affiche l'intro chat d'abord
+  useEffect(() => {
+    if (scene === "scene4" && agentParam === "business" && initialMsg === undefined) {
+      setShowIntroChat(true);
+    } else {
+      setShowIntroChat(false);
+    }
+  }, [scene, agentParam, initialMsg]);
 
   // Quand le portail est traversé → flash blanc → Scène 2
   const handleScene1Complete = () => {
@@ -50,6 +64,11 @@ export default function AgentsDemo() {
       setScene("scene3");
       setFlash(false);
     }, 800);
+  };
+
+  const handleIntroMessage = (msg: string) => {
+    setInitialMsg(msg);
+    setShowIntroChat(false);
   };
 
   return (
@@ -102,16 +121,21 @@ export default function AgentsDemo() {
       </AnimatePresence>
 
       {/* ── SCÈNE 4 — Interface de Chat */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {scene === "scene4" && (
           <motion.div
             key="s4"
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <Scene4Chat />
+            {showIntroChat ? (
+              <RuixenMoonChat onSendMessage={handleIntroMessage} />
+            ) : (
+              <Scene4Chat initialMessage={initialMsg} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
