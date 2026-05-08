@@ -10,7 +10,7 @@
  * SCÈNE 3 ⏳ → Scene3Travel : Hyperspace canvas + voyage (à venir)
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useSearchParams } from "react-router-dom";
 import Scene1Intro from "@/components/agents/Scene1Intro";
@@ -26,6 +26,12 @@ export default function AgentsDemo() {
   const [scene, setScene] = useState<Scene>(agentParam ? "scene4" : "scene1");
   const [flash, setFlash] = useState(false);
   const [finalDestination, setFinalDestination] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (agentParam && scene !== "scene4") {
+      setScene("scene4");
+    }
+  }, [agentParam, scene]);
 
   // Quand le portail est traversé → flash blanc → Scène 2
   const handleScene1Complete = () => {

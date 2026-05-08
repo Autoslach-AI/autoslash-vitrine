@@ -10,7 +10,8 @@
  * Inspiré : Bloomberg Terminal × Wallpaper* Magazine
  */
 
-import React, {
+import * as React from "react";
+import {
   useState, useRef, useEffect, useCallback,
 } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -173,6 +174,7 @@ function MessageBubble({ msg, accent, accentSoft }: {
   msg: Message;
   accent: string;
   accentSoft: string;
+  key?: React.Key;
 }) {
   const isUser = msg.role === "user";
 
@@ -210,7 +212,7 @@ function MessageBubble({ msg, accent, accentSoft }: {
 // COMPOSANT : TYPING INDICATOR
 // ═══════════════════════════════════════════════════════════════
 
-function TypingIndicator({ accent }: { accent: string }) {
+function TypingIndicator({ accent }: { accent: string; key?: React.Key }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

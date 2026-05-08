@@ -18,7 +18,9 @@ import { useNavigate } from "react-router-dom";
 // ─── CONFIG DESTINATIONS ─────────────────────────────────────────────────────
 
 const DEST_CONFIG: Record<string, { label: string; sublabel: string; color: string }> = {
-  "agents-demo":     { label: "Les Agents IA",    sublabel: "Démonstration live",         color: "#60c8ff" },
+  "agent_business":   { label: "Agent Business",   sublabel: "Stratégie & Croissance",     color: "#60c8ff" },
+  "agent_commercial": { label: "Agent Commercial", sublabel: "Prospection & Ventes",      color: "#60c8ff" },
+  "agents-demo":      { label: "Les Agents IA",    sublabel: "Démonstration live",         color: "#60c8ff" },
   "client-projects": { label: "Nos Réalisations", sublabel: "Projets livrés",             color: "#60c8ff" },
   "pricing":         { label: "Nos Offres",        sublabel: "Packages & tarifs",          color: "#60c8ff" },
   "blog":            { label: "Le Blog",           sublabel: "Actualités & études de cas", color: "#60c8ff" },

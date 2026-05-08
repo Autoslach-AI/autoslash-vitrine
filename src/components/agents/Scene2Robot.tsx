@@ -515,20 +515,39 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   const handleCardSelect = useCallback((card: Card) => {
     if (robotState === "thinking" || robotState === "speaking") return;
 
+    // SI LE VISITEUR VEUT TESTER LES AGENTS -> ON LUI PROPOSE LES DEUX OPTIONS
+    if (card.value === "agents") {
+      setSpeech("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?");
+      setCards([
+        { label: "Agent Business", value: "agent_business" },
+        { label: "Agent Commercial", value: "agent_commercial" },
+      ]);
+      setRobotState("speaking");
+      setShowBubble(true);
+      speak("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?", () => {
+        setRobotState("waiting");
+      });
+      return;
+    }
+
     const DIRECT_DESTINATIONS: Record<string, string> = {
-      agents:   "agents-demo",
-      projects: "client-projects",
-      pricing:  "pricing",
-      blog:     "blog",
-      contact:  "contact",
+      agents:           "agents-demo",
+      agent_business:   "agent_business",
+      agent_commercial: "agent_commercial",
+      projects:         "client-projects",
+      pricing:          "pricing",
+      blog:             "blog",
+      contact:          "contact",
     };
 
     const FAREWELL_SPEECHES: Record<string, string> = {
-      "agents-demo":     "Parfait. Je vous emmène voir nos agents en action.",
-      "client-projects": "Excellent. Découvrez nos réalisations concrètes.",
-      "pricing":         "Je vous guide vers nos offres et packages.",
-      "blog":            "Direction notre blog et actualités.",
-      "contact":         "Notre équipe vous attend.",
+      "agent_business":   "Compris. Je vous transfère vers l'Agent Business.",
+      "agent_commercial": "C'est noté. L'Agent Commercial vous attend.",
+      "agents-demo":      "Parfait. Je vous emmène voir nos agents en action.",
+      "client-projects":  "Excellent. Découvrez nos réalisations concrètes.",
+      "pricing":          "Je vous guide vers nos offres et packages.",
+      "blog":             "Direction notre blog et actualités.",
+      "contact":          "Notre équipe vous attend.",
     };
 
     stop();
