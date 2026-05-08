@@ -12,14 +12,18 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSearchParams } from "react-router-dom";
 import Scene1Intro from "@/components/agents/Scene1Intro";
 import Scene2Robot from "@/components/agents/Scene2Robot";
 import Scene3Travel from "@/components/agents/Scene3Travel";
+import Scene4Chat from "@/components/agents/Scene4Chat";
 
-type Scene = "scene1" | "scene2" | "scene3";
+type Scene = "scene1" | "scene2" | "scene3" | "scene4";
 
 export default function AgentsDemo() {
-  const [scene, setScene] = useState<Scene>("scene1");
+  const [searchParams] = useSearchParams();
+  const initialScene = searchParams.get("scene") === "4" ? "scene4" : "scene1";
+  const [scene, setScene] = useState<Scene>(initialScene);
   const [flash, setFlash] = useState(false);
   const [finalDestination, setFinalDestination] = useState<string | null>(null);
 
@@ -87,6 +91,21 @@ export default function AgentsDemo() {
             transition={{ duration: 1 }}
           >
             <Scene3Travel destination={finalDestination || "agents-demo"} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SCÈNE 4 — Interface de Chat */}
+      <AnimatePresence>
+        {scene === "scene4" && (
+          <motion.div
+            key="s4"
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Scene4Chat />
           </motion.div>
         )}
       </AnimatePresence>

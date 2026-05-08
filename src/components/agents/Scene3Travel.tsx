@@ -118,7 +118,10 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
         setShowFlash(true);
         setTimeout(() => {
           onComplete?.();
-          navigate(destination);
+          // Au lieu de navigate directement vers la page externe
+          // On revient à AgentsDemo avec le paramètre agent
+          const dest = destination.includes("business") ? "business" : "commercial";
+          navigate(`/agents-demo?agent=${dest}&scene=4`);
         }, 900);
       }
 
