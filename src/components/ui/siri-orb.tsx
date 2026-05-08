@@ -201,95 +201,128 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
   )
 }
 
-// --- Vocal Agent Config (Easy to modify later) ---
+// --- Vocal Agent Config (Modifiable plus tard, non codé en dur dans le JSX) ---
 const VOCAL_CONFIG = {
-  greeting: "Je suis prêt. Cliquez sur l'icône micro pour lancer l'appel avec moi.",
+  presentation: "Bonjour, je suis votre Agent Autoslash. Cliquez sur le micro pour lancer l'appel avec moi.",
   listening: "Je vous écoute...",
-  hint: "Cliquez pour commencer",
-  hintActive: "Parlez maintenant"
+  hint: "Cliquez pour démarrer",
+  hintActive: "Appel en cours"
 };
 
 // --- Scene4Vocal (The Commercial Agent Interface) ---
 export default function Scene4Vocal() {
   const [isListening, setIsListening] = useState(false);
-  const [status, setStatus] = useState(VOCAL_CONFIG.greeting);
+  const [status, setStatus] = useState(""); // Vide au départ (Efface le texte fixe)
+
+  // L'agent se présente dynamiquement après l'arrivée sur la page
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setStatus(VOCAL_CONFIG.presentation);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-between py-12 px-6">
       {/* Top Bar */}
       <div className="w-full max-w-4xl flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-xs">AS</div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-purple-500/20 text-white">AS</div>
           <div>
-            <h2 className="text-white font-bold text-sm">AGENT COMMERCIAL</h2>
+            <h2 className="text-white font-bold text-sm tracking-tight">AGENT COMMERCIAL</h2>
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">En ligne</span>
+              <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">Système Actif</span>
             </div>
           </div>
         </div>
-        <button className="p-2 rounded-full hover:bg-white/5 text-white/40 transition-colors">
-          <MoreHorizontal size={20} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button className="p-2 rounded-full hover:bg-white/5 text-white/20 transition-colors">
+            <MoreHorizontal size={20} />
+          </button>
+        </div>
       </div>
 
-      {/* Center: The Orb */}
-      <div className="flex flex-col items-center gap-8">
+      {/* Center: The Orb focus */}
+      <div className="flex flex-col items-center gap-16">
         <motion.div
           animate={{
-            scale: isListening ? [1, 1.1, 1] : 1,
+            scale: isListening ? [1, 1.08, 1] : [1, 1.02, 1],
           }}
           transition={{
-            duration: 2,
+            duration: isListening ? 2 : 4,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         >
           <SiriOrb
-            size="280px"
-            animationDuration={isListening ? 5 : 20}
-            className="drop-shadow-[0_0_50px_rgba(168,85,247,0.3)]"
+            size="340px"
+            animationDuration={isListening ? 3 : 20}
+            className="drop-shadow-[0_0_100px_rgba(139,92,246,0.1)]"
             colors={{
-              c1: "oklch(65% 0.25 280)",
-              c2: "oklch(70% 0.2 320)",
-              c3: "oklch(75% 0.15 350)"
+              c1: "oklch(55% 0.2 280)",
+              c2: "oklch(60% 0.15 320)",
+              c3: "oklch(65% 0.1 350)"
             }}
           />
         </motion.div>
         
-        <div className="text-center space-y-4 max-w-xl">
-          <h1 className="text-2xl font-bold text-white tracking-tight leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {isListening ? VOCAL_CONFIG.listening : status}
-          </h1>
-          <p className="text-white/40 text-sm font-medium tracking-wide">
-            {isListening ? VOCAL_CONFIG.hintActive : VOCAL_CONFIG.hint}
-          </p>
+        <div className="text-center h-24 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            {status && (
+              <motion.div
+                key={isListening ? "listening" : status}
+                initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+                transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
+                className="max-w-xl"
+              >
+                <h1 className="text-xl md:text-2xl font-medium text-white/80 tracking-tight leading-relaxed italic opacity-90" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  {isListening ? VOCAL_CONFIG.listening : status}
+                </h1>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* Bottom Controls */}
-      <div className="w-full max-w-xs flex items-center justify-center gap-8">
-        <button className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 text-white/40 hover:bg-white/10 transition-colors">
-          <X size={20} />
-        </button>
-        
-        <motion.button
-          onClick={() => setIsListening(!isListening)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-2xl",
-            isListening 
-              ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.5)]" 
-              : "bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)]"
-          )}
-        >
-          <Mic size={32} />
-        </motion.button>
+      <div className="w-full flex flex-col items-center gap-8">
+        <div className="flex items-center justify-center gap-12">
+          <button className="w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.03] border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all">
+            <X size={20} />
+          </button>
+          
+          <motion.button
+            onClick={() => setIsListening(!isListening)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-700 shadow-2xl",
+              isListening 
+                ? "bg-red-500 text-white shadow-[0_0_60px_rgba(239,68,68,0.3)] border-4 border-red-400/20" 
+                : "bg-white text-black shadow-[0_0_60px_rgba(255,255,255,0.1)] hover:shadow-white/20"
+            )}
+          >
+            <Mic size={36} className={cn("transition-transform duration-500", isListening ? "scale-110" : "scale-100")} />
+          </motion.button>
+
+          <button className="w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.03] border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all">
+            <Settings size={20} />
+          </button>
+        </div>
+
+        <p className="text-[9px] text-white/10 font-bold uppercase tracking-[0.6em] mb-4">
+          Autoslash AI · Agent Vocal Propulsé par ElevenLabs
+        </p>
       </div>
 
-      {/* Footer info */}
-      <div className="text-[10px] text-white/10 font-bold uppercase tracking-[0.3em]">
+      {/* Decorative Aura */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      
+      {/* Footer Info */}
+      <div className="absolute bottom-6 text-[9px] text-white/10 font-bold uppercase tracking-[0.4em]">
         Autoslash AI · Agent Vocal Beta · Haute Fidélité
       </div>
     </div>
