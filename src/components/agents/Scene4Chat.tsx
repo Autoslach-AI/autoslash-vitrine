@@ -16,7 +16,7 @@ import {
 } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useSearchParams } from "react-router-dom";
-import { Send, RotateCcw } from "lucide-react";
+import { Send, RotateCcw, Plus, Sparkles, ChevronDown } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIG PAR AGENT
@@ -170,39 +170,50 @@ function BackgroundOrb({ cfg, pulsing }: { cfg: typeof AGENT_CONFIG[AgentKey]; p
 // COMPOSANT : BULLE MESSAGE
 // ═══════════════════════════════════════════════════════════════
 
-function MessageBubble({ msg, accent, accentSoft }: {
+function MessageBubble({ msg, accent }: {
   msg: Message;
   accent: string;
-  accentSoft: string;
   key?: React.Key;
 }) {
   const isUser = msg.role === "user";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+      className="w-full flex flex-col items-center mb-10"
     >
-      <div
-        className="max-w-[72%] px-5 py-4 text-sm leading-relaxed"
-        style={isUser ? {
-          background: accent,
-          color: "#000",
-          fontWeight: 600,
-          borderRadius: "18px 18px 4px 18px",
-          boxShadow: `0 4px 20px ${accent}30`,
-          fontFamily: "'DM Sans', sans-serif",
-        } : {
-          background: "rgba(255,255,255,0.04)",
-          color: "rgba(255,255,255,0.82)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: "18px 18px 18px 4px",
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {msg.content}
+      <div className={`w-full max-w-2xl px-6 md:px-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+        {isUser ? (
+          <div
+            className="px-6 py-4 text-[15px] leading-relaxed border border-white/5 shadow-2xl"
+            style={{
+              background: "#111",
+              color: "#fff",
+              borderRadius: "24px 24px 4px 24px",
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            {msg.content}
+          </div>
+        ) : (
+          <div className="w-full space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accent }} />
+              <span className="text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Autoslash AI</span>
+            </div>
+            <div
+              className="text-[16px] leading-[1.6] text-white/90"
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                whiteSpace: "pre-wrap"
+              }}
+            >
+              {msg.content}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -214,27 +225,27 @@ function MessageBubble({ msg, accent, accentSoft }: {
 
 function TypingIndicator({ accent }: { accent: string; key?: React.Key }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="flex justify-start"
-    >
-      <div
-        className="px-5 py-4 rounded-3xl rounded-tl-sm flex items-center gap-1.5"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+    <div className="w-full flex justify-center mb-10">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="w-full max-w-2xl px-6 md:px-0 flex items-center gap-3"
       >
-        {[0, 1, 2].map(i => (
-          <motion.div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: accent }}
-            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
-          />
-        ))}
-      </div>
-    </motion.div>
+        <div className="flex gap-1.5 pt-2">
+          {[0, 1, 2].map(i => (
+            <motion.div
+              key={i}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: accent }}
+              animate={{ opacity: [0.2, 0.8, 0.2] }}
+              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+            />
+          ))}
+        </div>
+        <span className="text-[10px] uppercase tracking-widest text-white/20 font-bold">L'agent réfléchit</span>
+      </motion.div>
+    </div>
   );
 }
 
@@ -500,155 +511,142 @@ export default function Scene4Chat({ initialMessage }: Scene4ChatProps) {
       {/* ══════════════════════════════════════════════════════════════
           ZONE MESSAGES
       ══════════════════════════════════════════════════════════════ */}
-      <div className="relative z-10 flex-1 overflow-y-auto px-8 md:px-20 lg:px-32 py-8 space-y-5">
+      <div className="relative z-10 flex-1 overflow-y-auto pt-12 pb-32">
+        <div className="w-full max-w-4xl mx-auto flex flex-col">
 
-        {/* Message d'accueil animé lettre par lettre */}
-        {messages.length > 0 && messages[0].id.startsWith("greeting") && !greetingDone && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex justify-start"
-          >
-            <div
-              className="max-w-[72%] px-5 py-4 text-sm leading-relaxed"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                color: "rgba(255,255,255,0.82)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: "18px 18px 18px 4px",
-              }}
-            >
-              <GreetingText
-                text={cfg.greeting}
-                onDone={() => {
-                  setGreetingDone(true);
-                  setTimeout(() => inputRef.current?.focus(), 200);
-                }}
-              />
+          {/* Message d'accueil animé lettre par lettre */}
+          {messages.length > 0 && messages[0].id.startsWith("greeting") && !greetingDone && (
+            <div className="w-full flex justify-center mb-10">
+              <div className="w-full max-w-2xl px-6 md:px-0">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.accent }} />
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Système Initialisé</span>
+                </div>
+                <div
+                  className="text-[18px] leading-[1.6] text-white/90 font-medium"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  <GreetingText
+                    text={cfg.greeting}
+                    onDone={() => {
+                      setGreetingDone(true);
+                      setTimeout(() => inputRef.current?.focus(), 200);
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </motion.div>
-        )}
+          )}
 
-        {/* Messages après le greeting */}
-        <AnimatePresence initial={false}>
-          {messages
-            .filter(m => !m.id.startsWith("greeting") || greetingDone)
-            .map(msg => (
-              <MessageBubble
-                key={msg.id}
-                msg={msg}
-                accent={cfg.accent}
-                accentSoft={cfg.accentSoft}
-              />
-            ))}
-        </AnimatePresence>
+          {/* Messages après le greeting */}
+          <AnimatePresence initial={false}>
+            {messages
+              .filter(m => !m.id.startsWith("greeting") || greetingDone)
+              .map(msg => (
+                <MessageBubble
+                  key={msg.id}
+                  msg={msg}
+                  accent={cfg.accent}
+                />
+              ))}
+          </AnimatePresence>
 
-        {/* Typing indicator */}
-        <AnimatePresence>
-          {isLoading && <TypingIndicator key="typing" accent={cfg.accent} />}
-        </AnimatePresence>
+          {/* Typing indicator */}
+          <AnimatePresence>
+            {isLoading && <TypingIndicator key="typing" accent={cfg.accent} />}
+          </AnimatePresence>
 
-        <div ref={bottomRef} />
+          <div ref={bottomRef} className="h-4" />
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          PROMPTS RAPIDES
+          INPUT FLOTTANT
       ══════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {isFirstMessage && greetingDone && (
+      <div className="absolute bottom-0 left-0 right-0 z-20 pb-8 pt-10 bg-gradient-to-t from-[#040404] via-[#040404]/90 to-transparent pointer-events-none">
+        <div className="w-full max-w-2xl mx-auto px-6 md:px-0 pointer-events-auto">
+
+          {/* Quick Prompts */}
+          <AnimatePresence>
+            {isFirstMessage && greetingDone && (
+              <motion.div
+                key="quick-prompts"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                className="flex flex-wrap gap-2 mb-6"
+              >
+                {cfg.prompts.map((p, i) => (
+                  <motion.button
+                    key={p}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => handleQuickPrompt(p)}
+                    className="px-4 py-2 rounded-xl text-[11px] font-bold border border-white/5 bg-white/[0.02] text-white/40 hover:text-white hover:bg-white/[0.05] hover:border-white/10 transition-all uppercase tracking-widest"
+                  >
+                    {p}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Barre d'input style Doc/Pill */}
           <motion.div
-            key="quick-prompts"
-            initial={{ opacity: 0, y: 16 }}
+            className="relative bg-[#0d0d0d] rounded-[32px] border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-500 focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.5 }}
-            className="relative z-10 px-8 md:px-20 lg:px-32 pb-3 shrink-0"
           >
-            <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest mb-3">
-              Commencer par
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {cfg.prompts.map((p, i) => (
+            <div className="flex items-end px-4 py-3 gap-2">
+
+              {/* Bouton Plus */}
+              <button className="w-10 h-10 rounded-full flex items-center justify-center text-white/20 hover:text-white hover:bg-white/5 transition-colors shrink-0 mb-0.5">
+                <Plus size={20} />
+              </button>
+
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Écrire un message..."
+                disabled={isLoading || !greetingDone}
+                rows={1}
+                className="flex-1 bg-transparent border-none outline-none resize-none text-white/90 text-[15px] py-2.5 placeholder:text-white/20 leading-relaxed font-medium"
+                style={{
+                  minHeight: 44,
+                  maxHeight: 180,
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              />
+
+              <div className="flex items-center gap-2 mb-1 shrink-0">
+                {/* Model Selector Info */}
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/5 mr-1">
+                  <Sparkles size={11} className="text-white/30" />
+                  <span className="text-[10px] font-bold text-white/30 tracking-tight">Sonnet 3.5</span>
+                  <ChevronDown size={10} className="text-white/20" />
+                </div>
+
                 <motion.button
-                  key={p}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.07 + 0.2 }}
-                  onClick={() => handleQuickPrompt(p)}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-4 py-2 rounded-full text-[12px] font-medium transition-all"
-                  style={{
-                    background: cfg.accentSoft,
-                    border: `1px solid ${cfg.border}`,
-                    color: cfg.accent,
-                  }}
+                  onClick={() => sendMessage(input)}
+                  disabled={isLoading || !input.trim() || !greetingDone}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white text-black disabled:bg-white/5 disabled:text-white/10"
                 >
-                  {p}
+                  <Send size={16} />
                 </motion.button>
-              ))}
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* ══════════════════════════════════════════════════════════════
-          INPUT
-      ══════════════════════════════════════════════════════════════ */}
-      <motion.div
-        className="relative z-10 px-8 md:px-20 lg:px-32 py-5 shrink-0"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.3 }}
-      >
-        <div
-          className="flex items-end gap-3 rounded-2xl px-5 py-4 transition-all duration-300"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: `1px solid rgba(255,255,255,0.07)`,
-          }}
-          onFocus={() => {
-            const el = document.querySelector(".input-wrapper") as HTMLDivElement;
-            if (el) el.style.borderColor = cfg.border;
-          }}
-        >
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder={`Écrivez à ${cfg.name}...`}
-            disabled={isLoading || !greetingDone}
-            rows={1}
-            className="flex-1 bg-transparent outline-none resize-none text-white/75 text-sm placeholder:text-white/15 disabled:opacity-30 leading-relaxed"
-            style={{
-              minHeight: 24,
-              maxHeight: 140,
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          />
-
-          <motion.button
-            onClick={() => sendMessage(input)}
-            disabled={isLoading || !input.trim() || !greetingDone}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-20 shrink-0 transition-all"
-            style={{ background: cfg.accent }}
-          >
-            <Send size={14} className="text-black" />
-          </motion.button>
+          <p className="text-[9px] text-center mt-4 text-white/10 font-bold uppercase tracking-[0.3em]">
+            Autoslash AI · Intelligence Assistée · Infrastructure Stable
+          </p>
         </div>
-
-        <p
-          className="text-white/10 text-[9px] text-center mt-3 uppercase tracking-widest"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        >
-          Autoslash AI · Solution temporaire · ElevenLabs bientôt disponible
-        </p>
-      </motion.div>
+      </div>
 
     </div>
   );
