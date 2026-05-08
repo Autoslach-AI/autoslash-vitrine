@@ -67,8 +67,8 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
       z: Math.random() * w,
     }));
 
-    let speed        = 1.5;
-    const maxSpeed   = 36;
+    let speed        = 4;
+    const maxSpeed   = 40;
     let flashDone    = false;
     let raf: number;
 
@@ -110,10 +110,10 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
       }
 
       // Accélération progressive
-      if (speed < maxSpeed) speed += 0.18;
+      if (speed < maxSpeed) speed += 0.5;
 
       // Flash et navigation
-      if (speed > 28 && !flashDone) {
+      if (speed > 32 && !flashDone) {
         flashDone = true;
         setShowFlash(true);
         setTimeout(() => {
@@ -131,7 +131,7 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
     draw();
 
     // Texte après 2s
-    const textTimer = setTimeout(() => setShowText(true), 1800);
+    const textTimer = setTimeout(() => setShowText(true), 700);
 
     return () => {
       cancelAnimationFrame(raf);

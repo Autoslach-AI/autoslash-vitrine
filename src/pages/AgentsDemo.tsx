@@ -22,8 +22,8 @@ type Scene = "scene1" | "scene2" | "scene3" | "scene4";
 
 export default function AgentsDemo() {
   const [searchParams] = useSearchParams();
-  const initialScene = searchParams.get("scene") === "4" ? "scene4" : "scene1";
-  const [scene, setScene] = useState<Scene>(initialScene);
+  const agentParam = searchParams.get("agent");
+  const [scene, setScene] = useState<Scene>(agentParam ? "scene4" : "scene1");
   const [flash, setFlash] = useState(false);
   const [finalDestination, setFinalDestination] = useState<string | null>(null);
 
