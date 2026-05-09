@@ -32,11 +32,130 @@ interface HolographicFaceProps {
 // ─── PALETTE ─────────────────────────────────────────────────────────────────
 
 const PALETTE = {
-  idle:      { ring: "#60a5fa", glow: "#1d4ed8", particle: "#93c5fd", face: "#e0f2fe" },
-  speaking:  { ring: "#a78bfa", glow: "#6d28d9", particle: "#c4b5fd", face: "#ede9fe" },
-  listening: { ring: "#34d399", glow: "#065f46", particle: "#6ee7b7", face: "#d1fae5" },
-  thinking:  { ring: "#fbbf24", glow: "#92400e", particle: "#fde68a", face: "#fef3c7" },
+  idle:      { ring: "#0ea5e9", glow: "#0369a1", particle: "#7dd3fc", face: "#e0f2fe", accent: "#f87171" },
+  speaking:  { ring: "#22d3ee", glow: "#0891b2", particle: "#a5f3fc", face: "#ecfeff", accent: "#fb923c" },
+  listening: { ring: "#34d399", glow: "#065f46", particle: "#6ee7b7", face: "#d1fae5", accent: "#fbbf24" },
+  thinking:  { ring: "#fbbf24", glow: "#92400e", particle: "#fde68a", face: "#fef3c7", accent: "#38bdf8" },
 };
+
+// ─── NEURAL NETWORK BACKGROUND ───────────────────────────────────────────────
+
+function NeuralNetwork({ color, accentColor }: { color: string; accentColor: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const nodes = Array.from({ length: 60 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      isAccent: Math.random() > 0.85,
+    }));
+
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      
+      nodes.forEach((n, i) => {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > window.innerWidth) n.vx *= -1;
+        if (n.y < 0 || n.y > window.innerHeight) n.vy *= -1;
+
+        nodes.slice(i + 1).forEach(m => {
+          const dx = n.x - m.x;
+          const dy = n.y - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(m.x, m.y);
+            ctx.strokeStyle = color + Math.floor((1 - dist / 150) * 40).toString(16).padStart(2, '0');
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.isAccent ? 1.5 : 1, 0, Math.PI * 2);
+        ctx.fillStyle = n.isAccent ? accentColor : color;
+        ctx.globalAlpha = 0.4;
+        ctx.fill();
+        if (n.isAccent) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = accentColor;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        ctx.globalAlpha = 1;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, [color, accentColor]);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-40" />;
+}
+
+// ─── CRYSTAL BASE ───────────────────────────────────────────────────────────
+
+function CrystalBase({ color, size }: { color: string; size: number }) {
+  const cx = size / 2;
+  const cy = size / 2 + 150;
+  const sc = size / 320;
+
+  return (
+    <svg width={size + 200} height={400} viewBox={`0 0 ${size + 200} 400`} className="absolute bottom-0 pointer-events-none">
+      <defs>
+        <radialGradient id="base-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      
+      {/* Platform */}
+      <ellipse cx={cx + 100} cy={200} rx={140 * sc} ry={30 * sc} fill="url(#base-grad)" />
+      <ellipse cx={cx + 100} cy={200} rx={120 * sc} ry={25 * sc} fill={color} opacity={0.1} />
+      
+      {/* Crystals */}
+      {[...Array(7)].map((_, i) => {
+        const x = cx + 100 + (i - 3) * 35 * sc;
+        const h = (40 + Math.random() * 60) * sc;
+        const w = 15 * sc;
+        return (
+          <motion.path
+            key={i}
+            d={`M ${x} 200 L ${x - w} 200 L ${x} ${200 - h} L ${x + w} 200 Z`}
+            fill={color}
+            opacity={0.3}
+            stroke={color}
+            strokeWidth={1}
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ delay: i * 0.1, duration: 1 }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
 
 // ─── PARTICULE ────────────────────────────────────────────────────────────────
 
@@ -134,10 +253,10 @@ function HolographicRing({ color, state, size }: { color: string; state: OrbStat
 
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      className="absolute inset-0 pointer-events-none"
+      width={size + 100}
+      height={size + 100}
+      viewBox={`0 0 ${size + 100} ${size + 100}`}
+      className="absolute inset-[-50px] pointer-events-none"
     >
       <defs>
         <filter id="glow-ring">
@@ -146,68 +265,64 @@ function HolographicRing({ color, state, size }: { color: string; state: OrbStat
         </filter>
       </defs>
 
-      {/* Anneau principal rotatif */}
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeDasharray={`${r * 0.6} ${r * 0.15} ${r * 0.3} ${r * 0.1}`}
-        opacity={0.7}
-        filter="url(#glow-ring)"
-        animate={{ rotate: 360 }}
-        transition={{ duration: state === "speaking" ? 4 : 12, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: `${size / 2}px ${size / 2}px` }}
-      />
+      <g transform={`translate(${size/2 + 50}, ${size/2 + 50})`}>
+        {/* Anneau principal segmenté */}
+        <motion.circle
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeDasharray={`${r * 0.4} ${r * 0.05} ${r * 0.2} ${r * 0.1}`}
+          opacity={0.8}
+          filter="url(#glow-ring)"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        />
 
-      {/* Anneau secondaire contre-rotatif */}
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={r - 12}
-        fill="none"
-        stroke={color}
-        strokeWidth={0.8}
-        strokeDasharray={`${r * 0.2} ${r * 0.3}`}
-        opacity={0.4}
-        animate={{ rotate: -360 }}
-        transition={{ duration: state === "speaking" ? 6 : 18, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: `${size / 2}px ${size / 2}px` }}
-      />
+        {/* Anneau intérieur dashed très fin */}
+        <motion.circle
+          r={r - 10}
+          fill="none"
+          stroke={color}
+          strokeWidth={0.5}
+          strokeDasharray="1 3"
+          opacity={0.4}
+          animate={{ rotate: -360 }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        />
 
-      {/* Points sur le cercle */}
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-        const rad = (angle * Math.PI) / 180;
-        const px = size / 2 + r * Math.cos(rad);
-        const py = size / 2 + r * Math.sin(rad);
-        return (
-          <motion.circle
-            key={i}
-            cx={px} cy={py} r={2.5}
-            fill={color}
-            opacity={0.6}
-            animate={{ opacity: [0.3, 0.9, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity, delay: i * 0.25 }}
-          />
-        );
-      })}
+        {/* Anneau extérieur avec segments épais */}
+        <motion.circle
+          r={r + 15}
+          fill="none"
+          stroke={color}
+          strokeWidth={1}
+          strokeDasharray={`${r * 0.1} ${r * 0.9}`}
+          opacity={0.6}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        />
 
-      {/* Lignes de réseau */}
-      {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-        const rad = (angle * Math.PI) / 180;
-        const px = size / 2 + (r + 20) * Math.cos(rad);
-        const py = size / 2 + (r + 20) * Math.sin(rad);
-        return (
-          <motion.line
-            key={i}
-            x1={size / 2} y1={size / 2}
-            x2={px} y2={py}
-            stroke={color}
-            strokeWidth={0.5}
-            opacity={0.15}
-            animate={{ opacity: [0.05, 0.2, 0.05] }}
-            transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
-          />
-        );
-      })}
+        {/* Coordonnées techniques fixes */}
+        {[0, 90, 180, 270].map(angle => {
+          const rad = (angle * Math.PI) / 180;
+          const x = (r + 30) * Math.cos(rad);
+          const y = (r + 30) * Math.sin(rad);
+          return (
+            <text
+              key={angle}
+              x={x} y={y}
+              fill={color}
+              fontSize="6"
+              fontFamily="monospace"
+              textAnchor="middle"
+              opacity="0.3"
+            >
+              {`0${angle / 10}°`}
+            </text>
+          );
+        })}
+      </g>
     </svg>
   );
 }
@@ -292,20 +407,26 @@ function HumanoidFace({
         filter="url(#face-glow)"
       />
 
-      {/* ── TEXTURE PIXEL (effet numérique) ───────────────────────── */}
-      <g clipPath="url(#face-clip)" opacity={0.08}>
-        {Array.from({ length: 12 }, (_, row) =>
-          Array.from({ length: 8 }, (_, col) => (
-            <rect
-              key={`${row}-${col}`}
-              x={cx - 56 * sc + col * 14 * sc}
-              y={cy - 72 * sc + row * 12 * sc}
-              width={12 * sc}
-              height={10 * sc}
-              fill={faceColor}
-              opacity={Math.random() > 0.6 ? 0.4 : 0}
-            />
-          ))
+      {/* ── TEXTURE PIXEL (effet numérique haute densité à droite) ─── */}
+      <g clipPath="url(#face-clip)">
+        {Array.from({ length: 18 }, (_, row) =>
+          Array.from({ length: 12 }, (_, col) => {
+            const isRightSide = col > 6;
+            const density = isRightSide ? 0.4 : 0.05;
+            return Math.random() < density ? (
+              <motion.rect
+                key={`${row}-${col}`}
+                x={cx - 56 * sc + col * 9 * sc}
+                y={cy - 72 * sc + row * 8 * sc}
+                width={7 * sc}
+                height={6 * sc}
+                fill={faceColor}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.6, 0.2] }}
+                transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 5 }}
+              />
+            ) : null;
+          })
         )}
       </g>
 
@@ -580,8 +701,14 @@ export default function HolographicFace({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
       >
+        {/* Background Network */}
+        <NeuralNetwork color={col.ring} accentColor={col.accent} />
+
         {/* Particules de fond */}
         <ParticleCanvas color={col.particle} state={orbState} />
+
+        {/* Crystal Base */}
+        <CrystalBase color={col.ring} size={SIZE} />
 
         {/* Glow central */}
         <motion.div
