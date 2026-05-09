@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { Settings, Mic, X, MoreHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenAI } from "@google/genai";
-import RoboticOrb from "@/components/ui/RoboticOrb";
+import HolographicFace from "@/components/ui/HolographicFace";
 
 // --- Minimal Button Component ---
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -177,128 +177,24 @@ Sois direct, énergique, professionnel et persuasif. Parle exclusivement en fran
     }
   };
 
-  // --- Animation Variants for the Orb ---
-  const getOrbAnimation = () => {
-    switch (orbState) {
-      case "speaking":
-        return {
-          animate: {
-            scale: [1, 1.12, 0.96, 1.08, 1],
-            opacity: [1, 1, 1, 1, 1],
-            filter: [
-              "blur(2px) brightness(1)",
-              "blur(4px) brightness(1.4)",
-              "blur(2px) brightness(1.1)",
-              "blur(3px) brightness(1.3)",
-              "blur(2px) brightness(1)",
-            ],
-          },
-          transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "listening":
-        return {
-          animate: {
-            scale: [1, 1.06, 0.98, 1.04, 1],
-            borderRadius: ["50%", "48%", "52%", "49%", "50%"],
-          },
-          transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "thinking":
-        return {
-          animate: {
-            scale: [1, 1.02, 1],
-            opacity: [0.6, 0.9, 0.6],
-            rotate: [0, 3, -3, 0],
-          },
-          transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-        };
-      default: // idle
-        return {
-          animate: {
-            scale: [1, 1.03, 1],
-            opacity: [0.85, 1, 0.85],
-          },
-          transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-        };
-    }
+  const handleCancel = () => {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (recognitionRef.current) recognitionRef.current.stop();
+    setIsListening(false);
+    setOrbState("idle");
+    setStatus(VOCAL_CONFIG.greeting);
+    conversationRef.current = [];
   };
 
-  const orbAnim = getOrbAnimation();
-
   return (
-    <div className="fixed inset-0 bg-black flex flex-col items-center justify-between py-12 px-6">
-      {/* Top Bar */}
-      <div className="w-full max-w-4xl flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-xs">AS</div>
-          <div>
-            <h2 className="text-white font-bold text-sm">AGENT COMMERCIAL</h2>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">En ligne</span>
-            </div>
-          </div>
-        </div>
-        <button className="p-2 rounded-full hover:bg-white/5 text-white/40 transition-colors">
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
-
-      {/* Center: The Orb */}
-      <div className="flex flex-col items-center gap-8">
-        <motion.div
-          animate={orbAnim.animate}
-          transition={orbAnim.transition}
-        >
-          <RoboticOrb orbState={orbState} size={280} />
-        </motion.div>
-        
-        <div className="text-center space-y-4 max-w-xl">
-          <h1 className="text-2xl font-bold text-white tracking-tight leading-snug px-4 min-h-[4rem] flex items-center justify-center" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {orbState === "listening" ? VOCAL_CONFIG.listening : 
-             orbState === "thinking" ? "Je réfléchis..." :
-             status}
-          </h1>
-          <p className="text-white/40 text-sm font-medium tracking-wide">
-            {isListening ? VOCAL_CONFIG.hintActive : VOCAL_CONFIG.hint}
-          </p>
-        </div>
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="w-full max-w-xs flex items-center justify-center gap-8">
-        <button 
-          onClick={() => {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            if (recognitionRef.current) recognitionRef.current.stop();
-            setIsListening(false);
-            setOrbState("idle");
-            setStatus(VOCAL_CONFIG.greeting);
-          }}
-          className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 text-white/40 hover:bg-white/10 transition-colors"
-        >
-          <X size={20} />
-        </button>
-        
-        <motion.button
-          onClick={toggleCall}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-2xl",
-            isListening 
-              ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.5)]" 
-              : "bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)]"
-          )}
-        >
-          <Mic size={32} />
-        </motion.button>
-      </div>
-
-      {/* Footer info */}
-      <div className="text-[10px] text-white/10 font-bold uppercase tracking-[0.3em]">
-        Autoslash AI · Agent Vocal Beta · Haute Fidélité
-      </div>
+    <div className="fixed inset-0 bg-black">
+      <HolographicFace 
+        orbState={orbState}
+        onCall={toggleCall}
+        onCancel={handleCancel}
+        isCallActive={isListening}
+        agentName="Agent Commercial"
+      />
     </div>
   );
 }
