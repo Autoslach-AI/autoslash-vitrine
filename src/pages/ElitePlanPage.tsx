@@ -120,6 +120,7 @@ const ElitePlanPage: React.FC = () => {
           email: formData.email,
           phone: formData.telephone,
           message: `${formData.message}\nBudget : ${budget.toLocaleString('fr-FR')} FCFA\nRendez-vous : ${format(formData.appointmentDate, "dd/MM/yyyy")} à ${formData.appointmentTime}`,
+          monthly_cost: budget,
           region: formData.region || 'Dakar',
           status: 'PROSPECT',
           is_test: false,

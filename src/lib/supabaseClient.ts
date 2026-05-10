@@ -91,7 +91,7 @@ export const saveOrder = async (orderData: {
     const { error: logError } = await supabase
       .from('admin_intelligence_logs')
       .insert([{
-        client_id: enterprise.id,
+        client_id: enterprise.enterprise_id,
         issue_type: 'NEW_PROSPECT',
         severity_level: 'INFO',
         raw_context: `NOUVEAU PROSPECT — ${orderData.sector || 'Inconnue'} — ${orderData.name} — ${orderData.package_type}`
