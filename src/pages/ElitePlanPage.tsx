@@ -114,7 +114,8 @@ const ElitePlanPage: React.FC = () => {
       const { data, error } = await supabase
         .from('enterprises')
         .insert({
-          name: formData.societe || `${formData.nom} ${formData.prenom}`,
+          name: formData.societe,
+          contact_name: `${formData.prenom} ${formData.nom}`.trim(),
           package_type: 'ELITE',
           sector: formData.secteur || 'Général',
           email: formData.email,

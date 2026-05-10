@@ -140,7 +140,8 @@ export default function ContactPage() {
       const { error } = await supabase
         .from("enterprises")
         .insert({
-          name: `${firstName} ${lastName}`.trim(),
+          name: company.trim(),
+          contact_name: `${firstName} ${lastName}`.trim(),
           email: email,
           phone: phone || null,
           sector: sector || null,

@@ -107,7 +107,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
       }
 
       const payload = {
-        name: formData.company || `${formData.firstName} ${formData.lastName}`,
+        name: formData.company,
+        contact_name: `${formData.firstName} ${formData.lastName}`.trim(),
         package_type: 'ENTERPRISE',
         sector: formData.sector,
         email: formData.email,
