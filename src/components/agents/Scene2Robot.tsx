@@ -19,6 +19,7 @@
 
 import { Suspense, lazy, useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
 const Spline = lazy(() => import("@splinetool/react-spline"));
 
@@ -54,6 +55,30 @@ const DEST_CONFIG: Record<string, { color: string; label: string }> = {
   "pricing":         { color: "#FFEAA7", label: "Nos Offres"         },
   "blog":            { color: "#DDD6FE", label: "Le Blog"            },
   "contact":         { color: "#FFFFFF", label: "Nous Contacter"     },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CARTES CONSTANTES (Sans emojis)
+// ═══════════════════════════════════════════════════════════════
+
+const SECTOR_CARDS: Card[] = [
+  { label: "Tester les agents IA",  value: "agents"   },
+  { label: "Voir les réalisations", value: "projects" },
+  { label: "Découvrir les offres",  value: "pricing"  },
+  { label: "Parler à l'équipe",     value: "contact"  },
+];
+
+const AGENT_CARDS: Card[] = [
+  { label: "Agent Business",   value: "agent_business"   },
+  { label: "Agent Commercial", value: "agent_commercial" },
+];
+
+const DIRECT_DESTINATIONS: Record<string, string> = {
+  agents:   "/agents-demo?agent=business",
+  projects: "/client-projects",
+  pricing:  "/pricing",
+  blog:     "/blog",
+  contact:  "/contact",
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -381,6 +406,7 @@ function ThinkingDots() {
 // ═══════════════════════════════════════════════════════════════
 
 export default function Scene2Robot({ onComplete }: Scene2Props) {
+  const navigate = useNavigate();
   const [robotState, setRobotState]   = useState<RobotState>("awakening");
   const [cards, setCards]             = useState<Card[]>([]);
   const [currentSpeech, setSpeech]    = useState("");
@@ -478,21 +504,11 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
         speak(fallback, () => {
           setRobotState("waiting");
           fallbackSaidRef.current = true;
-          setCards([
-            { label: "Tester les agents IA",  value: "agents" },
-            { label: "Voir les réalisations",  value: "projects" },
-            { label: "Découvrir les offres",   value: "pricing" },
-            { label: "Parler à l'équipe",      value: "contact" },
-          ]);
+          setCards(SECTOR_CARDS);
         });
       } else {
         setRobotState("waiting");
-        setCards([
-          { label: "Tester les agents IA",  value: "agents" },
-          { label: "Voir les réalisations",  value: "projects" },
-          { label: "Découvrir les offres",   value: "pricing" },
-          { label: "Parler à l'équipe",      value: "contact" },
-        ]);
+        setCards(SECTOR_CARDS);
       }
     }
   }, [history, speak, onComplete]);
@@ -518,10 +534,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     // SI LE VISITEUR VEUT TESTER LES AGENTS -> ON LUI PROPOSE LES DEUX OPTIONS
     if (card.value === "agents") {
       setSpeech("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?");
-      setCards([
-        { label: "Agent Business", value: "agent_business" },
-        { label: "Agent Commercial", value: "agent_commercial" },
-      ]);
+      setCards(AGENT_CARDS);
       setRobotState("speaking");
       setShowBubble(true);
       speak("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?", () => {
@@ -530,21 +543,11 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       return;
     }
 
-    const DIRECT_DESTINATIONS: Record<string, string> = {
-      agents:           "agents-demo",
-      agent_business:   "agent_business",
-      agent_commercial: "agent_commercial",
-      projects:         "client-projects",
-      pricing:          "pricing",
-      blog:             "blog",
-      contact:          "contact",
-    };
-
     const FAREWELL_SPEECHES: Record<string, string> = {
       "agent_business":   "Compris. Je vous transfère vers l'Agent Business.",
       "agent_commercial": "C'est noté. L'Agent Commercial vous attend.",
-      "agents-demo":      "Parfait. Je vous emmène voir nos agents en action.",
-      "client-projects":  "Excellent. Découvrez nos réalisations concrètes.",
+      "agents":           "Parfait. Je vous emmène voir nos agents en action.",
+      "projects":         "Excellent. Découvrez nos réalisations concrètes.",
       "pricing":          "Je vous guide vers nos offres et packages.",
       "blog":             "Direction notre blog et actualités.",
       "contact":          "Notre équipe vous attend.",
@@ -556,19 +559,31 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     setRobotState("farewell");
     setRobotShifted(false);
 
-    const dest = DIRECT_DESTINATIONS[card.value] ?? "contact";
-    const speech = FAREWELL_SPEECHES[dest] ?? "Je vous guide vers votre destination.";
+    const destPath = DIRECT_DESTINATIONS[card.value];
+    const speechKey = card.value;
+    const speech = FAREWELL_SPEECHES[speechKey] ?? "Je vous guide vers votre destination.";
 
     setSpeech(speech);
     setShowBubble(true);
 
-    // Parler → puis déclencher Scène 3
+    // Parler → puis naviguer ou déclencher Scène 3
+    const performNavigation = () => {
+      if (destPath && destPath.startsWith("/")) {
+        navigate(destPath);
+      } else {
+        const finalDest = (card.value === "agent_business" || card.value === "agent_commercial") 
+          ? card.value 
+          : (destPath || "contact");
+        onComplete(finalDest);
+      }
+    };
+
     speak(speech, () => {
-      setTimeout(() => onComplete(dest), 300);
+      setTimeout(performNavigation, 300);
     });
 
     // Failsafe si voix indisponible → déclenche après 2.5s
-    const failsafe = setTimeout(() => onComplete(dest), 2500);
+    const failsafe = setTimeout(performNavigation, 2500);
 
     // Annuler failsafe si voix a fonctionné
     return () => clearTimeout(failsafe);
