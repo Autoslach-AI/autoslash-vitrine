@@ -81,6 +81,8 @@ const workspaces = [
 export default function ContactPage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
   const [sector, setSector] = useState("");
+  const [isOtherSector, setIsOtherSector] = useState(false);
+  const [otherSectorValue, setOtherSectorValue] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -119,7 +121,11 @@ export default function ContactPage() {
     if (!region.trim()) {
       newErrors.region = "La région ou le pays est obligatoire";
     }
-    if (!sector || !sector.trim()) {
+    if (isOtherSector) {
+      if (!otherSectorValue.trim()) {
+        newErrors.sector = "Veuillez préciser votre secteur";
+      }
+    } else if (!sector || !sector.trim()) {
       newErrors.sector = "Veuillez sélectionner votre secteur";
     }
     if (!message.trim()) {
@@ -137,6 +143,7 @@ export default function ContactPage() {
     setError("");
 
     try {
+      const finalSector = isOtherSector ? otherSectorValue.trim() : sector;
       const { error } = await supabase
         .from("enterprises")
         .insert({
@@ -144,7 +151,7 @@ export default function ContactPage() {
           contact_name: `${firstName} ${lastName}`.trim(),
           email: email,
           phone: phone || null,
-          sector: sector || null,
+          sector: finalSector || null,
           region: region || "AFRIQUE-OUEST",
           message: message,
           package_type: selectedWorkspace?.title?.toUpperCase() || "CUSTOM",
@@ -362,7 +369,7 @@ export default function ContactPage() {
                 Secteur d'activité<span className="text-red-500">*</span>
               </Label>
               <div className="relative mt-2">
-                {sector === "autre" ? (
+                {isOtherSector ? (
                   <div className="relative flex items-center">
                     <Input
                       type="text"
@@ -375,14 +382,19 @@ export default function ContactPage() {
                       }`}
                       required
                       autoFocus
+                      value={otherSectorValue}
                       onChange={(e) => {
-                        setSector(e.target.value);
+                        setOtherSectorValue(e.target.value);
                         if (errors.sector) setErrors(prev => ({ ...prev, sector: "" }));
                       }}
                     />
                     <button
                       type="button"
-                      onClick={() => setSector("")}
+                      onClick={() => {
+                        setIsOtherSector(false);
+                        setSector("");
+                        setOtherSectorValue("");
+                      }}
                       className="absolute right-3 text-neutral-400 hover:text-neutral-900 transition-colors"
                     >
                       <X className="h-4 w-4" />
@@ -391,7 +403,12 @@ export default function ContactPage() {
                 ) : (
                   <Select 
                     onValueChange={(val) => {
-                      setSector(val);
+                      if (val === "autre") {
+                        setIsOtherSector(true);
+                        setSector("autre");
+                      } else {
+                        setSector(val);
+                      }
                       if (errors.sector) setErrors(prev => ({ ...prev, sector: "" }));
                     }} 
                     value={sector}
