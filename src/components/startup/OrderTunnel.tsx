@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { getMimeType } from '../../lib/utils';
 
 interface OrderTunnelProps {
   isOpen: boolean;
@@ -91,7 +92,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('prospect-fichiers')
             .upload(fileName, file, {
-              contentType: file.type,
+              contentType: getMimeType(file.name),
               upsert: false
             });
           

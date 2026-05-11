@@ -6,6 +6,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { format } from "date-fns";
 import { supabase } from "../lib/supabaseClient";
+import { getMimeType } from "../lib/utils";
 
 // Register GSAP plugins
 gsap.registerPlugin(Draggable);
@@ -85,7 +86,7 @@ const ElitePlanPage: React.FC = () => {
       const { data, error } = await supabase.storage
         .from('prospect-fichiers')
         .upload(fileName, file, {
-          contentType: file.type,
+          contentType: getMimeType(file.name),
           upsert: false
         });
       
