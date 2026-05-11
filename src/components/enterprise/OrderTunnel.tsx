@@ -93,7 +93,10 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
           const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('prospect-fichiers')
-            .upload(fileName, file);
+            .upload(fileName, file, {
+              contentType: file.type,
+              upsert: false
+            });
           
           if (uploadError) {
             console.error('Erreur upload bucket:', uploadError);
@@ -446,7 +449,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.txt,.pptx,.xls,.xlsx"
+                accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.txt,.pptx,.xls,.xlsx,.mp4,.zip"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.length) {
@@ -476,7 +479,7 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                   <>
                     <span className="text-white text-[14px] font-bold">↑ Déposer vos fichiers ici</span><br />
                     <span style={{ opacity: 0.8, fontSize: '11px', color: 'white' }}>
-                      Images (JPG, PNG, WEBP, GIF) & Documents (PDF, DOC, TXT, PPTX, XLS) acceptés
+                      Images (JPG, PNG, WEBP), Vidéos (MP4) & Documents (PDF, DOC, ZIP) acceptés
                     </span>
                   </>
                 )}

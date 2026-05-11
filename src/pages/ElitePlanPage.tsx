@@ -930,7 +930,7 @@ const ElitePlanPage: React.FC = () => {
                           ref={fileInputRef}
                           type="file"
                           multiple
-                          accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.pptx,.txt"
+                          accept=".png,.jpg,.jpeg,.svg,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.pptx,.txt,.mp4"
                           className="hidden"
                           onChange={(e) => {
                             if (e.target.files?.length) handleFileUpload(e.target.files);
@@ -949,7 +949,7 @@ const ElitePlanPage: React.FC = () => {
                             <>
                               <span>↑ Déposer vos documents ici</span>
                               <span className="elite-dropzone-hint">
-                                PDF · DOC · XLS · PNG · JPG · ZIP acceptés
+                                PDF · DOC · ZIP · PNG · MP4 acceptés
                               </span>
                             </>
                           )}
