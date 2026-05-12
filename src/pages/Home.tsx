@@ -21,27 +21,17 @@ export default function Home() {
     if (isSignedIn) return;
     const timer = setTimeout(() => {
       navigate('/onboarding');
-    }, 30000);
+    }, 15000);
     return () => clearTimeout(timer);
   }, [isSignedIn, navigate]);
 
   // Trigger B — Clic sur n'importe quel bouton de la page Home
-  const handleCTAClick = async (destination: string) => {
+  const handleCTAClick = (destination: string) => {
     if (!isSignedIn) {
       navigate('/onboarding');
       return;
     }
-    
-    if (userId) {
-      const completed = await checkOnboardingStatus(userId);
-      if (!completed) {
-        navigate('/onboarding');
-      } else {
-        navigate(destination);
-      }
-    } else {
-      navigate('/onboarding');
-    }
+    navigate(destination);
   };
 
   return (

@@ -253,46 +253,47 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 		<>
 			<div className="fixed top-0 left-0 w-full z-[60] flex justify-between items-center p-6 md:p-8 pointer-events-none">
                 <div className="flex items-center gap-4 pointer-events-auto">
-					<div className="flex items-center gap-3">
-						{auth ? (
-							isSignedIn ? (
-								<>
-									<UserButton afterSignOutUrl="/" />
-									<button 
-										onClick={handleProfileClick}
-										className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}
-									>
-										<User size={20} />
-									</button>
-								</>
-							) : (
-								<SignInButton mode="modal" forceRedirectUrl="/onboarding">
-									<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
-										<User size={20} />
-									</button>
-								</SignInButton>
-							)
-						) : (
-							<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
-								<User size={20} />
-							</button>
-						)}
-					</div>
+					{/* Logo area or other left elements can go here */}
                 </div>
-				<div
-					onClick={() => setIsActive(!isActive)}
-					className="pointer-events-auto group relative flex items-center justify-center cursor-pointer overflow-hidden p-6"
-				>
-					<div className="flex flex-col justify-between items-end gap-1.5 transition-all duration-300">
-						<span
-							className={`block h-0.5 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${invert && !isActive ? "bg-black" : "bg-white"} ${isActive ? "w-8 rotate-45 translate-y-[5px]" : "w-8"}`}
-						></span>
-						<span
-							className={`block h-0.5 bg-[#2EB9DF] transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${isActive ? "w-0 opacity-0" : "w-6"}`}
-						></span>
-						<span
-							className={`block h-0.5 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${invert && !isActive ? "bg-black" : "bg-white"} ${isActive ? "w-8 -rotate-45 -translate-y-[5px]" : "w-4 group-hover:w-8"}`}
-						></span>
+				<div className="flex items-center gap-4 pointer-events-auto">
+					{auth ? (
+						isSignedIn ? (
+							<>
+								<UserButton afterSignOutUrl="/" />
+								<button 
+									onClick={handleProfileClick}
+									className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}
+								>
+									<User size={20} />
+								</button>
+							</>
+						) : (
+							<SignInButton mode="modal" forceRedirectUrl="/onboarding">
+								<button className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}>
+									<User size={20} />
+								</button>
+							</SignInButton>
+						)
+					) : (
+						<button className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}>
+							<User size={20} />
+						</button>
+					)}
+					<div
+						onClick={() => setIsActive(!isActive)}
+						className="group relative flex items-center justify-center cursor-pointer overflow-hidden p-6"
+					>
+						<div className="flex flex-col justify-between items-end gap-1.5 transition-all duration-300">
+							<span
+								className={`block h-0.5 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${invert && !isActive ? "bg-black" : "bg-white"} ${isActive ? "w-8 rotate-45 translate-y-[5px]" : "w-8"}`}
+							></span>
+							<span
+								className={`block h-0.5 bg-[#2EB9DF] transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${isActive ? "w-0 opacity-0" : "w-6"}`}
+							></span>
+							<span
+								className={`block h-0.5 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${invert && !isActive ? "bg-black" : "bg-white"} ${isActive ? "w-8 -rotate-45 -translate-y-[5px]" : "w-4 group-hover:w-8"}`}
+							></span>
+						</div>
 					</div>
 				</div>
 			</div>
