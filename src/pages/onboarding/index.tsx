@@ -92,14 +92,18 @@ function OnboardingPageInternal() {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (targetRoute?: string) => {
     if (!user) return;
     setIsSubmitting(true);
     try {
       await completeOnboarding(user.id, data);
-      const pkg = data.recommendedPackage;
-      const targetRoute = pkg === 'ELITE' ? '/elite-plan' : `/${pkg.toLowerCase()}-package`;
-      navigate(targetRoute);
+      if (targetRoute) {
+        navigate(targetRoute);
+      } else {
+        const pkg = data.recommendedPackage;
+        const defaultRoute = pkg === 'ELITE' ? '/elite-plan' : `/${pkg.toLowerCase()}-package`;
+        navigate(defaultRoute);
+      }
     } catch (error) {
       console.error('Onboarding failed:', error);
     } finally {
@@ -134,6 +138,7 @@ function OnboardingPageInternal() {
                 onChange={(val) => setData({ ...data, sector: val })} 
                 onNext={handleNext} 
                 onBack={handleBack}
+                intention={data.intention}
               />
             )}
             {step === 3 && (
@@ -142,6 +147,7 @@ function OnboardingPageInternal() {
                 onChange={(val, pkg) => setData({ ...data, need: val, recommendedPackage: pkg })} 
                 onNext={handleNext} 
                 onBack={handleBack}
+                sector={data.sector}
               />
             )}
             {step === 4 && (

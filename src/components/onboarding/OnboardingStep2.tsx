@@ -6,6 +6,7 @@ interface Props {
   onChange: (val: string) => void;
   onNext: () => void;
   onBack: () => void;
+  intention?: string;
 }
 
 const options = [
@@ -19,7 +20,7 @@ const options = [
   "Autre"
 ];
 
-export default function OnboardingStep2({ value, onChange, onNext, onBack }: Props) {
+export default function OnboardingStep2({ value, onChange, onNext, onBack, intention }: Props) {
   const [isOther, setIsOther] = useState(value && !options.includes(value));
   const [otherText, setOtherText] = useState(isOther ? value : '');
 
@@ -41,6 +42,9 @@ export default function OnboardingStep2({ value, onChange, onNext, onBack }: Pro
         <h2 className="text-4xl md:text-5xl font-serif font-medium leading-tight tracking-tight">
           Votre domaine d'activité ?
         </h2>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+          {intention && `Pour : "${intention}"`}
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-3">

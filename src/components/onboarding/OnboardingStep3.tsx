@@ -6,6 +6,7 @@ interface Props {
   onChange: (val: string, pkg: 'STARTUP' | 'BUSINESS' | 'ENTERPRISE' | 'ELITE') => void;
   onNext: () => void;
   onBack: () => void;
+  sector?: string;
 }
 
 const options = [
@@ -16,7 +17,7 @@ const options = [
   { label: "Autre", package: 'STARTUP' }
 ] as const;
 
-export default function OnboardingStep3({ value, onChange, onNext, onBack }: Props) {
+export default function OnboardingStep3({ value, onChange, onNext, onBack, sector }: Props) {
   const [isOther, setIsOther] = useState(value && !options.slice(0, 4).some(o => o.label === value));
   const [otherText, setOtherText] = useState(isOther ? value : '');
 
@@ -38,6 +39,9 @@ export default function OnboardingStep3({ value, onChange, onNext, onBack }: Pro
         <h2 className="text-4xl md:text-5xl font-serif font-medium leading-tight tracking-tight">
           Ce qui vous manque le plus aujourd'hui ?
         </h2>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+          {sector && `Secteur : ${sector}`}
+        </p>
       </div>
 
       <div className="flex flex-col gap-3">

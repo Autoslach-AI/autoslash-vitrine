@@ -1,9 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { OnboardingData } from '../../pages/onboarding';
 
 interface Props {
   data: OnboardingData;
-  onSubmit: () => void;
+  onSubmit: (targetRoute?: string) => void;
   onBack: () => void;
   isSubmitting: boolean;
 }
@@ -11,6 +12,7 @@ interface Props {
 const packageDetails = {
   STARTUP: {
     title: "STARTUP",
+    route: '/startup-package',
     points: [
       "Site web premium interactif et animé",
       "Formulaire de contact connecté à Supabase",
@@ -19,6 +21,7 @@ const packageDetails = {
   },
   BUSINESS: {
     title: "BUSINESS",
+    route: '/business-package',
     points: [
       "Agent Support WhatsApp entraîné sur vos données",
       "Automatisation réseaux sociaux & vidéos marketing",
@@ -27,6 +30,7 @@ const packageDetails = {
   },
   ENTERPRISE: {
     title: "ENTERPRISE",
+    route: '/enterprise-package',
     points: [
       "Équipe de 3 à 5 agents IA experts dédiés",
       "Automatisation complète des processus via n8n",
@@ -35,6 +39,7 @@ const packageDetails = {
   },
   ELITE: {
     title: "ELITE",
+    route: '/elite-plan',
     points: [
       "Infrastructure IA scalable sur mesure",
       "Architecture technique & Sécurité avancée",
@@ -45,15 +50,24 @@ const packageDetails = {
 
 export default function OnboardingStep5({ data, onSubmit, onBack, isSubmitting }: Props) {
   const details = packageDetails[data.recommendedPackage];
+  const navigate = useNavigate();
+
+  const handleDiscoverPackage = () => {
+    onSubmit(details.route);
+  };
+
+  const handleGoToProfile = () => {
+    onSubmit('/profile');
+  };
 
   return (
     <div className="space-y-12">
       <div className="space-y-4">
         <h2 className="text-4xl md:text-5xl font-serif font-medium leading-tight tracking-tight">
-          Votre infrastructure est prête.
+          Parfait, {data.firstName || 'bienvenue'}.
         </h2>
         <p className="text-white/60 font-jakarta text-lg">
-          Basé sur vos réponses, nous recommandons :
+          Basé sur votre secteur {data.sector} et votre besoin "{data.need}", nous recommandons :
         </p>
       </div>
 
@@ -73,29 +87,25 @@ export default function OnboardingStep5({ data, onSubmit, onBack, isSubmitting }
         </ul>
       </div>
 
-      <div className="pt-8 flex flex-col gap-4">
+      <div className="pt-8 flex flex-col md:flex-row gap-4">
         <button
-          onClick={onSubmit}
+          onClick={handleDiscoverPackage}
           disabled={isSubmitting}
-          className="w-full py-5 rounded-full bg-white text-black font-jakarta font-bold text-sm tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+          className="px-8 py-3 rounded-lg bg-white text-black font-jakarta font-bold text-[0.78rem] tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
         >
           {isSubmitting ? (
-            <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
           ) : (
-            <>VOIR MON PACKAGE <span className="group-hover:translate-x-1 transition-transform">→</span></>
+            <>DÉCOUVRIR MON PACKAGE <span className="group-hover:translate-x-1 transition-transform">→</span></>
           )}
         </button>
+
         <button
-          onClick={() => window.location.href = '/pricing'}
-          className="w-full py-5 rounded-full border border-white/10 text-white/60 font-jakarta font-bold text-sm tracking-[0.2em] hover:text-white hover:border-white/40 transition-all active:scale-[0.98]"
+          onClick={handleGoToProfile}
+          disabled={isSubmitting}
+          className="px-8 py-3 rounded-lg border border-white/20 text-white/70 font-jakarta font-bold text-[0.78rem] tracking-[0.2em] hover:bg-white/5 transition-all active:scale-[0.98]"
         >
-          EXPLORER LES AUTRES OPTIONS
-        </button>
-        <button
-          onClick={onBack}
-          className="text-white/40 hover:text-white transition-colors text-xs tracking-widest font-bold uppercase mt-4"
-        >
-          Revoir mes réponses
+          ACCÉDER À MON ESPACE →
         </button>
       </div>
     </div>

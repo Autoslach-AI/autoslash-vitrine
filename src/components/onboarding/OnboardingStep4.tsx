@@ -90,6 +90,9 @@ export default function OnboardingStep4({ data, onChange, onNext, onBack }: Prop
         <h2 className="text-4xl md:text-5xl font-serif font-medium leading-tight tracking-tight">
           Comment vous appelle-t-on ?
         </h2>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+          {data.need && `Besoin : "${data.need}"`}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
