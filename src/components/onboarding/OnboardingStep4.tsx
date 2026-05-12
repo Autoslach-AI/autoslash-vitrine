@@ -51,6 +51,18 @@ export default function OnboardingStep4({ data, onChange, onNext, onBack }: Prop
           />
         </div>
         <div className="space-y-2 md:col-span-2">
+          <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">
+            Téléphone (optionnel)
+          </label>
+          <input
+            type="tel"
+            placeholder="+221 77 000 00 00"
+            className="w-full bg-transparent border-b border-white/20 py-3 font-jakarta text-xl focus:border-white outline-none transition-colors placeholder:text-white/20"
+            value={data.phone}
+            onChange={(e) => onChange({ phone: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2 md:col-span-2">
           <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Entreprise (optionnel)</label>
           <input
             type="text"

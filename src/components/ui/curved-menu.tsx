@@ -242,7 +242,7 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 		if (isSignedIn && userId) {
 			const completed = await checkOnboardingStatus(userId);
 			if (completed) {
-				navigate("/"); 
+				navigate("/profile"); 
 			} else {
 				navigate("/onboarding");
 			}
@@ -254,22 +254,28 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 			<div className="fixed top-0 left-0 w-full z-[60] flex justify-between items-center p-6 md:p-8 pointer-events-none">
                 <div className="flex items-center gap-4 pointer-events-auto">
 					<div className="flex items-center gap-3">
-						{isSignedIn ? (
-							<>
-								<UserButton afterSignOutUrl="/" />
-								<button 
-									onClick={handleProfileClick}
-									className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}
-								>
-									<User size={20} />
-								</button>
-							</>
+						{auth ? (
+							isSignedIn ? (
+								<>
+									<UserButton afterSignOutUrl="/" />
+									<button 
+										onClick={handleProfileClick}
+										className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}
+									>
+										<User size={20} />
+									</button>
+								</>
+							) : (
+								<SignInButton mode="modal" forceRedirectUrl="/onboarding">
+									<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
+										<User size={20} />
+									</button>
+								</SignInButton>
+							)
 						) : (
-							<SignInButton mode="modal">
-								<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
-									<User size={20} />
-								</button>
-							</SignInButton>
+							<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
+								<User size={20} />
+							</button>
 						)}
 					</div>
                 </div>

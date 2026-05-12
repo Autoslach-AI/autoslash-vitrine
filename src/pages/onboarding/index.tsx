@@ -18,6 +18,7 @@ export interface OnboardingData {
   lastName: string;
   company: string;
   email: string;
+  phone: string;
   recommendedPackage: 'STARTUP' | 'BUSINESS' | 'ENTERPRISE' | 'ELITE';
 }
 
@@ -59,6 +60,7 @@ function OnboardingPageInternal() {
     lastName: '',
     company: '',
     email: '',
+    phone: '',
     recommendedPackage: 'STARTUP'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);

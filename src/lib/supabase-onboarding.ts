@@ -20,6 +20,7 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
     .upsert({
       id: clerkUserId,
       email: data.email,
+      phone: data.phone || null,
       full_name: fullName,
       company: data.company || null,
       sector: data.sector,
@@ -41,7 +42,7 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
     .insert({
       name: data.company || fullName,
       email: data.email,
-      phone: null,
+      phone: data.phone || null,
       sector: data.sector,
       message: `${data.intention} | ${data.need}`,
       package_type: data.recommendedPackage,
