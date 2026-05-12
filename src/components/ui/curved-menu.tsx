@@ -1,7 +1,10 @@
 "use client";
 import * as React from "react";
 import { motion, useMotionValue, AnimatePresence } from "motion/react";
-import { Linkedin, Github, Dribbble, Figma } from "lucide-react";
+import { Linkedin, Github, Dribbble, Figma, User } from "lucide-react";
+import { useAuth, UserButton, SignInButton } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
+import { checkOnboardingStatus } from "../../lib/supabase-onboarding";
 
 interface iNavItem {
 	heading: string;
@@ -209,18 +212,67 @@ const CurvedNavbar: React.FC<
 	);
 };
 
-const CurvedMenuHeader: React.FC<iHeaderProps> = ({
+const CurvedMenuHeader: React.FC<iHeaderProps> = (props) => {
+	const hasClerkKey = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+	if (hasClerkKey) {
+		return <CurvedMenuHeaderInternal {...props} />;
+	}
+
+	return <CurvedMenuHeaderBase {...props} />;
+};
+
+const CurvedMenuHeaderInternal: React.FC<iHeaderProps> = (props) => {
+	const { isSignedIn, userId } = useAuth();
+	return <CurvedMenuHeaderBase {...props} auth={{ isSignedIn, userId }} />;
+};
+
+const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boolean | undefined; userId: string | null | undefined } }> = ({
 	navItems = defaultNavItems,
 	footer = <CustomFooter />,
 	invert = false,
+	auth
 }) => {
 	const [isActive, setIsActive] = React.useState(false);
+	const navigate = useNavigate();
+	const isSignedIn = auth?.isSignedIn;
+	const userId = auth?.userId;
+
+	const handleProfileClick = async () => {
+		if (isSignedIn && userId) {
+			const completed = await checkOnboardingStatus(userId);
+			if (completed) {
+				navigate("/"); 
+			} else {
+				navigate("/onboarding");
+			}
+		}
+	};
 
 	return (
 		<>
 			<div className="fixed top-0 left-0 w-full z-[60] flex justify-between items-center p-6 md:p-8 pointer-events-none">
-                <div className="pointer-events-auto">
+                <div className="flex items-center gap-4 pointer-events-auto">
                     {/* Brand or empty if handled by Hero */}
+					{auth && (
+						isSignedIn ? (
+							<div className="flex items-center gap-3">
+								<UserButton afterSignOutUrl="/" />
+								<button 
+									onClick={handleProfileClick}
+									className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}
+								>
+									<User size={20} />
+								</button>
+							</div>
+						) : (
+							<SignInButton mode="modal">
+								<button className={`p-3 rounded-full border transition-all duration-300 ${invert && !isActive ? "bg-black/5 border-black/10 text-black hover:bg-black hover:text-white" : "bg-white/5 border-white/10 text-white hover:bg-white hover:text-black"}`}>
+									<User size={20} />
+								</button>
+							</SignInButton>
+						)
+					)}
                 </div>
 				<div
 					onClick={() => setIsActive(!isActive)}
