@@ -30,6 +30,7 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
+const ProfilePage = lazy(() => import("./pages/profile/index"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
@@ -129,9 +130,10 @@ function AppLayout() {
                           location.pathname === "/client-projects" ||
                           location.pathname === "/agents-demo" ||
                           location.pathname === "/contact" ||
+                          location.pathname === "/profile" ||
                           isOnboardingPage;
 
-  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan";
+  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/profile";
   
   return (
     <div className={cn(
@@ -160,6 +162,7 @@ function AppLayout() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/agents-demo" element={<AgentsDemo />} />
             <Route path="/ruixen-demo" element={<RuixenDemo />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </Suspense>
       </main>

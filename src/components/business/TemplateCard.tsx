@@ -1,7 +1,9 @@
-import React from "react";
-import { Heart } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Heart, Star } from "lucide-react";
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { supabase } from "../../lib/supabaseClient";
 
 import { ArrowDotsButton } from "../ui/arrow-dots-button";
 
@@ -21,6 +23,59 @@ interface TemplateCardProps {
 }
 
 export const TemplateCard = ({ template, index, packageType }: TemplateCardProps) => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loadingFav, setLoadingFav] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkIfFavorite();
+    }
+  }, [user, template.id]);
+
+  const checkIfFavorite = async () => {
+    const { data, error } = await supabase
+      .from('user_favorites')
+      .select('id')
+      .eq('user_id', user?.id)
+      .eq('template_id', template.id)
+      .maybeSingle();
+    
+    if (data) setIsFavorite(true);
+  };
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      navigate('/onboarding');
+      return;
+    }
+
+    setLoadingFav(true);
+    if (isFavorite) {
+      const { error } = await supabase
+        .from('user_favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('template_id', template.id);
+      
+      if (!error) setIsFavorite(false);
+    } else {
+      const { error } = await supabase
+        .from('user_favorites')
+        .insert({
+          user_id: user.id,
+          template_id: template.id
+        });
+      
+      if (!error) setIsFavorite(true);
+    }
+    setLoadingFav(false);
+  };
+
   const saveContext = () => {
     sessionStorage.setItem('autoslash_selection', JSON.stringify({
       template_id: String(template.id),
@@ -40,7 +95,7 @@ export const TemplateCard = ({ template, index, packageType }: TemplateCardProps
         delay: (index % 4) * 0.1,
         ease: [0.21, 0.47, 0.32, 0.98] 
       }}
-      className="group flex flex-col gap-5"
+      className="group flex flex-col gap-5 relative"
     >
       <Link 
         to={`/business-details/${template.id}`}
@@ -54,6 +109,19 @@ export const TemplateCard = ({ template, index, packageType }: TemplateCardProps
           loading="lazy"
         />
         
+        {/* Favorite Button */}
+        <button
+          onClick={toggleFavorite}
+          disabled={loadingFav}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white transition-all hover:scale-110 active:scale-90"
+        >
+          <Star 
+            size={18} 
+            fill={isFavorite ? "#FFD700" : "none"} 
+            className={isFavorite ? "text-[#FFD700]" : "text-white"}
+          />
+        </button>
+
         {/* Hover Overlay */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center p-8 bg-[#2a6df5]/5 backdrop-blur-[1px]">
           <div className="text-[#00F0FF] text-[11px] font-black uppercase tracking-widest bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-xl">
