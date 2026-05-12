@@ -4,6 +4,16 @@ import { OnboardingData } from '../pages/onboarding';
 export async function completeOnboarding(clerkUserId: string, data: OnboardingData) {
   const fullName = `${data.firstName} ${data.lastName}`.trim();
   
+  // Détection région automatique — système mondial
+  let region = null;
+  try {
+    const geoRes = await fetch('https://ipapi.co/json/');
+    const geo = await geoRes.json();
+    region = geo.country_name || null;
+  } catch {
+    region = null;
+  }
+
   // 1. Update user profile
   const { error: profileError } = await supabase
     .from('user_profiles')
@@ -16,6 +26,7 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
       intention: data.intention,
       package_interest: data.recommendedPackage,
       onboarding_completed: true,
+      first_time: false,
       created_at: new Date().toISOString()
     });
 
@@ -29,7 +40,6 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
     .from('enterprises')
     .insert({
       name: data.company || fullName,
-      contact_name: fullName,
       email: data.email,
       phone: null,
       sector: data.sector,
@@ -37,13 +47,11 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
       package_type: data.recommendedPackage,
       status: 'PROSPECT',
       is_test: false,
-      region: ''
+      region: region
     });
 
   if (enterpriseError) {
     console.error('Error creating enterprise lead:', enterpriseError);
-    // We don't throw here if profile was updated, but ideally this is atomical.
-    // In Supabase we could use an RPC for atomicity if needed.
   }
 
   return { success: true };
