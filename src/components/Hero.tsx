@@ -28,7 +28,7 @@ const transitionVariants: any = {
     },
 }
 
-export default function Hero() {
+export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
     return (
         <main className="overflow-hidden bg-brand-bg relative pt-20">
             {/* Decorative Background Elements */}
@@ -72,24 +72,23 @@ export default function Hero() {
                                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                         <Button
                                             key={1}
-                                            asChild
+                                            onClick={() => onCTAClick?.("/pricing")}
                                             size="lg"
                                             className="rounded-xl px-8 py-7 text-base bg-white text-black hover:bg-neutral-100 shadow-xl shadow-white/10 border-none">
-                                            <a href="/pricing">
-                                                <span className="text-nowrap font-bold">Démarrer</span>
-                                            </a>
+                                            <span className="text-nowrap font-bold">Démarrer</span>
                                         </Button>
                                     </motion.div>
                                     <motion.div whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }}>
                                         <Button
                                             key={2}
-                                            asChild
+                                            onClick={() => {
+                                                const el = document.getElementById('video-section');
+                                                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                            }}
                                             variant="ghost"
                                             className="text-white hover:bg-white/5 hover:text-white text-base font-medium group transition-all">
-                                            <a href="#video-section" className="flex items-center gap-2">
-                                                <span className="text-nowrap">Voir la démo</span>
-                                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                                            </a>
+                                            <span className="text-nowrap">Voir la démo</span>
+                                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         </Button>
                                     </motion.div>
                                 </AnimatedGroup>

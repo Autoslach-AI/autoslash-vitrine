@@ -62,7 +62,7 @@ const PersonaItem = ({ children }: any) => {
   );
 };
 
-export default function Quote() {
+export default function Quote({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -153,14 +153,14 @@ export default function Quote() {
             }}
             className="rounded-xl overflow-visible group"
           >
-            <a href="/about" className="block">
+            <div onClick={() => onCTAClick?.("/about")} className="block cursor-pointer">
               <RainbowButton className="px-12 py-6 text-xl">
                 <>
                   <span className="text-nowrap tracking-wide leading-none">Découvrir</span>
                   <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-2 ml-2" />
                 </>
               </RainbowButton>
-            </a>
+            </div>
           </motion.div>
         </motion.div>
       </div>

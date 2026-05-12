@@ -40,7 +40,7 @@ const NARRATIVE_STEPS = [
   }
 ];
 
-export function ProcessSection() {
+export function ProcessSection({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({

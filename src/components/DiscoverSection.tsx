@@ -159,7 +159,7 @@ const gradientColors = {
   end: "#AE48FF"
 };
 
-export default function DiscoverSection() {
+export default function DiscoverSection({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
   return (
     <section className="bg-brand-bg py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
@@ -197,7 +197,7 @@ export default function DiscoverSection() {
                 }}
                 className="rounded-xl overflow-visible group"
               >
-                <a href="/pricing" className="block outline-none">
+                <div onClick={() => onCTAClick?.("/pricing")} className="block outline-none cursor-pointer">
                   <RainbowButton className="px-10 py-5">
                     <>
                       <span className="text-white text-xl md:text-2xl font-black tracking-tight">
@@ -206,7 +206,7 @@ export default function DiscoverSection() {
                       <ArrowRight className="text-white w-6 h-6 ml-2 transition-transform group-hover:translate-x-1" />
                     </>
                   </RainbowButton>
-                </a>
+                </div>
               </motion.div>
             </PulseBeams>
         </div>

@@ -372,7 +372,7 @@ function IntroSequence({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-export default function ProductsPlatform() {
+export default function ProductsPlatform({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
   const containerRef = React.useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -523,7 +523,10 @@ export default function ProductsPlatform() {
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ margin: "-100px" }}
                       >
-                          <button className="inline-flex bg-black text-white px-8 py-4 text-base font-bold items-center gap-3 transition-all hover:bg-neutral-900 group">
+                          <button 
+                            onClick={() => onCTAClick?.("/pricing")}
+                            className="inline-flex bg-black text-white px-8 py-4 text-base font-bold items-center gap-3 transition-all hover:bg-neutral-900 group"
+                          >
                               Explorer 
                               <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                           </button>

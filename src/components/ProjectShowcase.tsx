@@ -66,7 +66,7 @@ const StatItem = ({ end, suffix = "", label }: { end: string; suffix?: string; l
   );
 };
 
-export default function ProjectShowcase() {
+export default function ProjectShowcase({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const track1Ref = useRef<HTMLDivElement>(null);
   const track2Ref = useRef<HTMLDivElement>(null);
@@ -192,7 +192,7 @@ export default function ProjectShowcase() {
         <div className="overflow-hidden flex">
           <div ref={track1Ref} className="flex gap-[40px] whitespace-nowrap">
             {[...projectData, ...projectData].map((project, i) => (
-              <ProjectCard key={`p1-${i}`} project={project} onHover={setIsHoveringCard} />
+              <ProjectCard key={`p1-${i}`} project={project} onHover={setIsHoveringCard} onCTAClick={onCTAClick} />
             ))}
           </div>
         </div>
@@ -201,20 +201,20 @@ export default function ProjectShowcase() {
         <div className="overflow-hidden flex">
           <div ref={track2Ref} className="flex gap-[40px] whitespace-nowrap">
             {[...projectData, ...projectData].map((project, i) => (
-              <ProjectCard key={`p2-${i}`} project={project} onHover={setIsHoveringCard} />
+              <ProjectCard key={`p2-${i}`} project={project} onHover={setIsHoveringCard} onCTAClick={onCTAClick} />
             ))}
           </div>
         </div>
       </div>
 
       <div className="mt-32 text-center pb-12">
-        <Link 
-          to="/client-projects" 
+        <button 
+          onClick={() => onCTAClick?.("/client-projects")} 
           className="inline-flex items-center justify-center px-12 py-4 rounded-full border border-white/20 text-xs font-bold tracking-[0.3em] text-white overflow-hidden group relative z-20"
         >
           <span className="relative z-10 transition-colors duration-500 group-hover:text-black uppercase">PROJETS RÉALISÉS</span>
           <div className="absolute inset-0 bg-white translate-y-[101%] group-hover:translate-y-0 transition-transform duration-500 ease-[0.16,1,0.3,1]" />
-        </Link>
+        </button>
       </div>
 
       {/* Stats Section */}
@@ -228,7 +228,7 @@ export default function ProjectShowcase() {
   );
 }
 
-function ProjectCard({ project, onHover }: { project: any; onHover: (v: boolean) => void; key?: any }) {
+function ProjectCard({ project, onHover, onCTAClick }: { project: any; onHover: (v: boolean) => void; onCTAClick?: (dest: string) => void; key?: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(videoRef, { amount: 0.1 });
 
@@ -243,10 +243,8 @@ function ProjectCard({ project, onHover }: { project: any; onHover: (v: boolean)
   }, [isInView]);
 
   return (
-    <a 
-      href={project.siteUrl} 
-      target="_blank" 
-      rel="noopener noreferrer"
+    <div 
+      onClick={() => onCTAClick?.(project.siteUrl)} 
       className="block relative w-[256px] md:w-[360px] aspect-video rounded-xl overflow-hidden group cursor-none flex-shrink-0 bg-white/5 border border-white/10"
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
@@ -267,6 +265,6 @@ function ProjectCard({ project, onHover }: { project: any; onHover: (v: boolean)
           {project.projectName}
         </span>
       </div>
-    </a>
+    </div>
   );
 }
