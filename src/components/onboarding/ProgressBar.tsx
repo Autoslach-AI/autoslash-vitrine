@@ -9,7 +9,7 @@ export default function ProgressBar({ step, totalSteps }: Props) {
   const progress = (step / totalSteps) * 100;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full p-8 flex flex-col items-center pointer-events-none">
+    <div className="fixed bottom-0 left-0 w-full p-8 flex flex-col items-center pointer-events-none" style={{ zIndex: 10 }}>
       <div className="w-full max-w-3xl space-y-4 pointer-events-auto">
         <div className="flex justify-between items-end">
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">

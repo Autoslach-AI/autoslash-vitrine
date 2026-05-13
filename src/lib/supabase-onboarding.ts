@@ -1,7 +1,11 @@
 import { supabase } from './supabaseClient';
 import { OnboardingData } from '../pages/onboarding';
 
-export async function completeOnboarding(clerkUserId: string, data: OnboardingData) {
+export async function completeOnboarding(
+  clerkUserId: string, 
+  data: OnboardingData,
+  sessionId: string
+) {
   const fullName = `${data.firstName} ${data.lastName}`.trim();
   
   // Détection région automatique — système mondial
@@ -26,6 +30,7 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
       sector: data.sector,
       intention: data.intention,
       package_interest: data.recommendedPackage,
+      onboarding_session_id: sessionId,
       onboarding_completed: true,
       first_time: false,
       created_at: new Date().toISOString()
@@ -46,6 +51,7 @@ export async function completeOnboarding(clerkUserId: string, data: OnboardingDa
       sector: data.sector,
       message: `${data.intention} | ${data.need}`,
       package_type: data.recommendedPackage,
+      onboarding_session_id: sessionId,
       status: 'PROSPECT',
       is_test: false,
       region: region

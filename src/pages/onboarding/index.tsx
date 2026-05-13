@@ -95,8 +95,16 @@ function OnboardingPageInternal() {
   const handleSubmit = async (targetRoute?: string) => {
     if (!user) return;
     setIsSubmitting(true);
+    
+    // Récupérer le session_id isolé
+    const sessionId = sessionStorage.getItem('onboarding_session_id') || crypto.randomUUID();
+
     try {
-      await completeOnboarding(user.id, data);
+      await completeOnboarding(user.id, data, sessionId);
+      
+      // Nettoyer le session_id après submit réussi
+      sessionStorage.removeItem('onboarding_session_id');
+
       if (targetRoute) {
         navigate(targetRoute);
       } else {
@@ -114,7 +122,7 @@ function OnboardingPageInternal() {
   if (!isLoaded) return <div className="min-h-screen bg-black flex items-center justify-center"><div className="loader"></div></div>;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center px-6 pt-20 pb-32">
+    <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center px-6 pt-20 pb-56">
       <div className="max-w-3xl w-full relative">
         <AnimatePresence mode="wait">
           <motion.div

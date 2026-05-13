@@ -87,7 +87,8 @@ export default function OnboardingStep5({ data, onSubmit, onBack, isSubmitting }
         </ul>
       </div>
 
-      <div className="pt-8 flex flex-col md:flex-row gap-4">
+      <div className="pt-8 flex flex-col md:flex-row gap-4"
+        style={{ position: 'relative', zIndex: 20 }}>
         <button
           onClick={handleDiscoverPackage}
           disabled={isSubmitting}
