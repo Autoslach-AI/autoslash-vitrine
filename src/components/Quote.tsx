@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform } from "motion/react";
-import { Star, ArrowRight } from "lucide-react";
+import { Star } from "lucide-react";
 import { useRef } from "react";
-import { RainbowButton } from "./ui/rainbow-borders-button";
+import MotionButton from "./ui/motion-button";
 
 const Word = ({ children, progress, range }: any) => {
   const opacity = useTransform(progress, range, [0.1, 1]);
@@ -127,42 +127,11 @@ export default function Quote({ onCTAClick }: { onCTAClick?: (dest: string) => v
           </ul>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 1 }}
-          viewport={{ once: true }}
-          className="mt-40 w-full flex justify-center"
-        >
-          <motion.div
-            animate={{
-              scale: [1, 1.08, 1, 1.08, 1],
-              boxShadow: [
-                "0 0 0px rgba(255,255,255,0)",
-                "0 0 25px rgba(255,255,255,0.4)",
-                "0 0 5px rgba(255,255,255,0.1)",
-                "0 0 25px rgba(255,255,255,0.4)",
-                "0 0 0px rgba(255,255,255,0)"
-              ]
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: "easeInOut",
-              times: [0, 0.15, 0.3, 0.45, 1],
-            }}
-            className="rounded-xl overflow-visible group"
-          >
-            <div onClick={() => onCTAClick?.("/about")} className="block cursor-pointer">
-              <RainbowButton className="px-12 py-6 text-xl">
-                <>
-                  <span className="text-nowrap tracking-wide leading-none">Découvrir</span>
-                  <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-2 ml-2" />
-                </>
-              </RainbowButton>
-            </div>
-          </motion.div>
-        </motion.div>
+        <div className="mt-40 w-full flex justify-center">
+          <div onClick={() => onCTAClick?.("/about")} className="block cursor-pointer">
+            <MotionButton label="Découvrir" />
+          </div>
+        </div>
       </div>
     </section>
   );
