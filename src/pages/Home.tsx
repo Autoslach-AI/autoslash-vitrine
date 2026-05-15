@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
-import { useSectionTransitions } from "../hooks/useSectionTransitions";
+import { useAuth, useClerk } from "@clerk/clerk-react";
+import { motion } from "motion/react";
 import Hero from "../components/Hero";
 import Quote from "../components/Quote";
 import Benefits from "../components/Benefits";
@@ -11,13 +11,33 @@ import ProductsPlatform from "../components/ProductsPlatform";
 import ProjectShowcase from "../components/ProjectShowcase";
 import { ProcessSection } from "../components/ProcessSection";
 import DiscoverSection from "../components/DiscoverSection";
-import { checkOnboardingStatus } from "../lib/supabase-onboarding";
+
+interface SectionRevealProps {
+  children: React.ReactNode;
+  delay?: number;
+}
+
+const SectionReveal = ({ children, delay = 0 }: SectionRevealProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: false, margin: "-100px" }}
+      transition={{ 
+        duration: 0.8, 
+        delay,
+        ease: [0.16, 1, 0.3, 1] 
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 export default function Home() {
   const { openSignIn } = useClerk();
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
-  const { containerRef } = useSectionTransitions();
 
   // Trigger A — Timer automatique
   useEffect(() => {
@@ -42,38 +62,42 @@ export default function Home() {
   };
 
   return (
-    <div ref={containerRef}>
-      <Hero onCTAClick={handleCTAClick} />
+    <div className="overflow-x-hidden">
+      <SectionReveal>
+        <Hero onCTAClick={handleCTAClick} />
+      </SectionReveal>
       
-      <div className="st-type-a">
+      <SectionReveal>
         <Quote onCTAClick={handleCTAClick} />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-a">
+      <SectionReveal>
         <Benefits />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-b">
+      <SectionReveal>
         <SquareFlow />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-c">
+      <SectionReveal>
         <CinematicVideo />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-c">
+      <SectionReveal>
         <ProductsPlatform onCTAClick={handleCTAClick} />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-b">
+      <SectionReveal>
         <ProjectShowcase onCTAClick={handleCTAClick} />
-      </div>
+      </SectionReveal>
       
-      <div className="st-type-a">
+      <SectionReveal>
         <ProcessSection onCTAClick={handleCTAClick} />
-      </div>
+      </SectionReveal>
       
-      <DiscoverSection onCTAClick={handleCTAClick} />
+      <SectionReveal>
+        <DiscoverSection onCTAClick={handleCTAClick} />
+      </SectionReveal>
     </div>
   );
 }
