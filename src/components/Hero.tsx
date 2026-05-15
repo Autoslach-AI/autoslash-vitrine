@@ -3,6 +3,7 @@
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Button } from './ui/button'
+import MotionButton from './ui/motion-button'
 import { AnimatedGroup } from './ui/animated-group'
 import { motion } from 'motion/react'
 import { ContainerScroll } from './ui/container-scroll-animation'
@@ -69,15 +70,12 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                         ...transitionVariants,
                                     }}
                                     className="mt-12 flex flex-col items-center justify-center gap-8 md:flex-row">
-                                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                        <Button
-                                            key={1}
-                                            onClick={() => onCTAClick?.("/pricing")}
-                                            size="lg"
-                                            className="rounded-xl px-8 py-7 text-base bg-white text-black hover:bg-neutral-100 shadow-xl shadow-white/10 border-none">
-                                            <span className="text-nowrap font-bold">Démarrer</span>
-                                        </Button>
-                                    </motion.div>
+                                    <div 
+                                        onClick={() => onCTAClick?.("/pricing")}
+                                        className="cursor-pointer"
+                                    >
+                                        <MotionButton label="Démarrer" />
+                                    </div>
                                     <motion.div whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }}>
                                         <Button
                                             key={2}
