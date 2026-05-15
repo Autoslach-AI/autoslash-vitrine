@@ -41,28 +41,13 @@ export default function AboutPage() {
     const ITEM_COUNT = 15;
     const LOOP_SIZE = ITEM_COUNT * Z_GAP;
     const STAR_COUNT = 100;
-    const TEXTS = ["AVENIR", "SYSTÈME", "IMPACT", "VITESSE", "Agent IA", "CONTRÔLE", "VISION", "RÉSULTAT", "AUTOSLASH"];
+    const TEXTS = ["SYSTEM", "DESIGN", "FUTURE", "BRUTAL", "Agent IA", "IMPACT", "CODE", "Automation", "VISION"];
     const CARD_DATA = [
-      { 
-        title: "CHAQUE HEURE PERDUE", 
-        phrase: "Un entrepreneur passe 60% de son temps sur des tâches que l'IA peut faire en 3 secondes. C'est votre vie qui s'écoule." 
-      },
-      { 
-        title: "VOS CONCURRENTS BOUGENT", 
-        phrase: "Pendant que vous gérez l'opérationnel, ceux qui ont automatisé capturent vos clients. Le fossé se creuse chaque jour." 
-      },
-      { 
-        title: "L'ÉQUIPE S'ÉPUISE", 
-        phrase: "Les meilleurs talents ne partent pas pour le salaire. Ils partent quand le travail n'a plus de sens et que la répétition tue la créativité." 
-      },
-      { 
-        title: "LES DONNÉES S'ÉCHAPPENT", 
-        phrase: "Chaque décision prise sans données fiables est un pari. Et dans un marché mondial, les paris coûtent des marchés entiers." 
-      },
-      { 
-        title: "LE TEMPS N'ATTEND PAS", 
-        phrase: "L'IA n'est plus le futur — c'est le présent. Chaque jour sans infrastructure intelligente est un jour offert à la concurrence." 
-      }
+      { title: "PERTE DE TEMPS", phrase: "Vos journées s'épuisent dans des tâches répétitives sans valeur ajoutée." },
+      { title: "ERREURS COÛTEUSES", phrase: "Chaque petite faute manuelle impacte directement votre rentabilité nette." },
+      { title: "FATIGUE MENTALE", phrase: "Votre équipe sature, le travail est négligé et la motivation s'effondre." },
+      { title: "FUITE DE DONNÉES", phrase: "Des informations critiques s'échappent par manque de structure et de contrôle." },
+      { title: "OPPORTUNITÉS MANQUÉES", phrase: "Pendant que vous gérez l'urgence, vos futurs clients partent à la concurrence." }
     ];
 
     const world = worldRef.current;
@@ -816,7 +801,7 @@ export default function AboutPage() {
           ref={declicTitleRef}
           className="declic-title"
         >
-          J'AI VU —
+          ÉVEIL IA —
         </div>
 
         {/* NARRATIVE PHRASE SECTION 2 */}
@@ -824,7 +809,9 @@ export default function AboutPage() {
           ref={narrative1Ref}
           className="narrative-phrase"
         >
-          Des entrepreneurs brillants, des idées qui méritaient le monde — paralysés par des systèmes qui n'étaient pas faits pour eux. J'ai décidé que ça s'arrêtait là.
+          j'ai vu des entrepreneurs talentueux se noyer sous des tâches répétitives pendant que le monde avançait à la vitesse de l'IA. 
+          <br/>
+          <b>C'était inacceptable</b>
         </div>
 
         {/* SECOND NARRATIVE PHRASE SECTION 2 (LEFT) */}
@@ -832,7 +819,7 @@ export default function AboutPage() {
           ref={narrative2Ref}
           className="narrative-phrase left"
         >
-          L'IA n'était pas accessible. Trop chère, trop complexe, réservée aux géants. <b>Autoslash AI est née pour changer ça</b> — une infrastructure mondiale, livrée clé en main.
+          L'innovation semblait réservée aux géants technologiques, <b>laissant nos entreprises locales face à un mur</b> de complexité. Le fossé se creusait chaque jour.
         </div>
 
         {/* NEW TITLE: ARCHITECTURE SECTION 2 (LEFT) */}
@@ -840,9 +827,9 @@ export default function AboutPage() {
           ref={solutionTitleRef}
           className="declic-title arch"
         >
-          Une infrastructure bâtie pour durer.<br/>
-          Des agents qui travaillent quand vous dormez.<br/>
-          Votre croissance, automatisée.
+          Une architecture conçue pour l'élite.<br/>
+          Transformez chaque seconde en profit.<br/>
+          Le futur d'Autoslash commence ici.
         </div>
 
         {/* FINAL NARRATIVE PHRASE SECTION 2 (LEFT) */}
@@ -850,13 +837,13 @@ export default function AboutPage() {
           ref={narrative3Ref}
           className="narrative-phrase left"
         >
-          <b>Autoslash AI ne vend pas un outil.</b>
+          <b>Autoslash AI est née pour briser ce plafond</b>.
           <br/>
-          Nous construisons l'infrastructure de votre prochain niveau.
+          Nous avons créé une infrastructure où l'IA absorbe le chaos 
           <br/>
-          Des agents entraînés sur vos données. Opérationnels 24h/24.
+          pour <b>libérer votre génie créatif</b>.
           <br/>
-          <strong>Nos clients ne gèrent plus leur croissance — <b>ils la regardent se déployer</b> pendant qu'ils font ce qui compte vraiment.</strong>
+          <strong>Désormais, nos clients ne subissent plus leur croissance <b>ils la pilotent. L'efficacité automatisée</b> n'est plus un rêve c'est leur nouveau standard.</strong>
         </div>
 
         {/* MONUMENTAL CALL TO ACTION */}
@@ -864,7 +851,7 @@ export default function AboutPage() {
           ref={ctaRef}
           className="horizontal-scroll-brand"
         >
-          La Question N'Est Plus Si — C'Est Quand
+          La Décision De La Franchir Cette Porte Vous Appartient
         </div>
 
         {/* ATMOSPHERIC BOTTOM BLUR */}
@@ -902,7 +889,7 @@ export default function AboutPage() {
             ref={heroTitleRef}
             className="hero__title"
           >
-            LE MANUEL<br/>EST<br/>MORT
+            LE MANUEL<br/>APPARTIENT AU<br/>PASSÉ
           </h1>
         </div>
       </section>
@@ -921,10 +908,10 @@ export default function AboutPage() {
             <div className="flex flex-col space-y-2 md:space-y-3 flex-1 min-w-[300px]">
               {[
                 { title: "PAPE AMADOU MBAYE", imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2574&auto=format&fit=crop" },
-                { title: "FONDATEUR & ARCHITECTE IA", imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=2574&auto=format&fit=crop" },
-                { title: "STRATÉGIE & VISION", imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2574&auto=format&fit=crop" },
-                { title: "AGENTS & AUTOMATISATION", imageUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2574&auto=format&fit=crop" },
-                { title: "CROISSANCE & CLIENTS", imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2576&auto=format&fit=crop" }
+                { title: "AI STRATEGY LEAD", imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=2574&auto=format&fit=crop" },
+                { title: "CREATIVE DIRECTOR", imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2574&auto=format&fit=crop" },
+                { title: "TECH ARCHITECT", imageUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2574&auto=format&fit=crop" },
+                { title: "GROWTH SPECIALIST", imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2576&auto=format&fit=crop" }
               ].map((slide, index) => (
                 <TextStaggerHover
                   key={slide.title}
