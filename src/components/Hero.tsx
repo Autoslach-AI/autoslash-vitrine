@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import { Button } from './ui/button'
 import MotionButton from './ui/motion-button'
 import { AnimatedGroup } from './ui/animated-group'
+import { Badge } from './ui/badge'
 import { motion } from 'motion/react'
 import { ContainerScroll } from './ui/container-scroll-animation'
 import { SplineSceneBasic } from './SplineHeroContent'
@@ -52,6 +53,7 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                     <h1 className="mt-20 max-w-5xl mx-auto text-balance text-6xl md:text-7xl xl:text-[5.5rem] text-white font-medium leading-[1.1]">
                                         L'IA qui travaille, vous qui dominez.
                                     </h1>
+                                    <h2 className="sr-only">Solutions d'automation intelligentes</h2>
                                     <p className="mx-auto mt-8 max-w-xl text-balance text-lg md:text-xl text-white/60">
                                         Des agents IA entraînés sur vos données. Livrés en moins de 7 jours. Opérationnels 24h/24.
                                     </p>
@@ -76,19 +78,16 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                     >
                                         <MotionButton label="Démarrer" />
                                     </div>
-                                    <motion.div whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }}>
-                                        <Button
-                                            key={2}
-                                            onClick={() => {
+                                    <div className="flex items-center">
+                                        <Badge 
+                                            text="Voir la démo" 
+                                            onClick={(e) => {
+                                                e.preventDefault();
                                                 const el = document.getElementById('video-section');
                                                 if (el) el.scrollIntoView({ behavior: 'smooth' });
-                                            }}
-                                            variant="ghost"
-                                            className="text-white hover:bg-white/5 hover:text-white text-base font-medium group transition-all">
-                                            <span className="text-nowrap">Voir la démo</span>
-                                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                                        </Button>
-                                    </motion.div>
+                                            }} 
+                                        />
+                                    </div>
                                 </AnimatedGroup>
                             </div>
                         </div>

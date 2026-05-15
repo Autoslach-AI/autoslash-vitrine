@@ -56,6 +56,9 @@ Autoslash AI is an intelligent scalable infrastructure – not just a tool. It c
 ## Permanent Evolution Principle
 Adapt to new technology. Test new APIs/Models/Frameworks and integrate if they offer significant gains.
 
+## Design & Components Conventions
+- **Animation "flèche survol"**: Name given to the specific button animation used in `MotionButton` (applied to "Démarrer" and "Découvrir"), where a circle expands and an arrow shifts on hover.
+
 ## Philosophy
 Build for today. Design for tomorrow. Anticipate the day after tomorrow.
 
