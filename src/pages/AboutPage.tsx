@@ -514,11 +514,11 @@ export default function AboutPage() {
               siliconRenderer.render(siliconScene, siliconCamera);
           }
           
-          // Éveil IA scroll (Horizontal)
+          // Éveil IA scroll (Vertical 'scroll ref' style)
           if (declicTitleRef.current) {
-              const x = (100 - (Math.max(0, sp - 0.25) / 0.12) * 220); 
+              const y = (1 - (Math.max(0, sp - 0.25) / 0.10)) * 140 - 20;
               const alpha = Math.max(0, Math.min(1, (sp - 0.25) * 25) * (1 - Math.max(0, (sp - 0.35) * 25)));
-              declicTitleRef.current.style.transform = `translate3d(${x}vw, 35vh, 0)`;
+              declicTitleRef.current.style.transform = `translate3d(5vw, ${y}vh, 0)`;
               declicTitleRef.current.style.opacity = alpha.toString();
           }
           if (narrative1Ref.current) {
@@ -908,7 +908,7 @@ export default function AboutPage() {
           ref={declicTitleRef}
           className="declic-title"
         >
-          J'AI VU —
+          ÉVEIL IA —
         </div>
 
         {/* NARRATIVE PHRASE SECTION 2 */}
