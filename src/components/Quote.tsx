@@ -113,7 +113,7 @@ export default function Quote({ onCTAClick }: { onCTAClick?: (dest: string) => v
 
         <div className="flex flex-col md:flex-row items-start gap-x-[380px] relative">
           <div className="sticky top-[45vh] z-10">
-            <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-white whitespace-nowrap opacity-100 tracking-tighter">
+            <span className="text-3xl md:text-5xl lg:text-6xl font-black text-white whitespace-nowrap opacity-100 tracking-[0.15em] uppercase">
               QUE VOUS SOYEZ
             </span>
           </div>

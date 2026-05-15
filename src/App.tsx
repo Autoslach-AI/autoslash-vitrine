@@ -33,9 +33,19 @@ const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
 const ProfilePage = lazy(() => import("./pages/profile/index"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { checkOnboardingStatus } from "./lib/supabase-onboarding";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function AuthStatusRedirect() {
   const hasClerkKey = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -53,6 +63,18 @@ function AuthStatusRedirectInternal() {
     if (isLoaded && isSignedIn && user) {
       // Don't redirect if we are already on onboarding
       if (location.pathname === "/onboarding") return;
+
+      // Only force onboarding if we are on a dashboard/package page
+      const isProtectedPath = location.pathname.startsWith("/startup-package") || 
+                              location.pathname.startsWith("/architecture") ||
+                              location.pathname.startsWith("/business-package") ||
+                              location.pathname.startsWith("/business-details") ||
+                              location.pathname.startsWith("/enterprise-package") ||
+                              location.pathname.startsWith("/enterprise-details") ||
+                              location.pathname === "/client-projects" ||
+                              location.pathname === "/profile";
+
+      if (!isProtectedPath) return;
 
       const checkStatus = async () => {
         const completed = await checkOnboardingStatus(user.id);
@@ -176,6 +198,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <ScrollToTop />
         <AppLayout />
       </Router>
     </ErrorBoundary>

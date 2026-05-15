@@ -136,7 +136,7 @@ export const ActionCta = ({ onCTAClick }: { onCTAClick?: (dest: string) => void 
       >
         <div className="flex flex-col items-center space-y-8 z-50">
           <motion.button 
-            onClick={() => onCTAClick?.("/onboarding")}
+            onClick={() => onCTAClick?.("/pricing")}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-neutral-900 w-[320px] md:w-[480px] h-[120px] md:h-[160px] no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-6 text-white inline-block border border-white/10"

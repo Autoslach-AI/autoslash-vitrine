@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Lenis from "lenis";
 import * as THREE from "three";
 import { 
@@ -12,6 +13,7 @@ import {
 import { ActionCta } from "../components/ActionCta";
 
 export default function AboutPage() {
+  const navigate = useNavigate();
   const worldRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const siliconCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -399,8 +401,8 @@ export default function AboutPage() {
       // Transition progress
       const t12 = Math.max(0, Math.min(1, (sp - 0.18) / 0.07));
       const t23 = Math.max(0, Math.min(1, (sp - 0.48) / 0.07));
-      const t34 = Math.max(0, Math.min(1, (sp - 0.68) / 0.07));
-      const t45 = Math.max(0, Math.min(1, (sp - 0.88) / 0.06));
+      const t34 = Math.max(0, Math.min(1, (sp - 0.77) / 0.05));
+      const t45 = Math.max(0, Math.min(1, (sp - 0.90) / 0.05));
 
       if (flashRef.current && t12 === 0 && t23 === 0 && t34 === 0 && t45 === 0) {
         flashRef.current.style.opacity = '0';
@@ -409,13 +411,13 @@ export default function AboutPage() {
       // --- SECTION ALPHA & CROSSFADES (Direct DOM) ---
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
       const s2A = sp < 0.25 ? 0 : sp < 0.68 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.68) / 0.05);
-      const s3A = sp < 0.68 ? 0 : sp < 0.82 ? Math.min(1, (sp - 0.68) / 0.05) : Math.max(0, 1 - (sp - 0.82) / 0.05);
-      const s4A = sp < 0.70 ? 0 
-        : sp < 0.75 
-          ? Math.min(1, (sp - 0.70) / 0.05)
-          : sp > 0.80
+      const s3A = sp < 0.68 ? 0 : sp < 0.83 ? Math.min(1, (sp - 0.68) / 0.05) : Math.max(0, 1 - (sp - 0.83) / 0.05);
+      const s4A = sp < 0.83 ? 0 
+        : sp < 0.87 
+          ? Math.min(1, (sp - 0.83) / 0.04)
+          : sp > 0.92
             ? 0
-            : Math.max(0, 1 - (sp - 0.75) / 0.05);
+            : Math.max(0, 1 - (sp - 0.87) / 0.05);
 
       // Flash & Transition Effects
       if (flashRef.current) {
@@ -488,15 +490,15 @@ export default function AboutPage() {
             section4Ref.current.style.transform = `translateY(${-(t45 * 120)}px)`;
           } else {
             const entryOffset = (1 - s4A) * 60;
-            const exitOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
+            const exitOffset = sp > 0.90 ? (sp - 0.90) * -150 : 0;
             section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
           }
       }
 
-      const s5A = sp < 0.90 ? 0 
-        : sp < 0.96 
-          ? Math.min(1, (sp - 0.90) / 0.04) 
-          : Math.max(0, 1 - (sp - 0.96) / 0.04); 
+      const s5A = sp < 0.93 ? 0 
+        : sp < 0.97 
+          ? Math.min(1, (sp - 0.93) / 0.04) 
+          : Math.max(0, 1 - (sp - 0.98) / 0.02); 
 
       if (section5Ref.current) {
           section5Ref.current.style.opacity = s5A.toString();
@@ -569,20 +571,20 @@ export default function AboutPage() {
       }
       
       // --- SECTION 3: FUTURE HERO ---
-      if (sp > 0.65 && sp < 0.85) {
+      if (sp > 0.68 && sp < 0.90) {
           if (heroSceneRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.70) * 0.2);
+              const scale = 1 + (Math.max(0, sp - 0.72) * 0.2);
               heroSceneRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
           }
           if (heroStarshipRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.68) * 8);
-              const opacity = 1 - Math.max(0, (sp - 0.80) * 10);
+              const scale = 1 + (Math.max(0, sp - 0.70) * 8);
+              const opacity = 1 - Math.max(0, (sp - 0.80) * 20);
               heroStarshipRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
               heroStarshipRef.current.style.opacity = opacity.toString();
           }
           if (heroTitleRef.current) {
-              const scale = 0.5 + (Math.max(0, sp - 0.75) * 1.5);
-              const opacity = Math.max(0, Math.min(1, (sp - 0.75) * 15)) * (1 - Math.max(0, (sp - 0.83) * 15));
+              const scale = 0.8 + (Math.max(0, sp - 0.75) * 1.2);
+              const opacity = Math.max(0, Math.min(1, (sp - 0.75) * 15)) * (1 - Math.max(0, (sp - 0.85) * 15));
               heroTitleRef.current.style.transform = `translate3d(-50%, -50%, 0) scale3d(${scale}, ${scale}, 1)`;
               heroTitleRef.current.style.opacity = opacity.toString();
           }
@@ -846,13 +848,13 @@ export default function AboutPage() {
             font-family: var(--font-geist), sans-serif;
             font-size: 10vw;
             line-height: 1.1;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
             font-weight: 900;
             z-index: 50;
             text-align: center;
             color: #ffffff;
-            text-shadow: 0 0 50px rgba(0,0,0,0.5);
+            text-shadow: 0 20px 80px rgba(0,0,0,1), 0 0 100px rgba(0,0,0,0.8);
             will-change: transform, opacity;
             width: 100%;
         }
@@ -1014,7 +1016,7 @@ export default function AboutPage() {
           background: '#faf9f5'
         }}
       >
-        <HoverSlider className="min-h-screen flex flex-col justify-center pt-32 pb-32 px-6 md:px-24 bg-[#faf9f5] text-[#3d3929]">
+        <HoverSlider className="min-h-screen flex flex-col justify-center py-16 px-6 md:px-24 bg-[#faf9f5] text-[#3d3929]">
           <div className="flex flex-wrap items-center justify-between gap-12 md:gap-20 max-w-7xl mx-auto w-full">
             <div className="flex flex-col space-y-2 md:space-y-3 flex-1 min-w-[300px]">
               {[
@@ -1027,12 +1029,12 @@ export default function AboutPage() {
                 <TextStaggerHover
                   key={slide.title}
                   index={index}
-                  className="cursor-pointer text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter transition-all duration-500 whitespace-nowrap"
+                  className="cursor-pointer text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-tighter transition-all duration-500 whitespace-nowrap"
                   text={slide.title}
                 />
               ))}
             </div>
-            <HoverSliderImageWrap className="w-full max-w-[340px] aspect-[3/4] flex-shrink-0">
+            <HoverSliderImageWrap className="w-full max-w-[280px] aspect-[3/4] flex-shrink-0">
               {[
                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2574&auto=format&fit=crop",
                 "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=2574&auto=format&fit=crop",
@@ -1068,7 +1070,7 @@ export default function AboutPage() {
         }}
       >
         <div ref={ctaInnerRef} className="h-full w-full flex items-center justify-center">
-          <ActionCta onCTAClick={(dest) => window.location.href = dest} />
+          <ActionCta onCTAClick={(dest) => navigate(dest)} />
         </div>
       </section>
 
