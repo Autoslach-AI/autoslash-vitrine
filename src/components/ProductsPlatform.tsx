@@ -297,8 +297,8 @@ const CharacterV1 = React.memo(({
     progress, 
     effectiveInput, 
     isInitial 
-      ? [0, -40, -600] // Start anchored, small climb, then fly out
-      : [600, 40, -40, -600] // Come from deep bottom, slow climb through eye-level, fly out
+      ? [1200, 0, -1200] // Start deep bottom, center/slow down, then fly out top
+      : [1200, 50, -50, -1200] // Come from deep bottom, slow climb through eye-level, fly out
   );
 
   const scale = useTransform(progress, effectiveInput, isInitial ? [1, 1, 1.4] : [0.6, 1, 1, 1.4]);
@@ -353,8 +353,7 @@ function IntroSequence({ progress }: { progress: MotionValue<number> }) {
           }}
           className="absolute inset-0 flex items-center justify-center p-8"
       >
-          {/* translate-y-32 (~128px) to push it down about 5cm from center */}
-          <div className="text-[14vw] font-black tracking-[-0.05em] leading-none text-center flex flex-wrap justify-center text-[#000000] translate-y-32">
+          <div className="text-[14vw] font-black tracking-[-0.05em] leading-none text-center flex flex-wrap justify-center text-[#000000]">
               {intro1Chars.map((char, index) => (
                   <CharacterV1 
                       key={index}
