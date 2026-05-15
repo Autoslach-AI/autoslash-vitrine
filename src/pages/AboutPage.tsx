@@ -388,9 +388,9 @@ export default function AboutPage() {
 
       // Reset filters and transforms
       if (section1Ref.current) { section1Ref.current.style.filter = 'none'; section1Ref.current.style.transform = 'none'; }
-      if (section2Ref.current) { section2Ref.current.style.transform = 'none'; }
+      if (section2Ref.current) { section2Ref.current.style.filter = 'none'; section2Ref.current.style.transform = 'none'; }
       if (siliconCanvasRef.current) { siliconCanvasRef.current.style.filter = 'none'; }
-      if (section3Ref.current) { section3Ref.current.style.transform = 'none'; }
+      if (section3Ref.current) { section3Ref.current.style.filter = 'none'; section3Ref.current.style.transform = 'none'; }
       if (heroSceneRef.current) { heroSceneRef.current.style.filter = 'none'; }
       if (heroStarshipRef.current) { heroStarshipRef.current.style.filter = 'none'; }
       if (section4Ref.current) { section4Ref.current.style.filter = 'none'; section4Ref.current.style.transform = 'none'; }
@@ -450,7 +450,7 @@ export default function AboutPage() {
             section2Ref.current.style.transform = `scale(${1.1 - t12 * 0.1})`;
           } else if (t23 > 0 && t23 < 1) {
             section2Ref.current.style.transform = `scale(${1 + t23 * 0.3})`;
-            if (siliconCanvasRef.current) siliconCanvasRef.current.style.filter = `blur(${t23 * 3}px)`;
+            if (siliconCanvasRef.current) siliconCanvasRef.current.style.filter = `blur(${t23 * 1.5}px)`;
           } else {
             const ty = (1 - s2A) * 60;
             const sc = 0.95 + (s2A * 0.05);
@@ -464,8 +464,8 @@ export default function AboutPage() {
           if (t23 > 0 && t23 < 1) {
             section3Ref.current.style.transform = `scale(${1.2 - t23 * 0.2})`;
           } else if (t34 > 0 && t34 < 1) {
-            if (heroSceneRef.current) heroSceneRef.current.style.filter = `blur(${t34 * 3}px)`;
-            if (heroStarshipRef.current) heroStarshipRef.current.style.filter = `blur(${t34 * 3}px)`;
+            if (heroSceneRef.current) heroSceneRef.current.style.filter = `blur(${t34 * 1.5}px)`;
+            if (heroStarshipRef.current) heroStarshipRef.current.style.filter = `blur(${t34 * 1.5}px)`;
             section3Ref.current.style.transform = `scale(${1 + t34 * 0.2})`;
           } else {
             const ty = (1 - s3A) * 40;
