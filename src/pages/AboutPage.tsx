@@ -394,13 +394,23 @@ export default function AboutPage() {
       // CTA section
       const s5A = sp < 0.92 ? 0 : sp < 0.98 ? Math.min(1, (sp - 0.92) / 0.04) : Math.max(0, 1 - (sp - 0.98) / 0.02);
 
-      if (section1Ref.current) section1Ref.current.style.opacity = s1A.toString();
+      if (section1Ref.current) {
+          section1Ref.current.style.opacity = s1A.toString();
+          section1Ref.current.style.transform = `translate3d(0, ${(1 - s1A) * -30}px, 0)`;
+      }
       if (section2Ref.current) {
           section2Ref.current.style.opacity = s2A.toString();
           section2Ref.current.style.background = s2A > 0.5 ? '#000' : 'transparent';
+          const ty = (1 - s2A) * 60;
+          const sc = 0.95 + (s2A * 0.05);
+          section2Ref.current.style.transform = `translate3d(0, ${ty}px, 0) scale3d(${sc}, ${sc}, 1)`;
+          section2Ref.current.style.visibility = s2A > 0 ? 'visible' : 'hidden';
       }
       if (section3Ref.current) {
           section3Ref.current.style.opacity = s3A.toString();
+          const ty = (1 - s3A) * 40;
+          section3Ref.current.style.transform = `translate3d(0, ${ty}px, 0)`;
+          section3Ref.current.style.visibility = s3A > 0 ? 'visible' : 'hidden';
       }
       if (section4Ref.current) {
           section4Ref.current.style.opacity = s4A.toString();
@@ -408,18 +418,18 @@ export default function AboutPage() {
           section4Ref.current.style.visibility = s4A > 0 ? 'visible' : 'hidden';
           section4Ref.current.style.pointerEvents = s4A > 0 ? 'auto' : 'none';
           
-          // Slight lift when moving to cta starts earlier
-          const yOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
-          section4Ref.current.style.transform = `translate3d(0, ${yOffset}px, 0)`;
+          const entryOffset = (1 - s4A) * 60;
+          const exitOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
+          section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
       }
       if (section5Ref.current) {
           section5Ref.current.style.opacity = s5A.toString();
           section5Ref.current.style.visibility = s5A > 0 ? 'visible' : 'hidden';
           section5Ref.current.style.pointerEvents = s5A > 0 ? 'auto' : 'none';
           
-          // Slight lift for CTA section too
-          const yOffset = sp > 0.94 ? (sp - 0.94) * -100 : 0;
-          section5Ref.current.style.transform = `translate3d(0, ${yOffset}px, 0)`;
+          const entryOffset = (1 - s5A) * 40;
+          const exitOffset = sp > 0.94 ? (sp - 0.94) * -100 : 0;
+          section5Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
       }
 
       // --- SECTION 1: TUNNEL ---
