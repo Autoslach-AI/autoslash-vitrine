@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, useClerk } from "@clerk/clerk-react";
-import { motion } from "motion/react";
+import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import Hero from "../components/Hero";
 import Quote from "../components/Quote";
 import Benefits from "../components/Benefits";
@@ -11,28 +10,7 @@ import ProductsPlatform from "../components/ProductsPlatform";
 import ProjectShowcase from "../components/ProjectShowcase";
 import { ProcessSection } from "../components/ProcessSection";
 import DiscoverSection from "../components/DiscoverSection";
-
-interface SectionRevealProps {
-  children: React.ReactNode;
-  delay?: number;
-}
-
-const SectionReveal = ({ children, delay = 0 }: SectionRevealProps) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: false, margin: "-100px" }}
-      transition={{ 
-        duration: 0.8, 
-        delay,
-        ease: [0.16, 1, 0.3, 1] 
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
+import { checkOnboardingStatus } from "../lib/supabase-onboarding";
 
 export default function Home() {
   const { openSignIn } = useClerk();
@@ -62,42 +40,16 @@ export default function Home() {
   };
 
   return (
-    <div className="overflow-x-hidden">
-      <SectionReveal>
-        <Hero onCTAClick={handleCTAClick} />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <Quote onCTAClick={handleCTAClick} />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <Benefits />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <SquareFlow />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <CinematicVideo />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <ProductsPlatform onCTAClick={handleCTAClick} />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <ProjectShowcase onCTAClick={handleCTAClick} />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <ProcessSection onCTAClick={handleCTAClick} />
-      </SectionReveal>
-      
-      <SectionReveal>
-        <DiscoverSection onCTAClick={handleCTAClick} />
-      </SectionReveal>
-    </div>
+    <>
+      <Hero onCTAClick={handleCTAClick} />
+      <Quote onCTAClick={handleCTAClick} />
+      <Benefits />
+      <SquareFlow />
+      <CinematicVideo />
+      <ProductsPlatform onCTAClick={handleCTAClick} />
+      <ProjectShowcase onCTAClick={handleCTAClick} />
+      <ProcessSection onCTAClick={handleCTAClick} />
+      <DiscoverSection onCTAClick={handleCTAClick} />
+    </>
   );
 }
