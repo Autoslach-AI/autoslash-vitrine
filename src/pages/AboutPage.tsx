@@ -387,12 +387,12 @@ export default function AboutPage() {
 
       // --- SECTION ALPHA & CROSSFADES (Direct DOM) ---
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
-      const s2A = sp < 0.25 ? 0 : sp < 0.50 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.50) / 0.05);
-      const s3A = sp < 0.50 ? 0 : sp < 0.65 ? Math.min(1, (sp - 0.50) / 0.05) : Math.max(0, 1 - (sp - 0.65) / 0.05);
+      const s2A = sp < 0.25 ? 0 : sp < 0.65 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.65) / 0.05);
+      const s3A = sp < 0.65 ? 0 : sp < 0.78 ? Math.min(1, (sp - 0.65) / 0.05) : Math.max(0, 1 - (sp - 0.78) / 0.05);
       // Team fades out earlier to reveal CTA
-      const s4A = sp < 0.70 ? 0 : sp < 0.82 ? Math.min(1, (sp - 0.70) / 0.05) : Math.max(0, 1 - (sp - 0.82) / 0.06);
+      const s4A = sp < 0.80 ? 0 : sp < 0.90 ? Math.min(1, (sp - 0.80) / 0.05) : Math.max(0, 1 - (sp - 0.90) / 0.06);
       // CTA section
-      const s5A = sp < 0.88 ? 0 : sp < 0.96 ? Math.min(1, (sp - 0.88) / 0.04) : Math.max(0, 1 - (sp - 0.96) / 0.04);
+      const s5A = sp < 0.92 ? 0 : sp < 0.98 ? Math.min(1, (sp - 0.92) / 0.04) : Math.max(0, 1 - (sp - 0.98) / 0.02);
 
       if (section1Ref.current) section1Ref.current.style.opacity = s1A.toString();
       if (section2Ref.current) {
@@ -453,42 +453,42 @@ export default function AboutPage() {
               narrative2Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative2Ref.current.style.opacity = alpha.toString();
           }
-          // Architecture block scroll (Horizontal)
+          // Architecture block scroll (Vertical, matching narrative style)
           if (solutionTitleRef.current) {
-              const x = (100 - (Math.max(0, sp - 0.50) / 0.12) * 220);
-              const alpha = Math.max(0, Math.min(1, (sp - 0.50) * 25) * (1 - Math.max(0, (sp - 0.60) * 25)));
-              solutionTitleRef.current.style.transform = `translate3d(${x}vw, 40vh, 0)`;
+              const y = (1 - (Math.max(0, sp - 0.49) / 0.06)) * 140 - 20;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.49) * 30) * (1 - Math.max(0, (sp - 0.55) * 30)));
+              solutionTitleRef.current.style.transform = `translate3d(5vw, ${y}vh, 0)`;
               solutionTitleRef.current.style.opacity = alpha.toString();
           }
           if (narrative3Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.56) / 0.03)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.56) * 80) * (1 - Math.max(0, (sp - 0.59) * 100)));
+              const y = (1 - (Math.max(0, sp - 0.55) / 0.06)) * 140 - 20;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.55) * 30) * (1 - Math.max(0, (sp - 0.61) * 30)));
               narrative3Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative3Ref.current.style.opacity = alpha.toString();
           }
           if (ctaRef.current) {
-              const x = (100 - (Math.max(0, sp - 0.60) / 0.05) * 350);
-              const alpha = sp < 0.65 ? Math.max(0, Math.min(1, (sp - 0.60) * 100)) : 0;
+              const x = (100 - (Math.max(0, sp - 0.61) / 0.04) * 350);
+              const alpha = sp < 0.65 ? Math.max(0, Math.min(1, (sp - 0.61) * 100)) : 0;
               ctaRef.current.style.transform = `translate3d(${x}vw, 0, 0)`;
               ctaRef.current.style.opacity = alpha.toString();
           }
       }
       
       // --- SECTION 3: FUTURE HERO ---
-      if (sp > 0.50 && sp < 0.72) {
+      if (sp > 0.63 && sp < 0.82) {
           if (heroSceneRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.55) * 0.2);
+              const scale = 1 + (Math.max(0, sp - 0.68) * 0.2);
               heroSceneRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
           }
           if (heroStarshipRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.51) * 8);
-              const opacity = 1 - Math.max(0, (sp - 0.65) * 10);
+              const scale = 1 + (Math.max(0, sp - 0.64) * 8);
+              const opacity = 1 - Math.max(0, (sp - 0.78) * 10);
               heroStarshipRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
               heroStarshipRef.current.style.opacity = opacity.toString();
           }
           if (heroTitleRef.current) {
-              const scale = 0.5 + (Math.max(0, sp - 0.6) * 1.5);
-              const opacity = Math.max(0, Math.min(1, (sp - 0.6) * 15)) * (1 - Math.max(0, (sp - 0.68) * 15));
+              const scale = 0.5 + (Math.max(0, sp - 0.73) * 1.5);
+              const opacity = Math.max(0, Math.min(1, (sp - 0.73) * 15)) * (1 - Math.max(0, (sp - 0.81) * 15));
               heroTitleRef.current.style.transform = `translate3d(-50%, -50%, 0) scale3d(${scale}, ${scale}, 1)`;
               heroTitleRef.current.style.opacity = opacity.toString();
           }
