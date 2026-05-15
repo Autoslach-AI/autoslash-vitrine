@@ -30,6 +30,7 @@ export default function AboutPage() {
   const solutionTitleRef = useRef<HTMLDivElement>(null);
   const narrative3Ref = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
 
   const heroSceneRef = useRef<HTMLImageElement>(null);
   const heroStarshipRef = useRef<HTMLImageElement>(null);
@@ -385,32 +386,88 @@ export default function AboutPage() {
 
       const sp = scrollState.progress;
 
+      // Reset filters and transforms
+      if (section1Ref.current) { section1Ref.current.style.filter = 'none'; section1Ref.current.style.transform = 'none'; }
+      if (section2Ref.current) { section2Ref.current.style.filter = 'none'; section2Ref.current.style.transform = 'none'; }
+      if (section3Ref.current) { section3Ref.current.style.filter = 'none'; section3Ref.current.style.transform = 'none'; }
+      if (section4Ref.current) { section4Ref.current.style.filter = 'none'; section4Ref.current.style.transform = 'none'; }
+      if (section5Ref.current) { section5Ref.current.style.filter = 'none'; section5Ref.current.style.transform = 'none'; }
+
+      // Transition progress
+      const t12 = Math.max(0, Math.min(1, (sp - 0.18) / 0.07));
+      const t23 = Math.max(0, Math.min(1, (sp - 0.48) / 0.07));
+      const t34 = Math.max(0, Math.min(1, (sp - 0.68) / 0.07));
+      const t45 = Math.max(0, Math.min(1, (sp - 0.85) / 0.07));
+
+      if (flashRef.current && t12 === 0 && t23 === 0 && t34 === 0 && t45 === 0) {
+        flashRef.current.style.opacity = '0';
+      }
+
       // --- SECTION ALPHA & CROSSFADES (Direct DOM) ---
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
       const s2A = sp < 0.25 ? 0 : sp < 0.65 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.65) / 0.05);
       const s3A = sp < 0.65 ? 0 : sp < 0.78 ? Math.min(1, (sp - 0.65) / 0.05) : Math.max(0, 1 - (sp - 0.78) / 0.05);
-      // Team fades out earlier to reveal CTA
       const s4A = sp < 0.80 ? 0 : sp < 0.90 ? Math.min(1, (sp - 0.80) / 0.05) : Math.max(0, 1 - (sp - 0.90) / 0.06);
-      // CTA section
       const s5A = sp < 0.92 ? 0 : sp < 0.98 ? Math.min(1, (sp - 0.92) / 0.04) : Math.max(0, 1 - (sp - 0.98) / 0.02);
+
+      // Flash & Transition Effects
+      if (flashRef.current) {
+        if (t12 > 0 && t12 < 1) {
+          const f = t12 < 0.5 ? t12 * 2 : 1 - (t12 - 0.5) * 2;
+          flashRef.current.style.opacity = (f * 0.8).toString();
+          flashRef.current.style.background = '#ffffff';
+        } else if (t23 > 0 && t23 < 1) {
+          const f = t23 < 0.5 ? t23 * 2 : 1 - (t23 - 0.5) * 2;
+          flashRef.current.style.opacity = (f * 0.95).toString();
+          flashRef.current.style.background = '#000000';
+        } else if (t34 > 0 && t34 < 1) {
+          const f = t34 < 0.5 ? t34 * 2 : 1 - (t34 - 0.5) * 2;
+          flashRef.current.style.opacity = (f * 0.9).toString();
+          flashRef.current.style.background = '#ffffff';
+        } else if (t45 > 0 && t45 < 1) {
+          const f = t45 < 0.5 ? t45 * 2 : 1 - (t45 - 0.5) * 2;
+          flashRef.current.style.opacity = (f * 0.7).toString();
+          flashRef.current.style.background = '#000000';
+        }
+      }
 
       if (section1Ref.current) {
           section1Ref.current.style.opacity = s1A.toString();
-          section1Ref.current.style.transform = `translate3d(0, ${(1 - s1A) * -30}px, 0)`;
+          if (t12 > 0) {
+            section1Ref.current.style.transform = `scale(${1 + t12 * 0.15})`;
+          } else {
+            section1Ref.current.style.transform = `translate3d(0, ${(1 - s1A) * -30}px, 0)`;
+          }
       }
       if (section2Ref.current) {
           section2Ref.current.style.opacity = s2A.toString();
           section2Ref.current.style.background = s2A > 0.5 ? '#000' : 'transparent';
-          const ty = (1 - s2A) * 60;
-          const sc = 0.95 + (s2A * 0.05);
-          section2Ref.current.style.transform = `translate3d(0, ${ty}px, 0) scale3d(${sc}, ${sc}, 1)`;
           section2Ref.current.style.visibility = s2A > 0 ? 'visible' : 'hidden';
+
+          if (t12 > 0 && t12 < 1) {
+            section2Ref.current.style.transform = `scale(${1.1 - t12 * 0.1})`;
+          } else if (t23 > 0 && t23 < 1) {
+            section2Ref.current.style.transform = `scale(${1 + t23 * 0.3})`;
+            section2Ref.current.style.filter = `blur(${t23 * 8}px)`;
+          } else {
+            const ty = (1 - s2A) * 60;
+            const sc = 0.95 + (s2A * 0.05);
+            section2Ref.current.style.transform = `translate3d(0, ${ty}px, 0) scale3d(${sc}, ${sc}, 1)`;
+          }
       }
       if (section3Ref.current) {
           section3Ref.current.style.opacity = s3A.toString();
-          const ty = (1 - s3A) * 40;
-          section3Ref.current.style.transform = `translate3d(0, ${ty}px, 0)`;
           section3Ref.current.style.visibility = s3A > 0 ? 'visible' : 'hidden';
+
+          if (t23 > 0 && t23 < 1) {
+            section3Ref.current.style.transform = `scale(${1.2 - t23 * 0.2})`;
+          } else if (t34 > 0 && t34 < 1) {
+            section3Ref.current.style.filter = `blur(${t34 * 12}px)`;
+            section3Ref.current.style.transform = `scale(${1 + t34 * 0.2})`;
+          } else {
+            const ty = (1 - s3A) * 40;
+            section3Ref.current.style.transform = `translate3d(0, ${ty}px, 0)`;
+          }
       }
       if (section4Ref.current) {
           section4Ref.current.style.opacity = s4A.toString();
@@ -418,18 +475,28 @@ export default function AboutPage() {
           section4Ref.current.style.visibility = s4A > 0 ? 'visible' : 'hidden';
           section4Ref.current.style.pointerEvents = s4A > 0 ? 'auto' : 'none';
           
-          const entryOffset = (1 - s4A) * 60;
-          const exitOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
-          section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
+          if (t34 > 0 && t34 < 1) {
+            section4Ref.current.style.transform = `translateY(${(1 - t34) * 60}px)`;
+          } else if (t45 > 0 && t45 < 1) {
+            section4Ref.current.style.transform = `translateY(${-(t45 * 80)}px)`;
+          } else {
+            const entryOffset = (1 - s4A) * 60;
+            const exitOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
+            section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
+          }
       }
       if (section5Ref.current) {
           section5Ref.current.style.opacity = s5A.toString();
           section5Ref.current.style.visibility = s5A > 0 ? 'visible' : 'hidden';
           section5Ref.current.style.pointerEvents = s5A > 0 ? 'auto' : 'none';
           
-          const entryOffset = (1 - s5A) * 40;
-          const exitOffset = sp > 0.94 ? (sp - 0.94) * -100 : 0;
-          section5Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
+          if (t45 > 0 && t45 < 1) {
+            section5Ref.current.style.transform = `translateY(${(1 - t45) * 40}px)`;
+          } else {
+            const entryOffset = (1 - s5A) * 40;
+            const exitOffset = sp > 0.94 ? (sp - 0.94) * -100 : 0;
+            section5Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
+          }
       }
 
       // --- SECTION 1: TUNNEL ---
@@ -801,6 +868,18 @@ export default function AboutPage() {
       {/* FIXED UI ELEMENTS */}
       <div className="depth-mask"></div>
       <div className="noise"></div>
+      <div 
+        ref={flashRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#ffffff',
+          opacity: 0,
+          zIndex: 100,
+          pointerEvents: 'none',
+          transition: 'opacity 0.05s ease',
+        }}
+      />
 
       {/* SECTION 1: TUNNEL */}
       <section 
