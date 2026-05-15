@@ -516,33 +516,34 @@ export default function AboutPage() {
           
           // Éveil IA scroll (Vertical 'scroll ref' style)
           if (declicTitleRef.current) {
-              const y = (1 - (Math.max(0, sp - 0.26) / 0.08)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.26) * 30) * (1 - Math.max(0, (sp - 0.34) * 30)));
-              declicTitleRef.current.style.transform = `translate3d(0, ${y}vh, 0)`;
+              // Extreme range for vertical migration
+              const y = (1 - (Math.max(0, sp - 0.24) / 0.12)) * 220 - 60;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.24) * 20) * (1 - Math.max(0, (sp - 0.34) * 20)));
+              declicTitleRef.current.style.transform = `translate3d(10vw, ${y}vh, 0)`;
               declicTitleRef.current.style.opacity = alpha.toString();
           }
           if (narrative1Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.34) / 0.08)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.34) * 30) * (1 - Math.max(0, (sp - 0.42) * 30)));
+              const y = (1 - (Math.max(0, sp - 0.30) / 0.12)) * 220 - 60;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.30) * 20) * (1 - Math.max(0, (sp - 0.40) * 20)));
               narrative1Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative1Ref.current.style.opacity = alpha.toString();
           }
           if (narrative2Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.42) / 0.08)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.42) * 30) * (1 - Math.max(0, (sp - 0.50) * 30)));
+              const y = (1 - (Math.max(0, sp - 0.38) / 0.12)) * 220 - 60;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.38) * 20) * (1 - Math.max(0, (sp - 0.48) * 20)));
               narrative2Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative2Ref.current.style.opacity = alpha.toString();
           }
           // Architecture block scroll (Vertical 'scroll ref' style)
           if (solutionTitleRef.current) {
-              const y = (1 - (Math.max(0, sp - 0.50) / 0.08)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.50) * 30) * (1 - Math.max(0, (sp - 0.58) * 30)));
-              solutionTitleRef.current.style.transform = `translate3d(0, ${y}vh, 0)`;
+              const y = (1 - (Math.max(0, sp - 0.46) / 0.12)) * 220 - 60;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.46) * 20) * (1 - Math.max(0, (sp - 0.56) * 20)));
+              solutionTitleRef.current.style.transform = `translate3d(10vw, ${y}vh, 0)`;
               solutionTitleRef.current.style.opacity = alpha.toString();
           }
           if (narrative3Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.58) / 0.08)) * 140 - 20;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.58) * 30) * (1 - Math.max(0, (sp - 0.66) * 30)));
+              const y = (1 - (Math.max(0, sp - 0.54) / 0.12)) * 220 - 60;
+              const alpha = Math.max(0, Math.min(1, (sp - 0.54) * 20) * (1 - Math.max(0, (sp - 0.64) * 20)));
               narrative3Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative3Ref.current.style.opacity = alpha.toString();
           }
@@ -908,7 +909,7 @@ export default function AboutPage() {
           ref={declicTitleRef}
           className="declic-title"
         >
-          ÉVEIL IA —
+          Éveil IA
         </div>
 
         {/* NARRATIVE PHRASE SECTION 2 */}
@@ -932,7 +933,7 @@ export default function AboutPage() {
           ref={solutionTitleRef}
           className="declic-title arch"
         >
-          Une infrastructure bâtie pour durer.<br/>
+          Une architecture conçue pour l'élite.<br/>
           Des agents qui travaillent quand vous dormez.<br/>
           Votre croissance, automatisée.
         </div>
