@@ -24,13 +24,13 @@ const MotionButton: FC<Props> = ({ label, classes }) => {
       )}
     >
       <span
-        className='circle bg-primary m-0 block h-10 w-10 overflow-hidden rounded-full duration-500 group-hover:w-full'
+        className='circle bg-primary m-0 block h-8 w-8 overflow-hidden rounded-full duration-500 group-hover:w-full'
         aria-hidden='true'
       ></span>
-      <div className='icon absolute top-1/2 left-3 translate-x-0 -translate-y-1/2 duration-500 group-hover:translate-x-[0.3rem]'>
-        <ArrowRight className='text-background size-5' />
+      <div className='icon absolute top-1/2 left-2.5 translate-x-0 -translate-y-1/2 duration-500 group-hover:translate-x-[0.3rem]'>
+        <ArrowRight className='text-background size-3.5' />
       </div>
-      <span className='button-text text-foreground group-hover:text-background font-manrope absolute top-2/4 left-2/4 ml-3 -translate-x-2/4 -translate-y-2/4 text-center text-base font-medium tracking-tight whitespace-nowrap duration-500'>
+      <span className='button-text text-foreground group-hover:text-background font-manrope absolute top-2/4 left-2/4 ml-2.5 -translate-x-2/4 -translate-y-2/4 text-center text-[13px] font-medium tracking-tight whitespace-nowrap duration-500'>
         {label}
       </span>
     </button>

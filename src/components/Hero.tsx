@@ -59,19 +59,11 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                     </p>
                                 </AnimatedGroup>
 
-                                <AnimatedGroup
-                                    variants={{
-                                        container: {
-                                            visible: {
-                                                transition: {
-                                                    staggerChildren: 0.1,
-                                                    delayChildren: 0.8,
-                                                },
-                                            },
-                                        },
-                                        ...transitionVariants,
-                                    }}
-                                    className="mt-12 flex flex-col items-center justify-center gap-8 md:flex-row">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1, duration: 1 }}
+                                    className="mt-12 flex flex-col items-center justify-center gap-10 md:flex-row">
                                     <div 
                                         onClick={() => onCTAClick?.("/pricing")}
                                         className="cursor-pointer"
@@ -88,7 +80,7 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                             }} 
                                         />
                                     </div>
-                                </AnimatedGroup>
+                                </motion.div>
                             </div>
                         </div>
                     }
