@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { motion } from "motion/react";
-import { cn } from "../../lib/utils";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface BeamPath {
   path: string;
@@ -65,7 +65,7 @@ export const PulseBeams = ({
   return (
     <div
       className={cn(
-        "w-full h-full relative flex items-center justify-center antialiased overflow-hidden",
+        "w-full h-screen relative flex items-center justify-center antialiased overflow-hidden",
         className
       )}
     >
@@ -85,21 +85,7 @@ export const PulseBeams = ({
   );
 };
 
-const SVGs = ({ 
-  beams, 
-  width, 
-  height, 
-  baseColor, 
-  accentColor, 
-  gradientColors 
-}: { 
-  beams: BeamPath[], 
-  width: number, 
-  height: number, 
-  baseColor: string, 
-  accentColor: string, 
-  gradientColors?: { start: string, middle: string, end: string } 
-}) => {
+const SVGs = ({ beams, width, height, baseColor, accentColor, gradientColors }: any) => {
   return (
     <svg
       width={width}
@@ -109,7 +95,7 @@ const SVGs = ({
       xmlns="http://www.w3.org/2000/svg"
       className="flex flex-shrink-0"
     >
-      {beams.map((beam, index) => (
+      {beams.map((beam: any, index: number) => (
         <React.Fragment key={index}>
           <path
             d={beam.path}
@@ -122,7 +108,7 @@ const SVGs = ({
             strokeWidth="2"
             strokeLinecap="round"
           />
-          {beam.connectionPoints?.map((point, pointIndex) => (
+          {beam.connectionPoints?.map((point: any, pointIndex: number) => (
             <circle
               key={`${index}-${pointIndex}`}
               cx={point.cx}
@@ -136,13 +122,13 @@ const SVGs = ({
       ))}
 
       <defs>
-        {beams.map((beam, index) => (
+        {beams.map((beam: any, index: number) => (
           <motion.linearGradient
             key={index}
             id={`grad${index}`}
             gradientUnits="userSpaceOnUse"
             initial={beam.gradientConfig.initial}
-            animate={beam.gradientConfig.animate as any}
+            animate={beam.gradientConfig.animate}
             transition={beam.gradientConfig.transition}
           >
             <GradientColors colors={gradientColors} />
@@ -157,7 +143,7 @@ const GradientColors = ({ colors = {
   start: "#18CCFC",
   middle: "#6344F5",
   end: "#AE48FF"
-} }) => {
+} }: any) => {
   return (
     <>
       <stop offset="0%" stopColor={colors.start} stopOpacity="0" />

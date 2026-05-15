@@ -4,7 +4,6 @@ import { FC } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
 function cn(...inputs: any[]) { return twMerge(clsx(inputs)) }
 
 interface Props {
@@ -13,24 +12,26 @@ interface Props {
   classes?: string
   animate?: boolean
   delay?: number
+  onClick?: () => void
 }
 
-const MotionButton: FC<Props> = ({ label, classes }) => {
+const MotionButton: FC<Props> = ({ label, classes, onClick }) => {
   return (
     <button
+      onClick={onClick}
       className={cn(
-        'bg-background group relative h-auto w-fit cursor-pointer rounded-full border-[none] p-1 outline-none',
+        'bg-background group relative h-auto w-50 cursor-pointer rounded-full border-[none] p-1 outline-none',
         classes
       )}
     >
       <span
-        className='circle bg-primary m-0 block h-8 w-8 overflow-hidden rounded-full duration-500 group-hover:w-full'
+        className='circle bg-primary m-0 block h-12 w-12 overflow-hidden rounded-full duration-500 group-hover:w-full'
         aria-hidden='true'
       ></span>
-      <div className='icon absolute top-1/2 left-2.5 translate-x-0 -translate-y-1/2 duration-500 group-hover:translate-x-[0.3rem]'>
-        <ArrowRight className='text-background size-3.5' />
+      <div className='icon absolute top-1/2 left-4 translate-x-0 -translate-y-1/2 duration-500 group-hover:translate-x-[0.4rem]'>
+        <ArrowRight className='text-background size-6' />
       </div>
-      <span className='button-text text-foreground group-hover:text-background font-manrope absolute top-2/4 left-2/4 ml-2.5 -translate-x-2/4 -translate-y-2/4 text-center text-[13px] font-medium tracking-tight whitespace-nowrap duration-500'>
+      <span className='button-text text-foreground group-hover:text-background font-manrope absolute top-2/4 left-2/4 ml-4 -translate-x-2/4 -translate-y-2/4 text-center text-lg font-medium tracking-tight whitespace-nowrap duration-500'>
         {label}
       </span>
     </button>

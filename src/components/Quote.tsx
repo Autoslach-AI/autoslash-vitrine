@@ -127,11 +127,18 @@ export default function Quote({ onCTAClick }: { onCTAClick?: (dest: string) => v
           </ul>
         </div>
 
-        <div className="mt-40 w-full flex justify-center">
-          <div onClick={() => onCTAClick?.("/about")} className="block cursor-pointer">
-            <MotionButton label="Découvrir" />
-          </div>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 1 }}
+          viewport={{ once: true }}
+          className="mt-40 w-full flex justify-center"
+        >
+          <MotionButton 
+            label="Découvrir" 
+            onClick={() => onCTAClick?.("/about")}
+          />
+        </motion.div>
       </div>
     </section>
   );

@@ -29,7 +29,7 @@ export default function AboutPage() {
   const narrative2Ref = useRef<HTMLDivElement>(null);
   const solutionTitleRef = useRef<HTMLDivElement>(null);
   const narrative3Ref = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
+  const ctaInnerRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
 
   const heroSceneRef = useRef<HTMLImageElement>(null);
@@ -400,7 +400,7 @@ export default function AboutPage() {
       const t12 = Math.max(0, Math.min(1, (sp - 0.18) / 0.07));
       const t23 = Math.max(0, Math.min(1, (sp - 0.48) / 0.07));
       const t34 = Math.max(0, Math.min(1, (sp - 0.68) / 0.07));
-      const t45 = Math.max(0, Math.min(1, (sp - 0.85) / 0.07));
+      const t45 = Math.max(0, Math.min(1, (sp - 0.88) / 0.06));
 
       if (flashRef.current && t12 === 0 && t23 === 0 && t34 === 0 && t45 === 0) {
         flashRef.current.style.opacity = '0';
@@ -410,8 +410,12 @@ export default function AboutPage() {
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
       const s2A = sp < 0.25 ? 0 : sp < 0.68 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.68) / 0.05);
       const s3A = sp < 0.68 ? 0 : sp < 0.82 ? Math.min(1, (sp - 0.68) / 0.05) : Math.max(0, 1 - (sp - 0.82) / 0.05);
-      const s4A = sp < 0.84 ? 0 : sp < 0.92 ? Math.min(1, (sp - 0.84) / 0.05) : Math.max(0, 1 - (sp - 0.92) / 0.05);
-      const s5A = sp < 0.93 ? 0 : sp < 0.98 ? Math.min(1, (sp - 0.93) / 0.04) : Math.max(0, 1 - (sp - 0.98) / 0.02);
+      const s4A = sp < 0.70 ? 0 
+        : sp < 0.75 
+          ? Math.min(1, (sp - 0.70) / 0.05)
+          : sp > 0.80
+            ? 0
+            : Math.max(0, 1 - (sp - 0.75) / 0.05);
 
       // Flash & Transition Effects
       if (flashRef.current) {
@@ -481,24 +485,39 @@ export default function AboutPage() {
           if (t34 > 0 && t34 < 1) {
             section4Ref.current.style.transform = `translateY(${(1 - t34) * 60}px)`;
           } else if (t45 > 0 && t45 < 1) {
-            section4Ref.current.style.transform = `translateY(${-(t45 * 80)}px)`;
+            section4Ref.current.style.transform = `translateY(${-(t45 * 120)}px)`;
           } else {
             const entryOffset = (1 - s4A) * 60;
             const exitOffset = sp > 0.82 ? (sp - 0.82) * -150 : 0;
             section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
           }
       }
+
+      const s5A = sp < 0.90 ? 0 
+        : sp < 0.96 
+          ? Math.min(1, (sp - 0.90) / 0.04) 
+          : Math.max(0, 1 - (sp - 0.96) / 0.04); 
+
       if (section5Ref.current) {
           section5Ref.current.style.opacity = s5A.toString();
           section5Ref.current.style.visibility = s5A > 0 ? 'visible' : 'hidden';
           section5Ref.current.style.pointerEvents = s5A > 0 ? 'auto' : 'none';
           
           if (t45 > 0 && t45 < 1) {
-            section5Ref.current.style.transform = `translateY(${(1 - t45) * 40}px)`;
+            section5Ref.current.style.transform = 'none';
+            if (ctaInnerRef.current) {
+              const scale = 0.5 + (t45 * 0.5);
+              const opacity = t45;
+              ctaInnerRef.current.style.transform = `scale3d(${scale}, ${scale}, 1) translateY(${(1 - t45) * 80}px)`;
+              ctaInnerRef.current.style.opacity = opacity.toString();
+            }
           } else {
-            const entryOffset = (1 - s5A) * 40;
-            const exitOffset = sp > 0.94 ? (sp - 0.94) * -100 : 0;
-            section5Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
+            const exitOffset = sp > 0.97 ? (sp - 0.97) * -2000 : 0;
+            section5Ref.current.style.transform = `translate3d(0, ${exitOffset}px, 0)`;
+            if (ctaInnerRef.current) {
+               ctaInnerRef.current.style.transform = 'none';
+               ctaInnerRef.current.style.opacity = '1';
+            }
           }
       }
 
@@ -546,12 +565,6 @@ export default function AboutPage() {
               const alpha = Math.max(0, Math.min(1, (sp - 0.54) * 20) * (1 - Math.max(0, (sp - 0.64) * 20)));
               narrative3Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
               narrative3Ref.current.style.opacity = alpha.toString();
-          }
-          if (ctaRef.current) {
-              const x = (100 - (Math.max(0, sp - 0.64) / 0.04) * 350);
-              const alpha = sp < 0.68 ? Math.max(0, Math.min(1, (sp - 0.64) * 100)) : 0;
-              ctaRef.current.style.transform = `translate3d(${x}vw, 0, 0)`;
-              ctaRef.current.style.opacity = alpha.toString();
           }
       }
       
@@ -952,14 +965,6 @@ export default function AboutPage() {
           <strong>Nos clients ne gèrent plus leur croissance — <b>ils la regardent se déployer</b> pendant qu'ils font ce qui compte vraiment.</strong>
         </div>
 
-        {/* MONUMENTAL CALL TO ACTION */}
-        <div 
-          ref={ctaRef}
-          className="horizontal-scroll-brand"
-        >
-          La Question N'Est Plus Si — C'Est Quand
-        </div>
-
         {/* ATMOSPHERIC BOTTOM BLUR */}
         <div className="bottom-blur-mask"></div>
       </section>
@@ -1009,7 +1014,7 @@ export default function AboutPage() {
           background: '#faf9f5'
         }}
       >
-        <HoverSlider className="min-h-screen flex flex-col justify-start pt-16 pb-12 px-6 md:px-24 bg-[#faf9f5] text-[#3d3929]">
+        <HoverSlider className="min-h-screen flex flex-col justify-center pt-32 pb-32 px-6 md:px-24 bg-[#faf9f5] text-[#3d3929]">
           <div className="flex flex-wrap items-center justify-between gap-12 md:gap-20 max-w-7xl mx-auto w-full">
             <div className="flex flex-col space-y-2 md:space-y-3 flex-1 min-w-[300px]">
               {[
@@ -1058,11 +1063,12 @@ export default function AboutPage() {
         className="section-sticky"
         style={{ 
           zIndex: 45,
-          background: '#000'
+          background: '#000',
+          isolation: 'isolate',
         }}
       >
-        <div className="h-full w-full flex items-center justify-center">
-          <ActionCta />
+        <div ref={ctaInnerRef} className="h-full w-full flex items-center justify-center">
+          <ActionCta onCTAClick={(dest) => window.location.href = dest} />
         </div>
       </section>
 

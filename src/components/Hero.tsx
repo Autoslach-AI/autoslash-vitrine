@@ -3,9 +3,7 @@
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Button } from './ui/button'
-import MotionButton from './ui/motion-button'
 import { AnimatedGroup } from './ui/animated-group'
-import { Badge } from './ui/badge'
 import { motion } from 'motion/react'
 import { ContainerScroll } from './ui/container-scroll-animation'
 import { SplineSceneBasic } from './SplineHeroContent'
@@ -53,34 +51,47 @@ export default function Hero({ onCTAClick }: { onCTAClick?: (dest: string) => vo
                                     <h1 className="mt-20 max-w-5xl mx-auto text-balance text-6xl md:text-7xl xl:text-[5.5rem] text-white font-medium leading-[1.1]">
                                         L'IA qui travaille, vous qui dominez.
                                     </h1>
-                                    <h2 className="sr-only">Solutions d'automation intelligentes</h2>
                                     <p className="mx-auto mt-8 max-w-xl text-balance text-lg md:text-xl text-white/60">
                                         Des agents IA entraînés sur vos données. Livrés en moins de 7 jours. Opérationnels 24h/24.
                                     </p>
                                 </AnimatedGroup>
 
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 1, duration: 1 }}
-                                    className="mt-12 flex flex-col items-center justify-center gap-10 md:flex-row">
-                                    <div 
-                                        onClick={() => onCTAClick?.("/pricing")}
-                                        className="cursor-pointer"
-                                    >
-                                        <MotionButton label="Démarrer" />
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Badge 
-                                            text="Voir la démo" 
-                                            onClick={(e) => {
-                                                e.preventDefault();
+                                <AnimatedGroup
+                                    variants={{
+                                        container: {
+                                            visible: {
+                                                transition: {
+                                                    staggerChildren: 0.1,
+                                                    delayChildren: 0.8,
+                                                },
+                                            },
+                                        },
+                                        ...transitionVariants,
+                                    }}
+                                    className="mt-12 flex flex-col items-center justify-center gap-8 md:flex-row">
+                                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                        <Button
+                                            key={1}
+                                            onClick={() => onCTAClick?.("/pricing")}
+                                            size="lg"
+                                            className="rounded-xl px-8 py-7 text-base bg-white text-black hover:bg-neutral-100 shadow-xl shadow-white/10 border-none">
+                                            <span className="text-nowrap font-bold">Démarrer</span>
+                                        </Button>
+                                    </motion.div>
+                                    <motion.div whileHover={{ scale: 1.05, x: 5 }} whileTap={{ scale: 0.95 }}>
+                                        <Button
+                                            key={2}
+                                            onClick={() => {
                                                 const el = document.getElementById('video-section');
                                                 if (el) el.scrollIntoView({ behavior: 'smooth' });
-                                            }} 
-                                        />
-                                    </div>
-                                </motion.div>
+                                            }}
+                                            variant="ghost"
+                                            className="text-white hover:bg-white/5 hover:text-white text-base font-medium group transition-all">
+                                            <span className="text-nowrap">Voir la démo</span>
+                                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                        </Button>
+                                    </motion.div>
+                                </AnimatedGroup>
                             </div>
                         </div>
                     }

@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { PulseBeams } from "./ui/pulse-beams";
-import { RainbowButton } from "./ui/rainbow-borders-button";
 import { ArrowRight } from "lucide-react";
 
 const beams = [
@@ -154,9 +153,9 @@ const beams = [
 ];
 
 const gradientColors = {
-  start: "#18CCFC",
-  middle: "#6344F5",
-  end: "#AE48FF"
+  start: "#F27D26", // Adjusted to brand orange
+  middle: "#FF9D4D",
+  end: "#F27D26"
 };
 
 export default function DiscoverSection({ onCTAClick }: { onCTAClick?: (dest: string) => void }) {
@@ -178,36 +177,23 @@ export default function DiscoverSection({ onCTAClick }: { onCTAClick?: (dest: st
               gradientColors={gradientColors}
               className="bg-transparent"
             >
-              <motion.div
-                animate={{
-                  scale: [1, 1.08, 1, 1.08, 1],
-                  boxShadow: [
-                    "0 0 0px rgba(255,255,255,0)",
-                    "0 0 25px rgba(255,255,255,0.4)",
-                    "0 0 5px rgba(255,255,255,0.1)",
-                    "0 0 25px rgba(255,255,255,0.4)",
-                    "0 0 0px rgba(255,255,255,0)"
-                  ]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  times: [0, 0.15, 0.3, 0.45, 1],
-                }}
-                className="rounded-xl overflow-visible group"
-              >
-                <div onClick={() => onCTAClick?.("/pricing")} className="block outline-none cursor-pointer">
-                  <RainbowButton className="px-10 py-5">
-                    <>
-                      <span className="text-white text-xl md:text-2xl font-black tracking-tight">
-                        Passer à l'action
-                      </span>
-                      <ArrowRight className="text-white w-6 h-6 ml-2 transition-transform group-hover:translate-x-1" />
-                    </>
-                  </RainbowButton>
-                </div>
-              </motion.div>
+              <div className="flex flex-col items-center z-50">
+                <motion.button 
+                  onClick={() => onCTAClick?.("/pricing")}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-neutral-900 w-[320px] md:w-[480px] h-[120px] md:h-[160px] no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-6 text-white inline-block border border-white/10"
+                >
+                  <span className="absolute inset-0 overflow-hidden rounded-full">
+                    <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(242,125,38,0.4)_0%,rgba(242,125,38,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  </span>
+                  <div className="relative flex justify-center w-full h-full items-center z-10 rounded-full bg-zinc-950/80 backdrop-blur-sm px-4 ring-1 ring-white/10">
+                    <span className="text-xl md:text-4xl font-black uppercase tracking-normal inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-white/80 to-white">
+                      Passer à l'action
+                    </span>
+                  </div>
+                </motion.button>
+              </div>
             </PulseBeams>
         </div>
       </div>
