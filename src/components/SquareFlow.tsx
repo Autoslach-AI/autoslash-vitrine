@@ -27,6 +27,7 @@ export default function SquareFlow() {
       });
       gsap.set(phraseRef.current, { opacity: 0, y: 30 });
       gsap.set(titleRef.current, { opacity: 1 });
+      gsap.set("#svg-stage", { transformOrigin: "center center" });
 
       const mainTl = gsap.timeline({
         scrollTrigger: {
@@ -49,7 +50,15 @@ export default function SquareFlow() {
         .to(phraseRef.current, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.6)
         
         // 4. Final fade out of the phrase only
-        .to(phraseRef.current, { opacity: 0, duration: 0.3, ease: "power2.in" }, 0.95);
+        .to(phraseRef.current, { opacity: 0, duration: 0.3, ease: "power2.in" }, 0.9)
+        
+        // 5. Zoom effect: The square grows to fill the screen
+        .to("#svg-stage", { 
+          scale: 15, 
+          opacity: 0, 
+          duration: 0.5, 
+          ease: "power2.in" 
+        }, 0.95);
 
       // Mouse interaction for the Title (Floating effect)
       const handleMouseMove = (e: MouseEvent) => {

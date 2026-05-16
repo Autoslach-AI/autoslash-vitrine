@@ -5,6 +5,7 @@ import { Zap, TrendingUp, Shield, Instagram, MessageCircle, Youtube } from "luci
 import { ScreenTimeCard } from "./ui/screen-time-card";
 import { AnimatedCounter } from "./ui/animated-counter";
 import SecurityCard from "./ui/security-card";
+import { BlurFade } from "./ui/blur-fade";
 
 const benefits = [
   {
@@ -105,25 +106,20 @@ export default function Benefits() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             AVANTAGES
           </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ delay: 0.1, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-4xl md:text-6xl font-bold tracking-tight mb-8 text-white max-w-4xl mx-auto leading-[1.1]"
-          >
-            Dominez votre marché avec une infrastructure intelligente.
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ delay: 0.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-light"
-          >
-            Ne soyez pas seulement un utilisateur d'IA. Soyez le propriétaire de votre propre système.
-          </motion.p>
+          
+          <BlurFade delay={0.1} inView once={false}>
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-8 text-white max-w-4xl mx-auto leading-[1.1]">
+              Dominez votre marché avec une infrastructure intelligente.
+            </h2>
+          </BlurFade>
+          
+          <BlurFade delay={0.2} inView once={false}>
+            <p className="text-white/40 text-lg md:text-xl max-w-2xl mx-auto font-light">
+              Ne soyez pas seulement un utilisateur d'IA. Soyez le propriétaire de votre propre système.
+            </p>
+          </BlurFade>
         </div>
+
 
         <div className="flex flex-col md:flex-row gap-0 mt-24 relative">
           {benefits.map((benefit, index) => (

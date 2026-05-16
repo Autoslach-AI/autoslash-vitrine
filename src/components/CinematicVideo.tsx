@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useScroll, useTransform, useInView } from "motion/react";
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
 import { cn } from "../lib/utils";
+import HeroText from "./ui/hero-shutter-text";
 
 export default function CinematicVideo() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,6 +26,15 @@ export default function CinematicVideo() {
   });
 
   const videoY = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
+  
+  // Custom zoom entry for SERVICE - text
+  const zoomScroll = useScroll({
+    target: containerRef,
+    offset: ["start end", "start center"]
+  });
+  
+  const heroScale = useTransform(zoomScroll.scrollYProgress, [0, 1], [0.1, 1]);
+  const heroOpacity = useTransform(zoomScroll.scrollYProgress, [0, 0.3, 1], [0, 1, 1]);
   
   useEffect(() => {
     if (videoRef.current && isActivated) {
@@ -163,14 +173,15 @@ export default function CinematicVideo() {
             {/* Background Texture/Grain for extra appeal */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             
-            <motion.h2 
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 1 }}
-              className="text-[12vw] md:text-[15vw] font-black text-white tracking-[-0.05em] leading-none mb-4 select-none"
+            <motion.div
+              style={{ scale: heroScale, opacity: heroOpacity }}
+              className="flex flex-col items-center justify-center"
             >
-              SERVICE <span className="text-white/20">-</span>
-            </motion.h2>
+              <HeroText 
+                text="SERVICE -" 
+                className="mb-4 select-none bg-transparent h-auto w-auto" 
+              />
+            </motion.div>
 
             <motion.button
               whileHover={{ scale: 1.1 }}

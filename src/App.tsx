@@ -5,12 +5,11 @@
 
 import * as React from "react";
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Header } from "./components/Header";
 import { BackButton } from "./components/ui/back-button";
 import Footer from "./components/Footer";
 import LanguageSwitcher from "./components/LanguageSwitcher";
-import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 // Lazy loading page components
@@ -33,7 +32,6 @@ const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
 const ProfilePage = lazy(() => import("./pages/profile/index"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { checkOnboardingStatus } from "./lib/supabase-onboarding";
 

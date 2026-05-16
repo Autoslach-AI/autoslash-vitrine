@@ -475,7 +475,37 @@
   @apply px-6 py-2.5 bg-[#2a6df5] text-white font-black text-[12px] uppercase tracking-widest rounded-lg hover:bg-white hover:text-black transition-all shadow-xl shadow-[#2a6df5]/20 active:scale-95;
 }
 
-@keyframes cta-pulse-tunnel {
-  0%, 100% { border-color: rgba(0, 170, 255, 0); }
-  50% { border-color: rgba(0, 170, 255, 0.9); }
+
+/* ── SECTION TRANSITIONS AUTOSLASH ── */
+
+.as-section {
+  will-change: transform, opacity;
+  transition: 
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* HERO — sortie vers le haut */
+[data-anim="hero"].as-hidden {
+  opacity: 0;
+  transform: translateY(-40px) scale(0.98);
+  filter: blur(4px);
+}
+[data-anim="hero"].as-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+}
+
+/* QUOTE — entrée dramatique depuis le bas */
+[data-anim="quote"].as-hidden {
+  opacity: 0;
+  transform: translateY(80px) scale(0.96);
+  filter: blur(6px);
+}
+[data-anim="quote"].as-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
 }

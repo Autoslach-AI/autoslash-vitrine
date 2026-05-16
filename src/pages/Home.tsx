@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import Hero from "../components/Hero";
@@ -16,6 +16,27 @@ export default function Home() {
   const { openSignIn } = useClerk();
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
+
+  const observeSection = useCallback(
+    (node: HTMLDivElement | null, animClass: string) => {
+      if (!node) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            node.classList.add('as-visible');
+            node.classList.remove('as-hidden');
+          } else {
+            node.classList.remove('as-visible');
+            node.classList.add('as-hidden');
+          }
+        },
+        { threshold: 0.12 }
+      );
+      node.dataset.anim = animClass;
+      observer.observe(node);
+    },
+    []
+  );
 
   // Trigger A — Timer automatique
   useEffect(() => {
@@ -42,10 +63,20 @@ export default function Home() {
   return (
     <>
       {/* 1 Hero : L'entrée principale avec l'appel à l'action. */}
-      <Hero onCTAClick={handleCTAClick} />
+      <div
+        ref={(node) => observeSection(node, 'hero')}
+        className="as-section as-visible"
+      >
+        <Hero onCTAClick={handleCTAClick} />
+      </div>
 
       {/* 2 A propos : presentation d'autoslach */}
-      <Quote onCTAClick={handleCTAClick} />
+      <div
+        ref={(node) => observeSection(node, 'quote')}
+        className="as-section as-hidden"
+      >
+        <Quote onCTAClick={handleCTAClick} />
+      </div>
 
       {/* 3 Benefits : Présentation des avantages. */}
       <Benefits />
