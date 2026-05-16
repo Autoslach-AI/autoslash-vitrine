@@ -27,15 +27,6 @@ export default function CinematicVideo() {
 
   const videoY = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
   
-  // Custom zoom entry for SERVICE - text
-  const zoomScroll = useScroll({
-    target: containerRef,
-    offset: ["start end", "start center"]
-  });
-  
-  const heroScale = useTransform(zoomScroll.scrollYProgress, [0, 1], [0.1, 1]);
-  const heroOpacity = useTransform(zoomScroll.scrollYProgress, [0, 0.3, 1], [0, 1, 1]);
-  
   useEffect(() => {
     if (videoRef.current && isActivated) {
       if (isInView && isPlaying) {
@@ -173,15 +164,10 @@ export default function CinematicVideo() {
             {/* Background Texture/Grain for extra appeal */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             
-            <motion.div
-              style={{ scale: heroScale, opacity: heroOpacity }}
-              className="flex flex-col items-center justify-center"
-            >
-              <HeroText 
-                text="SERVICE -" 
-                className="mb-4 select-none bg-transparent h-auto w-auto" 
-              />
-            </motion.div>
+            <HeroText 
+              text="SERVICE -" 
+              className="mb-4 select-none bg-transparent h-auto w-auto" 
+            />
 
             <motion.button
               whileHover={{ scale: 1.1 }}

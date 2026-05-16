@@ -54,11 +54,11 @@ export default function SquareFlow() {
         
         // 5. Zoom effect: The square grows to fill the screen
         .to("#svg-stage", { 
-          scale: 15, 
+          scale: 12, 
           opacity: 0, 
-          duration: 0.5, 
+          duration: 0.6, 
           ease: "power2.in" 
-        }, 0.95);
+        }, 1.05);
 
       // Mouse interaction for the Title (Floating effect)
       const handleMouseMove = (e: MouseEvent) => {
