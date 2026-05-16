@@ -41,14 +41,31 @@ export default function Home() {
 
   return (
     <>
+      {/* 1 Hero : L'entrée principale avec l'appel à l'action. */}
       <Hero onCTAClick={handleCTAClick} />
+
+      {/* 2 A propos : presentation d'autoslach */}
       <Quote onCTAClick={handleCTAClick} />
+
+      {/* 3 Benefits : Présentation des avantages. */}
       <Benefits />
+
+      {/* 4 SquareFlow : Un flux visuel/animé. */}
       <SquareFlow />
+
+      {/* 5 presentation service : Une section vidéo de prestation de service */}
       <CinematicVideo />
+
+      {/* 6 partenaire : scroll chaque carte un témoignage client */}
       <ProductsPlatform onCTAClick={handleCTAClick} />
+
+      {/* 7 ProjectShowcase : Vitrine des projets livré */}
       <ProjectShowcase onCTAClick={handleCTAClick} />
+
+      {/* 8 ProcessSection : Détail du processus ("The Path to Automation"). */}
       <ProcessSection onCTAClick={handleCTAClick} />
+
+      {/* 9 Conclusion sur le potentiel humain (CTA) */}
       <DiscoverSection onCTAClick={handleCTAClick} />
     </>
   );
