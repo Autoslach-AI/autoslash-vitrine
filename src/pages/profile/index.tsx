@@ -187,9 +187,9 @@ export default function ProfilePage() {
               overflow: 'hidden',
             }}
           >
-            {profile?.photo_url ? (
+            { (profile?.photo_url || user?.imageUrl) ? (
               <img
-                src={profile.photo_url}
+                src={profile?.photo_url || user?.imageUrl}
                 alt="avatar"
                 style={{
                   width: '100%',
@@ -315,6 +315,7 @@ export default function ProfilePage() {
                   profile={profile}
                   onSave={fetchData}
                   userId={user?.id || ''}
+                  userImageUrl={user?.imageUrl || ''}
                 />
               )}
  
@@ -839,7 +840,7 @@ function FavoritesPage({ favorites, navigate }: any) {
 }
  
 // ─── PROFILE EDIT PAGE ────────────────────────────────────────────────────────
-function ProfileEditPage({ profile, onSave, userId }: any) {
+function ProfileEditPage({ profile, onSave, userId, userImageUrl }: any) {
   const [form, setForm] = useState({
     full_name: profile?.full_name || '',
     email: profile?.email || '',
@@ -992,9 +993,9 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 700,
               }}>
-                {form.photo_url ? (
+                {(form.photo_url || userImageUrl) ? (
                   <img
-                    src={form.photo_url}
+                    src={form.photo_url || userImageUrl}
                     alt="aperçu"
                     style={{
                       width: '100%',
