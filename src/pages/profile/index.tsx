@@ -156,13 +156,6 @@ export default function ProfilePage() {
           onClick={() => navigate('/')}
         >
           <span style={S.logoText}>Autoslash AI</span>
-          <span style={{
-            fontSize: '0.7rem',
-            color: '#AAAAAA',
-            letterSpacing: '0.02em',
-          }}>
-            ← Accueil
-          </span>
         </div>
 
         {/* User */}
@@ -858,6 +851,41 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase
+        .storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase
+        .storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      
+      setForm({ 
+        ...form, 
+        photo_url: data.publicUrl 
+      });
+    } catch (err) {
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
  
   const handleSave = async () => {
     setSaving(true);
@@ -913,8 +941,8 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
               paddingTop: '0.75rem',
             }}>
               <div style={{
-                width: 64,
-                height: 64,
+                width: 72,
+                height: 72,
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
@@ -923,7 +951,7 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.5rem',
+                fontSize: '1.8rem',
                 color: '#AAAAAA',
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 700,
@@ -938,27 +966,60 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
                       objectFit: 'cover',
                       display: 'block',
                     }}
-                    onError={e => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
                   />
                 ) : (
-                  form.full_name?.charAt(0)?.toUpperCase() || '?'
+                  form.full_name?.charAt(0)
+                    ?.toUpperCase() || '?'
                 )}
               </div>
-              <input
-                type="url"
-                placeholder="https://... URL de votre photo"
-                value={form.photo_url || ''}
-                onChange={(e) => setForm({ 
-                  ...form, 
-                  photo_url: e.target.value 
-                })}
-                style={{
-                  ...S.formInput,
-                  flex: 1,
-                }}
-              />
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                flex: 1,
+              }}>
+                <label
+                  htmlFor="photo-upload"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.6rem 1.25rem',
+                    background: '#0A0A0A',
+                    color: '#FFFFFF',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.05em',
+                    cursor: uploading 
+                      ? 'not-allowed' : 'pointer',
+                    opacity: uploading ? 0.6 : 1,
+                    width: 'fit-content',
+                    fontFamily: 
+                      "'Plus Jakarta Sans', sans-serif",
+                  }}
+                >
+                  {uploading 
+                    ? 'Envoi en cours...' 
+                    : 'Choisir une photo'}
+                </label>
+                <input
+                  id="photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+                <p style={{
+                  fontSize: '0.7rem',
+                  color: '#AAAAAA',
+                  margin: 0,
+                }}>
+                  JPG, PNG ou WEBP · Max 2MB
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1046,13 +1107,11 @@ const S: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   sidebarLogo: {
-    padding: '1rem 1.25rem',
+    padding: '1.25rem 1.25rem 1rem',
     borderBottom: '1px solid #F0F0F0',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: '52px',
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
