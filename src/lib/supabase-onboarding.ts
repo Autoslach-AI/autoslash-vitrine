@@ -33,7 +33,7 @@ export async function completeOnboarding(
       onboarding_session_id: sessionId,
       onboarding_completed: true,
       first_time: false,
-      created_at: new Date().toISOString()
+      updated_at: new Date().toISOString()
     });
 
   if (profileError) {
@@ -64,17 +64,27 @@ export async function completeOnboarding(
   return { success: true };
 }
 
-export async function checkOnboardingStatus(clerkUserId: string) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('onboarding_completed')
-    .eq('id', clerkUserId)
-    .single();
+export async function checkOnboardingStatus(
+  clerkUserId: string
+) {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('onboarding_completed')
+      .eq('id', clerkUserId)
+      .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-    console.error('Error checking onboarding status:', error);
+    if (error) {
+      console.error('checkOnboarding error:', error);
+      return false;
+    }
+
+    // Si pas de profil → pas encore onboardé
+    if (!data) return false;
+
+    // NULL ou false → pas onboardé
+    return data.onboarding_completed === true;
+  } catch {
     return false;
   }
-
-  return data?.onboarding_completed || false;
 }
