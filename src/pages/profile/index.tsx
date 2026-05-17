@@ -93,12 +93,12 @@ export default function ProfilePage() {
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
   const [loading, setLoading] = useState(true);
- 
+
   useEffect(() => {
     if (!user) return;
     fetchData();
   }, [user]);
- 
+
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
@@ -121,12 +121,12 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
- 
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
- 
+
   // Determine user status from latest enterprise
   const latestEnterprise = enterprises[0];
   const currentStatus = (latestEnterprise?.status || 'PROSPECT') as UserStatus;
@@ -134,45 +134,66 @@ export default function ProfilePage() {
   const isClient = statusCfg.isClient;
   const firstName = profile?.full_name?.split(' ')[0] || user?.firstName || 'vous';
   const pkg = packageConfig[profile?.package_interest || 'STARTUP'];
- 
+
   const joinDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('fr-FR', {
         day: 'numeric', month: 'long', year: 'numeric',
       })
     : '—';
- 
+
   const todayStr = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
- 
+
   return (
     <div style={S.root}>
- 
+
       {/* ══ SIDEBAR ══════════════════════════════════════════════════════════ */}
       <aside style={S.sidebar}>
         {/* Logo */}
-        <div style={S.sidebarLogo} onClick={() => navigate('/')}>
+        <div 
+          style={S.sidebarLogo} 
+          onClick={() => navigate('/')}
+        >
           <span style={S.logoText}>Autoslash AI</span>
           <span style={{
-            ...S.logoBack,
-            fontSize: '0.65rem',
+            fontSize: '0.7rem',
             color: '#AAAAAA',
-            display: 'block',
+            letterSpacing: '0.02em',
           }}>
             ← Accueil
           </span>
         </div>
- 
+
         {/* User */}
         <div style={S.sidebarUser}>
-          <div 
-            style={{
-              ...S.avatar,
-              overflow: 'hidden',
-              cursor: 'pointer',
-            }}
+          <div
             onClick={() => setActivePage('profile')}
             title="Modifier mon profil"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: '#0A0A0A',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              flexShrink: 0,
+              cursor: 'pointer',
+              overflow: 'hidden',
+              border: '2px solid transparent',
+              transition: 'border-color 0.2s',
+            }}
+            onMouseEnter={e => 
+              (e.currentTarget.style.borderColor = '#0A0A0A')
+            }
+            onMouseLeave={e => 
+              (e.currentTarget.style.borderColor = 'transparent')
+            }
           >
             {profile?.photo_url ? (
               <img
@@ -181,9 +202,9 @@ export default function ProfilePage() {
                 style={{
                   width: '100%',
                   height: '100%',
-                  borderRadius: '50%',
                   objectFit: 'cover',
                   display: 'block',
+                  borderRadius: '50%',
                 }}
               />
             ) : (
@@ -878,51 +899,65 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
           ))}
 
           {/* Photo de profil */}
-          <div style={{ ...S.formGroup, gridColumn: 'span 2' }}>
-            <label style={S.formLabel}>PHOTO DE PROFIL</label>
+          <div style={{ 
+            ...S.formGroup, 
+            gridColumn: 'span 2' 
+          }}>
+            <label style={S.formLabel}>
+              PHOTO DE PROFIL
+            </label>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '1rem',
-              paddingTop: '0.5rem'
+              gap: '1.5rem',
+              paddingTop: '0.75rem',
             }}>
-              {form.photo_url ? (
-                <img 
-                  src={form.photo_url}
-                  alt="Photo de profil"
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '1px solid #E5E5E5'
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: '#F0F0F0',
-                  border: '1px solid #E5E5E5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem',
-                  color: '#AAAAAA'
-                }}>
-                  {form.full_name?.charAt(0) || '?'}
-                </div>
-              )}
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                flexShrink: 0,
+                background: '#F0F0F0',
+                border: '1px solid #E5E5E5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                color: '#AAAAAA',
+                fontFamily: "'Playfair Display', serif",
+                fontWeight: 700,
+              }}>
+                {form.photo_url ? (
+                  <img
+                    src={form.photo_url}
+                    alt="aperçu"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                    onError={e => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  form.full_name?.charAt(0)?.toUpperCase() || '?'
+                )}
+              </div>
               <input
                 type="url"
-                placeholder="https://... (URL de votre photo)"
+                placeholder="https://... URL de votre photo"
                 value={form.photo_url || ''}
                 onChange={(e) => setForm({ 
                   ...form, 
                   photo_url: e.target.value 
                 })}
-                style={S.formInput}
+                style={{
+                  ...S.formInput,
+                  flex: 1,
+                }}
               />
             </div>
           </div>
@@ -1011,14 +1046,13 @@ const S: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   sidebarLogo: {
-    padding: '1.25rem 1.25rem 1rem',
+    padding: '1rem 1.25rem',
     borderBottom: '1px solid #F0F0F0',
     cursor: 'pointer',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '0.2rem',
-    position: 'relative',
-    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: '52px',
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
