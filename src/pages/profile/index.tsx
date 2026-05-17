@@ -155,7 +155,18 @@ export default function ProfilePage() {
           style={S.sidebarLogo} 
           onClick={() => navigate('/')}
         >
-          <span style={S.logoText}>Autoslash AI</span>
+          <span style={S.logoText}>
+            Autoslash AI
+          </span>
+          <span style={{
+            fontSize: '0.65rem',
+            color: '#CCCCCC',
+            letterSpacing: '0.05em',
+            display: 'block',
+            marginTop: '0.15rem',
+          }}>
+            ← Accueil
+          </span>
         </div>
 
         {/* User */}
@@ -178,15 +189,7 @@ export default function ProfilePage() {
               flexShrink: 0,
               cursor: 'pointer',
               overflow: 'hidden',
-              border: '2px solid transparent',
-              transition: 'border-color 0.2s',
             }}
-            onMouseEnter={e => 
-              (e.currentTarget.style.borderColor = '#0A0A0A')
-            }
-            onMouseLeave={e => 
-              (e.currentTarget.style.borderColor = 'transparent')
-            }
           >
             {profile?.photo_url ? (
               <img
@@ -889,7 +892,17 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
  
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase.from('user_profiles').update(form).eq('id', userId);
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        full_name: form.full_name,
+        email: form.email,
+        phone: form.phone,
+        company: form.company,
+        sector: form.sector,
+        photo_url: form.photo_url,
+      })
+      .eq('id', userId);
     setSaving(false);
     if (!error) {
       setSaved(true);
@@ -1111,7 +1124,8 @@ const S: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #F0F0F0',
     cursor: 'pointer',
     display: 'flex',
-    alignItems: 'center',
+    flexDirection: 'column',
+    gap: '0.15rem',
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
