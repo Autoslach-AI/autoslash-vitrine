@@ -161,6 +161,7 @@ export default function CinematicVideo() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
           >
+            
             {/* Background Texture/Grain for extra appeal */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             

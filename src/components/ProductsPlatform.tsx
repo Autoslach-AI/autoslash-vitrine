@@ -96,7 +96,7 @@ const cardData = [
   {
     id: "02",
     title: "Stratégie et Design",
-    description: "Nous définissons l'identité de votre marque à travers des recherches approfondies et un design centré sur l'utilisateur, créant des expériences mémorables.",
+    description: "je baucoup aprecié les solutoin que autoslach propose ",
     bentoImages: [
       {
         type: "visual",
