@@ -155,12 +155,11 @@ export default function ProfilePage() {
           style={S.sidebarLogo} 
           onClick={() => navigate('/')}
         >
-          <span style={S.logoText}>
-            Autoslash AI
-          </span>
+          <span style={S.logoText}>Autoslash AI</span>
           <span style={{
-            fontSize: '0.65rem',
+            fontSize: '0.62rem',
             color: '#CCCCCC',
+            letterSpacing: '0.03em',
           }}>
             ← Accueil
           </span>
@@ -1144,14 +1143,14 @@ const S: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   sidebarLogo: {
-    padding: '0.75rem 1.25rem',
+    padding: '1rem 1.25rem 0.75rem',
     borderBottom: '1px solid #F0F0F0',
     cursor: 'pointer',
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 48,
+    flexDirection: 'column',
+    gap: '0.15rem',
     flexShrink: 0,
+    minHeight: 'auto',
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
