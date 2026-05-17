@@ -160,7 +160,7 @@ function AppLayout() {
       "min-h-screen flex flex-col transition-colors duration-500",
       isOnboardingPage ? "bg-black" : isWhiteBgPage ? "bg-white" : "bg-brand-bg text-white"
     )}>
-      {!isOnboardingPage && <Header />}
+      {!isDashboardPage && <Header />}
       <AuthStatusRedirect />
       <BackButton />
       <main className="flex-grow">

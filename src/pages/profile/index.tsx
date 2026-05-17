@@ -160,14 +160,15 @@ export default function ProfilePage() {
         <div style={S.sidebarUser}>
           <div style={S.avatar}>
             {profile?.photo_url ? (
-              <img 
+              <img
                 src={profile.photo_url}
                 alt="avatar"
                 style={{
                   width: '100%',
                   height: '100%',
                   borderRadius: '50%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  display: 'block',
                 }}
               />
             ) : (
