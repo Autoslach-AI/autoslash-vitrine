@@ -2,7 +2,7 @@
 import * as React from "react";
 import { motion, useMotionValue, AnimatePresence } from "motion/react";
 import { Linkedin, Github, Dribbble, Figma, User } from "lucide-react";
-import { useAuth, UserButton, SignInButton } from "@clerk/clerk-react";
+import { useAuth, SignInButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { checkOnboardingStatus } from "../../lib/supabase-onboarding";
 
@@ -258,15 +258,17 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 				<div className="flex items-center gap-4 pointer-events-auto">
 					{auth ? (
 						isSignedIn ? (
-							<>
-								<UserButton afterSignOutUrl="/" />
-								<button 
-									onClick={handleProfileClick}
-									className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}
-								>
-									<User size={20} />
-								</button>
-							</>
+							<button 
+								onClick={handleProfileClick}
+								className="p-3 rounded-full border transition-all duration-300 bg-white/5 border-white/10 text-white hover:bg-white hover:text-black overflow-hidden flex items-center justify-center"
+								style={{ 
+									width: 44, 
+									height: 44,
+									padding: 0
+								}}
+							>
+								<User size={20} />
+							</button>
 						) : (
 							<SignInButton mode="modal" forceRedirectUrl="/onboarding">
 								<button className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}>

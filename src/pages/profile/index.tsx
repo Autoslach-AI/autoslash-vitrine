@@ -153,12 +153,27 @@ export default function ProfilePage() {
         {/* Logo */}
         <div style={S.sidebarLogo} onClick={() => navigate('/')}>
           <span style={S.logoText}>Autoslash AI</span>
-          <span style={S.logoBack}>← Retour</span>
+          <span style={{
+            ...S.logoBack,
+            fontSize: '0.65rem',
+            color: '#AAAAAA',
+            display: 'block',
+          }}>
+            ← Accueil
+          </span>
         </div>
  
         {/* User */}
         <div style={S.sidebarUser}>
-          <div style={S.avatar}>
+          <div 
+            style={{
+              ...S.avatar,
+              overflow: 'hidden',
+              cursor: 'pointer',
+            }}
+            onClick={() => setActivePage('profile')}
+            title="Modifier mon profil"
+          >
             {profile?.photo_url ? (
               <img
                 src={profile.photo_url}
@@ -1002,6 +1017,8 @@ const S: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.2rem',
+    position: 'relative',
+    zIndex: 1,
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
