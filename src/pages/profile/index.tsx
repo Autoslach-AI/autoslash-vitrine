@@ -879,10 +879,18 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
         .from('avatars')
         .getPublicUrl(fileName);
       
-      setForm({ 
-        ...form, 
-        photo_url: data.publicUrl 
-      });
+      const newUrl = data.publicUrl;
+      setForm(prev => ({ 
+        ...prev, 
+        photo_url: newUrl 
+      }));
+
+      // Sauvegarder immédiatement en Supabase
+      await supabase
+        .from('user_profiles')
+        .update({ photo_url: newUrl })
+        .eq('id', userId);
+
     } catch (err) {
       console.error('Upload error:', err);
     } finally {
@@ -900,7 +908,7 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
         phone: form.phone,
         company: form.company,
         sector: form.sector,
-        photo_url: form.photo_url,
+        photo_url: form.photo_url || null,
       })
       .eq('id', userId);
     setSaving(false);

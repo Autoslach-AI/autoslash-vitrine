@@ -2,7 +2,7 @@
 import * as React from "react";
 import { motion, useMotionValue, AnimatePresence } from "motion/react";
 import { Linkedin, Github, Dribbble, Figma, User } from "lucide-react";
-import { useAuth, SignInButton } from "@clerk/clerk-react";
+import { useAuth, SignInButton, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { checkOnboardingStatus } from "../../lib/supabase-onboarding";
 
@@ -238,8 +238,13 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 	const isSignedIn = auth?.isSignedIn;
 	const userId = auth?.userId;
 
+	const { openSignIn } = useClerk();
 	const handleProfileClick = async () => {
-		if (isSignedIn && userId) {
+		if (!isSignedIn) {
+			openSignIn();
+			return;
+		}
+		if (userId) {
 			const completed = await checkOnboardingStatus(userId);
 			if (completed) {
 				navigate("/profile"); 
