@@ -29,6 +29,7 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
+const ProfilePage = lazy(() => import("./pages/profile/index"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -40,48 +41,6 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-
-  return null;
-}
-
-function AuthStatusRedirect() {
-  const hasClerkKey = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-  if (!hasClerkKey) return null;
-  return <AuthStatusRedirectInternal />;
-}
-
-function AuthStatusRedirectInternal() {
-  const { isSignedIn, isLoaded } = useAuth();
-  const { user } = useUser();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn && user) {
-      // Don't redirect if we are already on onboarding
-      if (location.pathname === "/onboarding") return;
-
-      // Only force onboarding if we are on a dashboard/package page
-      const isProtectedPath = location.pathname.startsWith("/startup-package") || 
-                              location.pathname.startsWith("/architecture") ||
-                              location.pathname.startsWith("/business-package") ||
-                              location.pathname.startsWith("/business-details") ||
-                              location.pathname.startsWith("/enterprise-package") ||
-                              location.pathname.startsWith("/enterprise-details") ||
-                              location.pathname === "/client-projects";
-
-      if (!isProtectedPath) return;
-
-      const checkStatus = async () => {
-        const completed = await checkOnboardingStatus(user.id);
-        if (!completed) {
-          navigate("/onboarding");
-        }
-      };
-      
-      checkStatus();
-    }
-  }, [isLoaded, isSignedIn, user, location.pathname, navigate]);
 
   return null;
 }
@@ -148,9 +107,10 @@ function AppLayout() {
                           location.pathname === "/client-projects" ||
                           location.pathname === "/agents-demo" ||
                           location.pathname === "/contact" ||
+                          location.pathname === "/profile" ||
                           isOnboardingPage;
 
-  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan";
+  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/profile";
   
   return (
     <div className={cn(
@@ -158,7 +118,6 @@ function AppLayout() {
       isOnboardingPage ? "bg-black" : isWhiteBgPage ? "bg-white" : "bg-brand-bg text-white"
     )}>
       {!isDashboardPage && <Header />}
-      <AuthStatusRedirect />
       <BackButton />
       <main className="flex-grow">
         <Suspense fallback={<div style={{background:'#000000', width:'100vw', height:'100vh'}} />}>
@@ -179,6 +138,7 @@ function AppLayout() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/agents-demo" element={<AgentsDemo />} />
             <Route path="/ruixen-demo" element={<RuixenDemo />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </Suspense>
       </main>

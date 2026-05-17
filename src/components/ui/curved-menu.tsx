@@ -247,7 +247,7 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 		if (userId) {
 			const completed = await checkOnboardingStatus(userId);
 			if (completed) {
-				navigate("/"); 
+				navigate("/profile"); 
 			} else {
 				navigate("/onboarding");
 			}
