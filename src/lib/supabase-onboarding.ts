@@ -42,23 +42,33 @@ export async function completeOnboarding(
   }
 
   // 2. Create enterprise lead (prospect)
-  const { error: enterpriseError } = await supabase
+  // Vérifier si un prospect existe déjà
+  const { data: existing } = await supabase
     .from('enterprises')
-    .insert({
-      name: data.company || fullName,
-      email: data.email,
-      phone: data.phone || null,
-      sector: data.sector,
-      message: `${data.intention} | ${data.need}`,
-      package_type: data.recommendedPackage,
-      onboarding_session_id: sessionId,
-      status: 'PROSPECT',
-      is_test: false,
-      region: region
-    });
+    .select('id')
+    .eq('email', data.email)
+    .eq('status', 'PROSPECT')
+    .maybeSingle();
 
-  if (enterpriseError) {
-    console.error('Error creating enterprise lead:', enterpriseError);
+  if (!existing) {
+    const { error: enterpriseError } = await supabase
+      .from('enterprises')
+      .insert({
+        name: data.company || fullName,
+        email: data.email,
+        phone: data.phone || null,
+        sector: data.sector,
+        message: `${data.intention} | ${data.need}`,
+        package_type: data.recommendedPackage,
+        status: 'PROSPECT',
+        is_test: false,
+        region: region,
+        onboarding_session_id: sessionId
+      });
+
+    if (enterpriseError) {
+      console.error('Error creating enterprise lead:', enterpriseError);
+    }
   }
 
   return { success: true };

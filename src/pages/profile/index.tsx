@@ -23,6 +23,7 @@ interface UserProfile {
   package_interest?: string;
   onboarding_completed?: boolean;
   created_at?: string;
+  photo_url?: string;
 }
  
 interface Enterprise {
@@ -157,7 +158,22 @@ export default function ProfilePage() {
  
         {/* User */}
         <div style={S.sidebarUser}>
-          <div style={S.avatar}>{firstName.charAt(0).toUpperCase()}</div>
+          <div style={S.avatar}>
+            {profile?.photo_url ? (
+              <img 
+                src={profile.photo_url}
+                alt="avatar"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            ) : (
+              firstName.charAt(0).toUpperCase()
+            )}
+          </div>
           <div style={S.userInfo}>
             <p style={S.userName}>{profile?.full_name || firstName}</p>
             <p style={S.userEmail}>
@@ -801,6 +817,7 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
     phone: profile?.phone || '',
     company: profile?.company || '',
     sector: profile?.sector || '',
+    photo_url: profile?.photo_url || '',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -843,6 +860,56 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
               />
             </div>
           ))}
+
+          {/* Photo de profil */}
+          <div style={{ ...S.formGroup, gridColumn: 'span 2' }}>
+            <label style={S.formLabel}>PHOTO DE PROFIL</label>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1rem',
+              paddingTop: '0.5rem'
+            }}>
+              {form.photo_url ? (
+                <img 
+                  src={form.photo_url}
+                  alt="Photo de profil"
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1px solid #E5E5E5'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: '#F0F0F0',
+                  border: '1px solid #E5E5E5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem',
+                  color: '#AAAAAA'
+                }}>
+                  {form.full_name?.charAt(0) || '?'}
+                </div>
+              )}
+              <input
+                type="url"
+                placeholder="https://... (URL de votre photo)"
+                value={form.photo_url || ''}
+                onChange={(e) => setForm({ 
+                  ...form, 
+                  photo_url: e.target.value 
+                })}
+                style={S.formInput}
+              />
+            </div>
+          </div>
         </div>
         <div style={S.profileFormFooter}>
           <button
