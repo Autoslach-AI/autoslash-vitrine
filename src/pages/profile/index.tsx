@@ -161,9 +161,6 @@ export default function ProfilePage() {
           <span style={{
             fontSize: '0.65rem',
             color: '#CCCCCC',
-            letterSpacing: '0.05em',
-            display: 'block',
-            marginTop: '0.15rem',
           }}>
             ← Accueil
           </span>
@@ -864,35 +861,54 @@ function ProfileEditPage({ profile, onSave, userId }: any) {
     
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}.${fileExt}`;
+      const fileExt = file.name
+        .split('.').pop();
+      const fileName = 
+        `${userId}-${Date.now()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase
-        .storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
+      const { error: uploadError } = 
+        await supabase.storage
+          .from('avatars')
+          .upload(fileName, file, { 
+            upsert: true,
+            cacheControl: '3600',
+          });
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload:', uploadError);
+        return;
+      }
       
-      const { data } = supabase
-        .storage
-        .from('avatars')
-        .getPublicUrl(fileName);
+      const { data: urlData } = 
+        supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
       
-      const newUrl = data.publicUrl;
+      const publicUrl = urlData.publicUrl;
+      
+      // Mettre à jour le state local
       setForm(prev => ({ 
         ...prev, 
-        photo_url: newUrl 
+        photo_url: publicUrl,
       }));
-
+      
       // Sauvegarder immédiatement en Supabase
-      await supabase
-        .from('user_profiles')
-        .update({ photo_url: newUrl })
-        .eq('id', userId);
-
+      const { error: updateError } = 
+        await supabase
+          .from('user_profiles')
+          .update({ photo_url: publicUrl })
+          .eq('id', userId);
+      
+      if (updateError) {
+        console.error('Update:', updateError);
+        return;
+      }
+      
+      // Rafraîchir le profil parent
+      onSave();
+      
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error('Photo error:', err);
     } finally {
       setUploading(false);
     }
@@ -1128,12 +1144,14 @@ const S: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   sidebarLogo: {
-    padding: '1.25rem 1.25rem 1rem',
+    padding: '0.75rem 1.25rem',
     borderBottom: '1px solid #F0F0F0',
     cursor: 'pointer',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '0.15rem',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 48,
+    flexShrink: 0,
   },
   logoText: {
     fontFamily: "'Playfair Display', serif",
