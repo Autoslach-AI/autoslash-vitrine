@@ -122,7 +122,6 @@ export default function ProfilePage() {
 
   const sidebarItems = [
     { label: 'Informations', icon: <User size={16} /> },
-    { label: 'Mon Projet', icon: <Briefcase size={16} /> },
   ];
 
   const EditableField = ({ 
@@ -292,6 +291,32 @@ export default function ProfilePage() {
                   </div>
                 </section>
 
+                <section className="bg-white rounded-xl border 
+                  border-black/[0.03] shadow-sm p-8 space-y-8">
+                  <h2 className="text-lg font-bold border-b pb-6">
+                    Mon Projet
+                  </h2>
+                  <div className="grid grid-cols-2 gap-8">
+                    {[
+                      { label: 'Intention', value: profile?.intention },
+                      { label: 'Secteur', value: profile?.sector },
+                      { label: 'Entreprise', value: profile?.company },
+                      { label: 'Téléphone', value: profile?.phone },
+                    ].map((item, i) => (
+                      <div key={i} className="space-y-2.5">
+                        <label className="text-xs font-bold uppercase 
+                          tracking-wider text-black/40">{item.label}</label>
+                        <Input
+                          defaultValue={item.value || '—'}
+                          readOnly
+                          className="h-11 bg-gray-50/30 border-black/5 
+                                     font-jakarta"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
                 {/* Bouton Sauvegarder */}
                 <div className="flex items-center justify-end gap-4">
                   {saved && (
@@ -330,42 +355,7 @@ export default function ProfilePage() {
               </>
             )}
 
-            {/* TAB 2 — Mon Projet */}
-            {activeTab === 'Mon Projet' && (
-              <>
-                <section className="bg-white rounded-xl border 
-                  border-black/[0.03] shadow-sm p-8 space-y-8">
-                  <h2 className="text-lg font-bold border-b pb-6">
-                    Mon Projet
-                  </h2>
-                  <div className="grid grid-cols-2 gap-8">
-                    <EditableField fieldKey="intention" label="Intention" />
-                    <EditableField fieldKey="sector" label="Secteur" />
-                  </div>
-                </section>
 
-                {/* Bouton Sauvegarder */}
-                <div className="flex items-center justify-end gap-4">
-                  {saved && (
-                    <span className="flex items-center gap-2 text-green-600 
-                                     text-sm font-medium">
-                      <Check size={16} /> Modifications sauvegardées
-                    </span>
-                  )}
-                  <Button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-black text-white hover:bg-black/80 
-                               font-bold text-xs tracking-widest px-8 h-11"
-                  >
-                    {saving ? (
-                      <div className="w-4 h-4 border-2 border-white/30 
-                                      border-t-white rounded-full animate-spin" />
-                    ) : 'SAUVEGARDER'}
-                  </Button>
-                </div>
-              </>
-            )}
 
           </div>
         </div>
