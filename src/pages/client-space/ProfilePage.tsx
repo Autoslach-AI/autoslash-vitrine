@@ -14,9 +14,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState('Informations');
   const [editingField, setEditingField] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -81,31 +81,36 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (confirmText !== 'CONFIRMER') return;
-    
-    setIsDeleting(true);
+    if (deleteConfirmText !== 'CONFIRMER') return;
+    setDeleting(true);
+
     try {
-      // 1. Delete favorites
-      await supabase.from('user_favorites').delete()
-        .eq('user_id', user!.id);
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            clerkUserId: user!.id,
+            userEmail: user!.primaryEmailAddress?.emailAddress,
+          }),
+        }
+      );
 
-      // 2. Delete profile
-      await supabase.from('user_profiles').delete()
-        .eq('id', user!.id);
+      const result = await res.json();
 
-      // 3. Delete enterprise (only if PROSPECT)
-      await supabase.from('enterprises').delete()
-        .eq('email', user!.primaryEmailAddress?.emailAddress)
-        .eq('status', 'PROSPECT');
-
-      // 4. Delete Clerk account
-      await user!.delete();
-
-      // 5. Redirect
-      navigate('/');
-    } catch (error) {
-      console.error("Erreur lors de la suppression du compte:", error);
-      setIsDeleting(false);
+      if (result.success) {
+        navigate('/');
+      } else {
+        console.error('Delete failed:', result.error);
+        setDeleting(false);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      setDeleting(false);
     }
   };
 
@@ -367,49 +372,79 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Modal de Confirmation de Suppression */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-bold mb-4">Confirmation finale</h2>
-            <p className="text-sm text-black/60 leading-relaxed mb-6">
-              Êtes-vous sûr de vouloir supprimer votre compte ? Tapez <span className="font-bold text-black">CONFIRMER</span> ci-dessous pour continuer.
-            </p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm 
+                        flex items-center justify-center z-50 px-4">
+          <div className="bg-[#1a1a1a] rounded-2xl p-8 w-full max-w-md 
+                          space-y-6 border border-white/10 shadow-2xl">
             
-            <div className="space-y-4">
-              <Input
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder="Tapez CONFIRMER"
-                className="h-12 border-black/10 focus:border-red-500 focus:ring-red-500/10 font-jakarta"
-              />
-              
-              <p className="text-[11px] font-bold text-red-500 flex items-center gap-2">
-                <span>⚠</span> Cette action est irréversible.
-              </p>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setConfirmText('');
-                  }}
-                  className="flex-1 h-12 font-bold text-xs tracking-widest border-black/5 hover:bg-gray-50"
-                >
-                  RETOUR
-                </Button>
-                <Button
-                  onClick={handleDeleteAccount}
-                  disabled={confirmText !== 'CONFIRMER' || isDeleting}
-                  className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold text-xs tracking-widest"
-                >
-                  {isDeleting ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : 'SUPPRIMER'}
-                </Button>
-              </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-bold text-lg">
+                Confirmation finale
+              </h3>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
             </div>
+
+            <p className="text-white/70 text-sm font-jakarta leading-relaxed">
+              Êtes-vous sûr de vouloir supprimer votre compte ?
+              Tapez <span className="text-white font-bold">CONFIRMER</span> 
+              ci-dessous pour continuer.
+            </p>
+
+            <input
+              type="text"
+              placeholder="Tapez CONFIRMER"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="w-full h-11 px-4 rounded-lg bg-transparent 
+                         border border-white/20 text-white font-jakarta 
+                         text-sm outline-none focus:border-white/50 
+                         transition-colors placeholder:text-white/20"
+            />
+
+            <p className="text-red-400 text-xs font-jakarta flex 
+                          items-center gap-2">
+              ⚠ Cette action est irréversible.
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                className="flex-1 h-11 rounded-lg border border-white/20 
+                           text-white/60 text-sm font-bold font-jakarta 
+                           hover:bg-white/5 transition-all"
+              >
+                Retour
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'CONFIRMER' || deleting}
+                className={`flex-1 h-11 rounded-lg text-sm font-bold 
+                  font-jakarta transition-all
+                  ${deleteConfirmText === 'CONFIRMER'
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-red-500/20 text-red-400/40 cursor-not-allowed'
+                  }`}
+              >
+                {deleting ? (
+                  <div className="w-4 h-4 border-2 border-white/30 
+                                 border-t-white rounded-full animate-spin 
+                                 mx-auto" />
+                ) : 'Supprimer le compte'}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
