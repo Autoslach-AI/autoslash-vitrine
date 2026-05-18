@@ -45,9 +45,10 @@ export async function completeOnboarding(
   // Vérifier si un prospect existe déjà
   const { data: existing } = await supabase
     .from('enterprises')
-    .select('id')
+    .select('enterprise_id')
     .eq('email', data.email)
     .eq('status', 'PROSPECT')
+    .eq('email', data.email)
     .maybeSingle();
 
   if (!existing) {
