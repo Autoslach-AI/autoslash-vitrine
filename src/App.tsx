@@ -29,6 +29,7 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
+const ClientSpacePage = lazy(() => import("./pages/client-space/index"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -137,6 +138,7 @@ function AppLayout() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/agents-demo" element={<AgentsDemo />} />
             <Route path="/ruixen-demo" element={<RuixenDemo />} />
+            <Route path="/client-space" element={<ClientSpacePage />} />
           </Routes>
         </Suspense>
       </main>
