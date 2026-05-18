@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { 
@@ -58,8 +59,8 @@ export default function Dashboard() {
             </div>
 
             <div className="mt-auto">
-              <div className="flex items-center gap-2 px-2 py-3 border-t overflow-hidden">
-                <div className="h-8 w-8 rounded-full overflow-hidden bg-black/5 flex-shrink-0">
+              <Link to="/client-space/profil" className="flex items-center gap-2 px-2 py-3 border-t overflow-hidden hover:bg-black/5 transition-colors cursor-pointer group">
+                <div className="h-8 w-8 rounded-full overflow-hidden bg-black/5 flex-shrink-0 group-hover:ring-2 group-hover:ring-black/10 transition-all">
                   <img 
                     src={user?.imageUrl || "https://avatar.vercel.sh/arham"} 
                     alt="User" 
@@ -71,7 +72,7 @@ export default function Dashboard() {
                   <p className="text-[9px] text-black/40 truncate">{user?.primaryEmailAddress?.emailAddress || ""}</p>
                 </div>
                 <MoreVertical size={14} className="text-black/40" />
-              </div>
+              </Link>
             </div>
           </div>
         </aside>

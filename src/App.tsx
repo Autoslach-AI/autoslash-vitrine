@@ -30,6 +30,7 @@ const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ProfilePage = lazy(() => import("./pages/client-space/ProfilePage"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -108,6 +109,7 @@ function AppLayout() {
                           location.pathname === "/agents-demo" ||
                           location.pathname === "/contact" ||
                           location.pathname === "/dashboard" ||
+                          location.pathname.startsWith("/client-space") ||
                           isOnboardingPage;
 
   const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard";
@@ -127,6 +129,7 @@ function AppLayout() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/client-space/profil" element={<ProfilePage />} />
             <Route path="/startup-package" element={<StartupPackagePage />} />
             <Route path="/architecture/:id" element={<ArchitectureDetail />} />
             <Route path="/business-package" element={<BusinessPackagePage />} />
