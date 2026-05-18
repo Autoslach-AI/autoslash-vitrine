@@ -85,22 +85,26 @@ export default function ProfilePage() {
     setDeleting(true);
 
     try {
-      // 1. Supprimer toutes les données Supabase via fonction SQL
+      // Capture les infos AVANT toute suppression
+      const userId = user!.id;
+      const userEmail = user!.primaryEmailAddress?.emailAddress || '';
+
+      // 1. Supabase EN PREMIER via fonction SQL
       const { error } = await supabase.rpc('delete_user_data', {
-        p_user_id: user!.id,
-        p_email: user!.primaryEmailAddress?.emailAddress,
+        p_user_id: userId,
+        p_email: userEmail,
       });
 
       if (error) {
-        console.error('Supabase deletion error:', error);
+        console.error('Supabase error:', error);
         setDeleting(false);
         return;
       }
 
-      // 2. Supprimer le compte Clerk
+      // 2. Clerk EN DERNIER
       await user!.delete();
 
-      // 3. Rediriger vers accueil
+      // 3. Redirection
       navigate('/');
 
     } catch (err) {
