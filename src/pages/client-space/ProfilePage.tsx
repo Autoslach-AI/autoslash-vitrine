@@ -85,29 +85,24 @@ export default function ProfilePage() {
     setDeleting(true);
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            clerkUserId: user!.id,
-            userEmail: user!.primaryEmailAddress?.emailAddress,
-          }),
-        }
-      );
+      // 1. Supprimer toutes les données Supabase via fonction SQL
+      const { error } = await supabase.rpc('delete_user_data', {
+        p_user_id: user!.id,
+        p_email: user!.primaryEmailAddress?.emailAddress,
+      });
 
-      const result = await res.json();
-
-      if (result.success) {
-        navigate('/');
-      } else {
-        console.error('Delete failed:', result.error);
+      if (error) {
+        console.error('Supabase deletion error:', error);
         setDeleting(false);
+        return;
       }
+
+      // 2. Supprimer le compte Clerk
+      await user!.delete();
+
+      // 3. Rediriger vers accueil
+      navigate('/');
+
     } catch (err) {
       console.error('Delete error:', err);
       setDeleting(false);
