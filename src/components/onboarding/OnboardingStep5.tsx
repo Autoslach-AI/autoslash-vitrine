@@ -57,7 +57,7 @@ export default function OnboardingStep5({ data, onSubmit, onBack, isSubmitting }
   };
 
   const handleGoToProfile = () => {
-    onSubmit('/profile');
+    onSubmit('/dashboard');
   };
 
   return (

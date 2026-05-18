@@ -29,6 +29,7 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const AgentsDemo = lazy(() => import("./pages/AgentsDemo"));
 const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -106,10 +107,10 @@ function AppLayout() {
                           location.pathname === "/client-projects" ||
                           location.pathname === "/agents-demo" ||
                           location.pathname === "/contact" ||
-                          location.pathname === "/profile" ||
+                          location.pathname === "/dashboard" ||
                           isOnboardingPage;
 
-  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/profile";
+  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard";
   
   return (
     <div className={cn(
@@ -125,6 +126,7 @@ function AppLayout() {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/startup-package" element={<StartupPackagePage />} />
             <Route path="/architecture/:id" element={<ArchitectureDetail />} />
             <Route path="/business-package" element={<BusinessPackagePage />} />

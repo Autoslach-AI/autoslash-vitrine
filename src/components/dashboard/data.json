@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1",
+    "name": "Alex Rivera",
+    "email": "alex.rivera@example.com",
+    "plan": "Enterprise",
+    "status": "Active",
+    "billing": "Monthly",
+    "signupDate": "2024-03-15T10:00:00Z"
+  },
+  {
+    "id": "2",
+    "name": "Jordan Smith",
+    "email": "jordan.smith@example.com",
+    "plan": "Business",
+    "status": "Pending",
+    "billing": "Annual",
+    "signupDate": "2024-03-16T14:30:00Z"
+  },
+  {
+    "id": "3",
+    "name": "Taylor Wong",
+    "email": "taylor.wong@example.com",
+    "plan": "Startup",
+    "status": "Active",
+    "billing": "Monthly",
+    "signupDate": "2024-03-17T09:15:00Z"
+  }
+]
