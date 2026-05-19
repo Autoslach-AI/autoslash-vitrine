@@ -255,7 +255,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-3xl font-bold">Mon Profil</h1>
           <button
-            onClick={() => navigate('/client-space')}
+            onClick={() => navigate('/dashboard')}
             className="text-xs font-bold text-black/40 
                        hover:text-black transition-colors"
           >

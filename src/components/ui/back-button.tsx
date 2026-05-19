@@ -6,7 +6,10 @@ import { motion, AnimatePresence } from "motion/react";
 export const BackButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isHome = location.pathname === "/";
+  const isHome = location.pathname === "/" || 
+                 location.pathname === "/onboarding" ||
+                 location.pathname === "/dashboard" ||
+                 location.pathname.startsWith("/client-space");
 
   return (
     <AnimatePresence>
@@ -16,7 +19,16 @@ export const BackButton = () => {
           animate={{ opacity: 0.6, x: 0 }}
           whileHover={{ opacity: 1, scale: 1.05 }}
           exit={{ opacity: 0, x: -10 }}
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            const noBackRoutes = ['/onboarding', '/dashboard', '/client-space'];
+            const prev = window.history.state?.idx > 0 ? -1 : '/';
+            if (noBackRoutes.some(r => 
+              document.referrer.includes(r))) {
+              navigate('/');
+            } else {
+              navigate(-1);
+            }
+          }}
           className="fixed top-24 left-4 md:left-6 z-[9999] flex items-center gap-3 text-white/40 transition-all group pointer-events-auto cursor-pointer"
           title="Retour"
         >
