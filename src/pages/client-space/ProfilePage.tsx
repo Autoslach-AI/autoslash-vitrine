@@ -309,17 +309,16 @@ export default function ProfilePage() {
                       onClick={() => setShowPhotoModal(false)}
                     >
                       <div 
-                        className="relative"
+                        className="flex flex-col items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <img
                           src={photoUrl || user?.imageUrl}
                           alt="Avatar"
-                          className="w-48 h-48 rounded-full object-cover 
+                          className="w-[320px] h-[320px] md:w-[500px] md:h-[500px] rounded-full object-cover 
                                      border-4 border-white/20 shadow-2xl"
                         />
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 
-                                        flex gap-3 mt-4">
+                        <div className="flex gap-3 mt-10">
                           <button
                             onClick={() => {
                               setShowPhotoModal(false);
