@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, Gift, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, 
          CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 
-export function MetricCards() {
+export function MetricCards({ userId }: { userId?: string }) {
   const [totalUsers, setTotalUsers] = useState(0);
   const [prospects, setProspects] = useState(0);
   const [clients, setClients] = useState(0);
   const [lastUpdated, setLastUpdated] = useState('');
   const [clientsCeMois, setClientsCeMois] = useState(0);
+  const [referralCode, setReferralCode] = useState('');
+  const [totalGains, setTotalGains] = useState(0);
+  const [totalFilleuls, setTotalFilleuls] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const fetchStats = async () => {
     const { data } = await supabase
@@ -44,11 +48,51 @@ export function MetricCards() {
     }));
   };
 
+  const generateCode = (userId: string) => {
+    const suffix = userId.slice(-6).toUpperCase();
+    return `AS-REF-${suffix}`;
+  };
+
+  const fetchReferral = async (userId: string) => {
+    const code = generateCode(userId);
+    
+    const { data: existing } = await supabase
+      .from('referral_codes')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase
+        .from('referral_codes')
+        .insert({
+          user_id: userId,
+          code: code,
+          total_gains: 0,
+          total_filleuls: 0
+        });
+      setReferralCode(code);
+      setTotalGains(0);
+      setTotalFilleuls(0);
+    } else {
+      setReferralCode(existing.code);
+      setTotalGains(existing.total_gains || 0);
+      setTotalFilleuls(existing.total_filleuls || 0);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(referralCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   useEffect(() => {
     fetchStats();
+    if (userId) fetchReferral(userId);
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [userId]);
 
   return (
     <div className="grid grid-cols-1 gap-4 
@@ -157,6 +201,54 @@ export function MetricCards() {
           <p className="text-muted-foreground text-sm">
             Prospects convertis en clients
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <div className="flex size-7 items-center justify-center 
+                            rounded-lg border bg-muted 
+                            text-muted-foreground">
+              <Gift className="size-4" />
+            </div>
+          </CardTitle>
+          <CardDescription>Mon code parrainage</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          
+          <div className="flex items-center gap-2">
+            <div className="font-medium text-3xl tabular-nums 
+                            leading-none tracking-tight">
+              {totalGains.toLocaleString('fr-FR')}
+            </div>
+            <span className="text-sm text-muted-foreground">FCFA</span>
+          </div>
+
+          <p className="text-muted-foreground text-sm">
+            {totalFilleuls} filleul{totalFilleuls > 1 ? 's' : ''} actif{totalFilleuls > 1 ? 's' : ''}
+          </p>
+
+          <div className="flex items-center gap-2 mt-1 
+                          bg-black/5 rounded-lg px-3 py-2">
+            <span className="text-xs font-mono font-bold flex-1">
+              {referralCode || '...'}
+            </span>
+            <button
+              onClick={handleCopy}
+              className="text-black/40 hover:text-black transition-colors pointer-events-auto cursor-pointer"
+            >
+              {copied 
+                ? <Check className="size-3.5 text-green-500" /> 
+                : <Copy className="size-3.5" />
+              }
+            </button>
+          </div>
+
+          <p className="text-muted-foreground text-xs">
+            Parrainez → jusqu'à 25,000 FCFA/vente
+          </p>
+
         </CardContent>
       </Card>
 
