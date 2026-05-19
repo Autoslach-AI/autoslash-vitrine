@@ -364,7 +364,7 @@ export default function Scene1Intro({ onComplete }: Scene1Props) {
           <motion.div
             animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent"
+            className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent"   
           />
         </motion.div>
       </div>

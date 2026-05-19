@@ -130,6 +130,36 @@ export function MetricCards() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <div className="flex size-7 items-center justify-center 
+                            rounded-lg border bg-muted 
+                            text-muted-foreground">
+              <TrendingUp className="size-4" />
+            </div>
+          </CardTitle>
+          <CardDescription>Taux de conversion</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="font-medium text-3xl tabular-nums 
+                            leading-none tracking-tight">
+              {totalUsers > 0 
+                ? Math.round((clients / totalUsers) * 100) 
+                : 0}%
+            </div>
+            <Badge>
+              <TrendingUp className="size-3" />
+              En hausse
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Prospects convertis en clients
+          </p>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
