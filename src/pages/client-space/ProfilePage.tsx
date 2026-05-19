@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -300,14 +301,70 @@ export default function ProfilePage() {
                     Informations personnelles
                   </h2>
 
-                  {/* Photo */}
+                  {/* Modal agrandissement photo */}
+                  {showPhotoModal && (
+                    <div 
+                      className="fixed inset-0 bg-black/80 backdrop-blur-sm 
+                                 flex items-center justify-center z-50"
+                      onClick={() => setShowPhotoModal(false)}
+                    >
+                      <div 
+                        className="relative"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <img
+                          src={photoUrl || user?.imageUrl}
+                          alt="Avatar"
+                          className="w-48 h-48 rounded-full object-cover 
+                                     border-4 border-white/20 shadow-2xl"
+                        />
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 
+                                        flex gap-3 mt-4">
+                          <button
+                            onClick={() => {
+                              setShowPhotoModal(false);
+                              fileInputRef.current?.click();
+                            }}
+                            className="px-4 py-2 bg-white text-black text-xs 
+                                       font-bold font-jakarta rounded-full 
+                                       hover:bg-white/90 transition-all shadow-lg
+                                       whitespace-nowrap"
+                          >
+                            Changer la photo
+                          </button>
+                          <button
+                            onClick={() => setShowPhotoModal(false)}
+                            className="px-4 py-2 bg-white/10 text-white text-xs 
+                                       font-bold font-jakarta rounded-full 
+                                       hover:bg-white/20 transition-all shadow-lg
+                                       border border-white/20"
+                          >
+                            Fermer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Photo + bouton */}
                   <div className="flex items-center gap-5">
-                    <div className="relative">
+                    <div 
+                      className="relative cursor-pointer group"
+                      onClick={() => setShowPhotoModal(true)}
+                    >
                       <img
                         src={photoUrl || user?.imageUrl}
                         alt="Avatar"
-                        className="h-16 w-16 rounded-full object-cover border border-black/5"
+                        className="h-16 w-16 rounded-full object-cover 
+                                   border border-black/5 transition-all
+                                   group-hover:brightness-75"
                       />
+                      <div className="absolute inset-0 rounded-full 
+                                      flex items-center justify-center 
+                                      opacity-0 group-hover:opacity-100 
+                                      transition-opacity">
+                        <Pencil size={16} className="text-white" />
+                      </div>
                       {uploadingPhoto && (
                         <div className="absolute inset-0 rounded-full bg-black/40 
                                         flex items-center justify-center">
@@ -324,18 +381,11 @@ export default function ProfilePage() {
                         className="hidden"
                         onChange={handlePhotoUpload}
                       />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingPhoto}
-                        className="bg-gray-50 border-black/10 hover:bg-black/5 
-                                   transition-colors"
-                      >
-                        {uploadingPhoto ? 'Upload...' : 'Modifier'}
-                      </Button>
-                      <p className="text-xs text-black/30 mt-1 font-jakarta">
-                        JPG, PNG, WebP — max 2MB
+                      <p className="text-sm font-bold text-black">
+                        {profile?.full_name || user?.fullName}
+                      </p>
+                      <p className="text-xs text-black/40 mt-0.5 font-jakarta">
+                        {user?.primaryEmailAddress?.emailAddress}
                       </p>
                     </div>
                   </div>

@@ -5,6 +5,7 @@ import { Linkedin, Github, Dribbble, Figma, User } from "lucide-react";
 import { useAuth, SignInButton, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { checkOnboardingStatus } from "../../lib/supabase-onboarding";
+import { supabase } from '../../lib/supabaseClient';
 
 interface iNavItem {
 	heading: string;
@@ -237,6 +238,19 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 	const navigate = useNavigate();
 	const isSignedIn = auth?.isSignedIn;
 	const userId = auth?.userId;
+	const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+
+	React.useEffect(() => {
+		if (!userId) return;
+		supabase
+			.from('user_profiles')
+			.select('photo_url')
+			.eq('id', userId)
+			.single()
+			.then(({ data }) => {
+				if (data?.photo_url) setAvatarUrl(data.photo_url);
+			});
+	}, [userId]);
 
 	const { openSignIn } = useClerk();
 	const handleProfileClick = async () => {
@@ -265,14 +279,18 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 						isSignedIn ? (
 							<button 
 								onClick={handleProfileClick}
-								className="p-3 rounded-full border transition-all duration-300 bg-white/5 border-white/10 text-white hover:bg-white hover:text-black overflow-hidden flex items-center justify-center"
-								style={{ 
-									width: 44, 
-									height: 44,
-									padding: 0
-								}}
+								className="rounded-full border transition-all duration-300 bg-white/5 border-white/10 overflow-hidden flex items-center justify-center hover:ring-2 hover:ring-white/30"
+								style={{ width: 44, height: 44, padding: 0 }}
 							>
-								<User size={20} />
+								{avatarUrl ? (
+									<img 
+										src={avatarUrl} 
+										alt="Profil"
+										className="w-full h-full object-cover rounded-full"
+									/>
+								) : (
+									<User size={20} className="text-white" />
+								)}
 							</button>
 						) : (
 							<SignInButton mode="modal" forceRedirectUrl="/onboarding">

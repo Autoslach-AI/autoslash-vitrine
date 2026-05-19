@@ -112,15 +112,7 @@ export default function Dashboard() {
               <Settings className="h-4.5 w-4.5 text-black/60" />
             </button>
             
-            <div className="h-7 w-7 overflow-hidden rounded-full border border-black/5">
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-black text-[10px] font-bold text-white uppercase">
-                  {user?.firstName?.charAt(0) || 'U'}
-                </div>
-              )}
-            </div>
+
           </div>
         </header>
 
