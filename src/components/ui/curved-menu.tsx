@@ -254,19 +254,23 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 
 	const { openSignIn } = useClerk();
 	const handleProfileClick = async () => {
-		if (!isSignedIn) {
-			openSignIn();
-			return;
-		}
-		if (userId) {
-			const completed = await checkOnboardingStatus(userId);
-			if (completed) {
-				navigate("/dashboard"); 
-			} else {
-				navigate("/onboarding");
-			}
-		}
-	};
+  if (!isSignedIn) {
+    openSignIn();
+    return;
+  }
+  if (!userId) return;
+
+  try {
+    const completed = await checkOnboardingStatus(userId);
+    if (completed === true) {
+      navigate("/dashboard");
+    } else {
+      navigate("/onboarding");
+    }
+  } catch {
+    navigate("/dashboard");
+  }
+};
 
 	return (
 		<>
