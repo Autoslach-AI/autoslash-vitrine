@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { Button } from "@/components/ui/button";
@@ -255,11 +255,11 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-3xl font-bold">Mon Profil</h1>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(-1)}
             className="text-xs font-bold text-black/40 
                        hover:text-black transition-colors"
           >
-            ← RETOUR AU DASHBOARD
+            ← RETOUR
           </button>
         </div>
 
