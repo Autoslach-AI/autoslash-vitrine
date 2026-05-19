@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,9 @@ export default function ProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('Informations');
   const [editingField, setEditingField] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -47,6 +50,7 @@ export default function ProfilePage() {
       .maybeSingle();
 
     setProfile(prof);
+    if (prof?.photo_url) setPhotoUrl(prof.photo_url);
     setEnterprise(ent);
     setFormData({
       full_name: prof?.full_name || user?.fullName || '',
@@ -56,6 +60,58 @@ export default function ProfilePage() {
       sector: prof?.sector || '',
     });
     setLoading(false);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Vérifications
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Photo trop lourde — maximum 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Format accepté : JPG, PNG, WebP');
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    try {
+      const ext = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      // Upload dans bucket avatars
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Récupérer l'URL publique
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Sauvegarder dans user_profiles
+      await supabase
+        .from('user_profiles')
+        .update({ 
+          photo_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      setPhotoUrl(publicUrl);
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Erreur upload — réessayez');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleSave = async () => {
@@ -246,20 +302,40 @@ export default function ProfilePage() {
 
                   {/* Photo */}
                   <div className="flex items-center gap-5">
-                    <div className="h-16 w-16 rounded-full overflow-hidden 
-                                    border border-black/5">
+                    <div className="relative">
                       <img
-                        src={user?.imageUrl}
+                        src={photoUrl || user?.imageUrl}
                         alt="Avatar"
-                        className="h-full w-full object-cover"
+                        className="h-16 w-16 rounded-full object-cover border border-black/5"
                       />
+                      {uploadingPhoto && (
+                        <div className="absolute inset-0 rounded-full bg-black/40 
+                                        flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-white/30 
+                                          border-t-white rounded-full animate-spin" />
+                        </div>
+                      )}
                     </div>
                     <div>
-                      <p className="text-sm font-bold">
-                        {formData.full_name}
-                      </p>
-                      <p className="text-xs text-black/40 mt-0.5">
-                        {user?.primaryEmailAddress?.emailAddress}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingPhoto}
+                        className="bg-gray-50 border-black/10 hover:bg-black/5 
+                                   transition-colors"
+                      >
+                        {uploadingPhoto ? 'Upload...' : 'Modifier'}
+                      </Button>
+                      <p className="text-xs text-black/30 mt-1 font-jakarta">
+                        JPG, PNG, WebP — max 2MB
                       </p>
                     </div>
                   </div>
