@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
+import { supabase } from '../lib/supabaseClient';
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { 
   Search, 
@@ -25,6 +26,40 @@ import { Separator } from "@/components/ui/separator";
 export default function Dashboard() {
   const { user } = useUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const [prospectsToday, setProspectsToday] = useState<number>(0);
+  const [prospectsTotal, setProspectsTotal] = useState<number>(0);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  const fetchVisitorStats = async () => {
+    // Prospects aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    const { count: todayCount } = await supabase
+      .from('enterprises')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_test', false)
+      .gte('created_at', today);
+
+    // Total prospects
+    const { count: totalCount } = await supabase
+      .from('enterprises')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_test', false);
+
+    setProspectsToday(todayCount || 0);
+    setProspectsTotal(totalCount || 0);
+    setLastUpdated(new Date().toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    }));
+  };
+
+  useEffect(() => {
+    fetchVisitorStats();
+    const interval = setInterval(fetchVisitorStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex h-screen w-full bg-[#fbfbfb] text-black font-jakarta overflow-hidden">
@@ -119,7 +154,62 @@ export default function Dashboard() {
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-full space-y-8 animate-in fade-in duration-500">
-            <MetricCards />
+            <MetricCards>
+              <div className="bg-white rounded-xl border border-black/[0.03] 
+                              shadow-sm p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-7 items-center justify-center 
+                                    rounded-lg border bg-muted text-muted-foreground">
+                      <span className="text-xs">👁</span>
+                    </div>
+                    <span className="text-sm text-black/50 font-medium">
+                      Activité en direct
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-500 
+                                     animate-pulse" />
+                    <span className="text-[10px] text-black/30 font-jakarta">
+                      LIVE
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-3xl font-medium tabular-nums leading-none 
+                                  tracking-tight">
+                      {prospectsToday}
+                    </p>
+                    <p className="text-sm text-black/40 mt-1 font-jakarta">
+                      Nouveaux prospects aujourd'hui
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-black/5" />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xl font-medium tabular-nums">
+                        {prospectsTotal}
+                      </p>
+                      <p className="text-xs text-black/30 font-jakarta">
+                        Total prospects
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-black/20 font-jakarta">
+                        Mis à jour
+                      </p>
+                      <p className="text-[10px] text-black/30 font-mono">
+                        {lastUpdated}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </MetricCards>
             <PerformanceOverview />
           </div>
         </main>
