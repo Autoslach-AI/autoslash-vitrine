@@ -10,6 +10,7 @@ export function MetricCards() {
   const [prospects, setProspects] = useState(0);
   const [clients, setClients] = useState(0);
   const [lastUpdated, setLastUpdated] = useState('');
+  const [clientsCeMois, setClientsCeMois] = useState(0);
 
   const fetchStats = async () => {
     const { data } = await supabase
@@ -22,6 +23,19 @@ export function MetricCards() {
       setProspects(data.filter(e => e.status === 'PROSPECT').length);
       setClients(data.filter(e => e.status === 'ACTIVE').length);
     }
+
+    const moisDebut = new Date();
+    moisDebut.setDate(1);
+    moisDebut.setHours(0,0,0,0);
+
+    const { count: moisCount } = await supabase
+      .from('enterprises')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ACTIVE')
+      .eq('is_test', false)
+      .gte('activated_at', moisDebut.toISOString());
+
+    setClientsCeMois(moisCount || 0);
 
     setLastUpdated(new Date().toLocaleTimeString('fr-FR', {
       hour: '2-digit',
@@ -84,6 +98,34 @@ export function MetricCards() {
           </p>
           <p className="text-muted-foreground text-xs mt-1 font-mono">
             Mis à jour {lastUpdated}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <div className="flex size-7 items-center justify-center 
+                            rounded-lg border bg-muted 
+                            text-muted-foreground">
+              <TrendingUp className="size-4" />
+            </div>
+          </CardTitle>
+          <CardDescription>Clients actifs</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="font-medium text-3xl tabular-nums 
+                            leading-none tracking-tight">
+              {clients}
+            </div>
+            <Badge>
+              <TrendingUp className="size-3" />
+              +{clientsCeMois} ce mois
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Projets en production
           </p>
         </CardContent>
       </Card>
