@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabaseClient";
 
-type ViewType = 'prospects_vs_clients' | 'revenus' | 'packages';
+type ViewType = 'prospects' | 'clients' | 'revenus' | 'packages';
 type PeriodType = '30' | '60' | '90';
 
 interface ChartPoint {
@@ -38,7 +38,7 @@ const PACKAGE_PRICES: Record<string, number> = {
 };
 
 export function PerformanceOverview() {
-  const [view, setView] = useState<ViewType>('prospects_vs_clients');
+  const [view, setView] = useState<ViewType>('prospects');
   const [period, setPeriod] = useState<PeriodType>('30');
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,14 +76,16 @@ export function PerformanceOverview() {
       const day = item.created_at.split('T')[0];
       if (!dateMap[day]) return;
 
-      if (view === 'prospects_vs_clients') {
-        dateMap[day].prospects = (dateMap[day].prospects || 0) + 1;
-        if (item.status === 'ACTIVE') {
-          const activeDay = item.activated_at?.split('T')[0];
-          if (activeDay && dateMap[activeDay]) {
-            dateMap[activeDay].clients = 
-              (dateMap[activeDay].clients || 0) + 1;
-          }
+      if (view === 'prospects') {
+        dateMap[day].prospects = 
+          (dateMap[day].prospects || 0) + 1;
+      }
+
+      if (view === 'clients' && item.status === 'ACTIVE') {
+        const activeDay = item.activated_at?.split('T')[0];
+        if (activeDay && dateMap[activeDay]) {
+          dateMap[activeDay].clients = 
+            (dateMap[activeDay].clients || 0) + 1;
         }
       }
 
@@ -97,7 +99,7 @@ export function PerformanceOverview() {
       }
 
       if (view === 'packages') {
-        const pkg = item.package_type as keyof typeof dateMap[string];
+        const pkg = item.package_type;
         if (pkg && dateMap[day][pkg] !== undefined) {
           (dateMap[day] as any)[pkg] = 
             ((dateMap[day] as any)[pkg] || 0) + 1;
@@ -110,8 +112,9 @@ export function PerformanceOverview() {
   };
 
   const chartConfig: ChartConfig = 
-    view === 'prospects_vs_clients' ? {
+    view === 'prospects' ? {
       prospects: { label: "Prospects", color: "var(--chart-1)" },
+    } : view === 'clients' ? {
       clients: { label: "Clients", color: "var(--chart-2)" },
     } : view === 'revenus' ? {
       revenus: { label: "Revenus (FCFA)", color: "var(--chart-1)" },
@@ -123,7 +126,8 @@ export function PerformanceOverview() {
     };
 
   const viewLabels: Record<ViewType, string> = {
-    prospects_vs_clients: "Prospects vs Clients",
+    prospects: "Nouveaux prospects",
+    clients: "Clients actifs",
     revenus: "Revenus mensuels",
     packages: "Répartition packages",
   };
@@ -150,15 +154,10 @@ export function PerformanceOverview() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Vue</SelectLabel>
-                <SelectItem value="prospects_vs_clients">
-                  Prospects vs Clients
-                </SelectItem>
-                <SelectItem value="revenus">
-                  Revenus mensuels
-                </SelectItem>
-                <SelectItem value="packages">
-                  Répartition packages
-                </SelectItem>
+                <SelectItem value="prospects">Prospects</SelectItem>
+                <SelectItem value="clients">Clients actifs</SelectItem>
+                <SelectItem value="revenus">Revenus mensuels</SelectItem>
+                <SelectItem value="packages">Répartition packages</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -243,37 +242,27 @@ export function PerformanceOverview() {
                 } 
               />
 
-              {view === 'prospects_vs_clients' && <>
-                <Area
-                  dataKey="prospects"
-                  type="monotone"
+              {view === 'prospects' &&
+                <Area dataKey="prospects" type="monotone"
                   fill="url(#fillMain)"
                   stroke="var(--color-prospects)"
-                  strokeWidth={1.25}
-                  dot={false}
-                  fillOpacity={1}
-                />
-                <Line
-                  dataKey="clients"
-                  type="monotone"
-                  stroke="var(--color-clients)"
-                  strokeWidth={1.4}
-                  dot={false}
-                />
-              </>}
-
-              {view === 'revenus' &&
-                <Area
-                  dataKey="revenus"
-                  type="monotone"
-                  fill="url(#fillMain)"
-                  stroke="var(--color-revenus)"
-                  strokeWidth={1.25}
-                  dot={false}
-                  fillOpacity={1}
+                  strokeWidth={1.25} dot={false} fillOpacity={1}
                 />
               }
-
+              {view === 'clients' &&
+                <Area dataKey="clients" type="monotone"
+                  fill="url(#fillMain)"
+                  stroke="var(--color-clients)"
+                  strokeWidth={1.25} dot={false} fillOpacity={1}
+                />
+              }
+              {view === 'revenus' &&
+                <Area dataKey="revenus" type="monotone"
+                  fill="url(#fillMain)"
+                  stroke="var(--color-revenus)"
+                  strokeWidth={1.25} dot={false} fillOpacity={1}
+                />
+              }
               {view === 'packages' && <>
                 <Line dataKey="STARTUP" type="monotone"
                   stroke="var(--color-STARTUP)" 
