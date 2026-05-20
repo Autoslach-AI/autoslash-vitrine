@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabaseClient";
 
-type ViewType = 'prospects' | 'clients' | 'revenus' | 'packages';
+type ViewType = 'prospects' | 'clients' | 'parrainage' | 'packages';
 type PeriodType = '30' | '60' | '90';
 
 interface ChartPoint {
@@ -31,10 +31,10 @@ interface ChartPoint {
 }
 
 const PACKAGE_PRICES: Record<string, number> = {
-  STARTUP: 150000,
-  BUSINESS: 300000,
-  ENTERPRISE: 450000,
-  ELITE: 500000,
+  STARTUP: 7500,
+  BUSINESS: 15000,
+  ENTERPRISE: 25000,
+  ELITE: 0,
 };
 
 export function PerformanceOverview() {
@@ -89,9 +89,10 @@ export function PerformanceOverview() {
         }
       }
 
-      if (view === 'revenus' && item.status === 'ACTIVE') {
+      if (view === 'parrainage') {
         const activeDay = item.activated_at?.split('T')[0];
-        if (activeDay && dateMap[activeDay]) {
+        if (activeDay && dateMap[activeDay] && 
+            item.status === 'ACTIVE') {
           dateMap[activeDay].revenus = 
             (dateMap[activeDay].revenus || 0) + 
             (PACKAGE_PRICES[item.package_type] || 0);
@@ -116,8 +117,8 @@ export function PerformanceOverview() {
       prospects: { label: "Prospects", color: "var(--chart-1)" },
     } : view === 'clients' ? {
       clients: { label: "Clients", color: "var(--chart-2)" },
-    } : view === 'revenus' ? {
-      revenus: { label: "Revenus (FCFA)", color: "var(--chart-1)" },
+    } : view === 'parrainage' ? {
+      revenus: { label: "Gains FCFA", color: "var(--chart-3)" },
     } : {
       STARTUP: { label: "Startup", color: "var(--chart-1)" },
       BUSINESS: { label: "Business", color: "var(--chart-2)" },
@@ -128,7 +129,7 @@ export function PerformanceOverview() {
   const viewLabels: Record<ViewType, string> = {
     prospects: "Nouveaux prospects",
     clients: "Clients actifs",
-    revenus: "Revenus mensuels",
+    parrainage: "Gains parrainage cumulés",
     packages: "Répartition packages",
   };
 
@@ -156,7 +157,7 @@ export function PerformanceOverview() {
                 <SelectLabel>Vue</SelectLabel>
                 <SelectItem value="prospects">Prospects</SelectItem>
                 <SelectItem value="clients">Clients actifs</SelectItem>
-                <SelectItem value="revenus">Revenus mensuels</SelectItem>
+                <SelectItem value="parrainage">Gains parrainage</SelectItem>
                 <SelectItem value="packages">Répartition packages</SelectItem>
               </SelectGroup>
             </SelectContent>
@@ -256,7 +257,7 @@ export function PerformanceOverview() {
                   strokeWidth={1.25} dot={false} fillOpacity={1}
                 />
               }
-              {view === 'revenus' &&
+              {view === 'parrainage' &&
                 <Area dataKey="revenus" type="monotone"
                   fill="url(#fillMain)"
                   stroke="var(--color-revenus)"
