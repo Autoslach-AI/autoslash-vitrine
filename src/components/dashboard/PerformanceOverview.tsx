@@ -30,14 +30,7 @@ interface ChartPoint {
   ELITE?: number;
 }
 
-const PACKAGE_PRICES: Record<string, number> = {
-  STARTUP: 7500,
-  BUSINESS: 15000,
-  ENTERPRISE: 25000,
-  ELITE: 0,
-};
-
-export function PerformanceOverview() {
+export function PerformanceOverview({ userId }: { userId?: string }) {
   const [view, setView] = useState<ViewType>('prospects');
   const [period, setPeriod] = useState<PeriodType>('30');
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
@@ -72,9 +65,9 @@ export function PerformanceOverview() {
     }
 
     // Remplir avec les vraies données
-    data.forEach(item => {
+    for (const item of data) {
       const day = item.created_at.split('T')[0];
-      if (!dateMap[day]) return;
+      if (!dateMap[day]) continue;
 
       if (view === 'prospects') {
         dateMap[day].prospects = 
@@ -89,14 +82,35 @@ export function PerformanceOverview() {
         }
       }
 
-      if (view === 'parrainage') {
-        const activeDay = item.activated_at?.split('T')[0];
-        if (activeDay && dateMap[activeDay] && 
-            item.status === 'ACTIVE') {
-          dateMap[activeDay].revenus = 
-            (dateMap[activeDay].revenus || 0) + 
-            (PACKAGE_PRICES[item.package_type] || 0);
+      if (view === 'parrainage' && userId) {
+        const { data: refCode } = await supabase
+          .from('referral_codes')
+          .select('code')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (refCode?.code) {
+          const { data: referrals } = await supabase
+            .from('referrals')
+            .select('created_at, commission_fcfa, status')
+            .eq('referral_code', refCode.code)
+            .eq('status', 'PAID')
+            .gte('created_at', startDate.toISOString());
+
+          if (referrals) {
+            referrals.forEach(ref => {
+              const day = ref.created_at.split('T')[0];
+              if (dateMap[day]) {
+                dateMap[day].revenus = 
+                  (dateMap[day].revenus || 0) + 
+                  (ref.commission_fcfa || 0);
+              }
+            });
+          }
         }
+        setChartData(Object.values(dateMap));
+        setLoading(false);
+        return;
       }
 
       if (view === 'packages') {
@@ -106,7 +120,7 @@ export function PerformanceOverview() {
             ((dateMap[day] as any)[pkg] || 0) + 1;
         }
       }
-    });
+    }
 
     setChartData(Object.values(dateMap));
     setLoading(false);
@@ -118,7 +132,10 @@ export function PerformanceOverview() {
     } : view === 'clients' ? {
       clients: { label: "Clients", color: "var(--chart-2)" },
     } : view === 'parrainage' ? {
-      revenus: { label: "Gains FCFA", color: "var(--chart-3)" },
+      revenus: { 
+        label: "Gains FCFA", 
+        color: "var(--chart-3)" 
+      },
     } : {
       STARTUP: { label: "Startup", color: "var(--chart-1)" },
       BUSINESS: { label: "Business", color: "var(--chart-2)" },
@@ -129,7 +146,7 @@ export function PerformanceOverview() {
   const viewLabels: Record<ViewType, string> = {
     prospects: "Nouveaux prospects",
     clients: "Clients actifs",
-    parrainage: "Gains parrainage cumulés",
+    parrainage: "Mes gains parrainage",
     packages: "Répartition packages",
   };
 
@@ -157,7 +174,7 @@ export function PerformanceOverview() {
                 <SelectLabel>Vue</SelectLabel>
                 <SelectItem value="prospects">Prospects</SelectItem>
                 <SelectItem value="clients">Clients actifs</SelectItem>
-                <SelectItem value="parrainage">Gains parrainage</SelectItem>
+                <SelectItem value="parrainage">Mes gains parrainage</SelectItem>
                 <SelectItem value="packages">Répartition packages</SelectItem>
               </SelectGroup>
             </SelectContent>

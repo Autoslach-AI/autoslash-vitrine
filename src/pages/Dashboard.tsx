@@ -120,7 +120,7 @@ export default function Dashboard() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-full space-y-8 animate-in fade-in duration-500">
             <MetricCards userId={user?.id} />
-            <PerformanceOverview />
+            <PerformanceOverview userId={user?.id} />
           </div>
         </main>
       </div>
