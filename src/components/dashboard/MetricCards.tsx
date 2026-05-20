@@ -245,8 +245,8 @@ export function MetricCards({ userId }: { userId?: string }) {
             </button>
           </div>
 
-          <p className="text-muted-foreground text-xs">
-            Parrainez → jusqu'à 25,000 FCFA/vente
+          <p className="text-muted-foreground text-xs font-medium">
+             Gagnez de l'argent avec votre lien →
           </p>
 
         </CardContent>
