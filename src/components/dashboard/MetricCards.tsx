@@ -56,22 +56,36 @@ export function MetricCards({ userId }: { userId?: string }) {
   const fetchReferral = async (userId: string) => {
     const code = generateCode(userId);
     
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
       .from('referral_codes')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
 
+    if (selectError) {
+      console.error('Select error:', selectError);
+      return;
+    }
+
     if (!existing) {
-      await supabase
+      const { data: inserted, error: insertError } = await supabase
         .from('referral_codes')
         .insert({
           user_id: userId,
           code: code,
           total_gains: 0,
           total_filleuls: 0
-        });
-      setReferralCode(code);
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        setReferralCode(code);
+        return;
+      }
+
+      setReferralCode(inserted?.code || code);
       setTotalGains(0);
       setTotalFilleuls(0);
     } else {
