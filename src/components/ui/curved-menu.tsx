@@ -224,8 +224,16 @@ const CurvedMenuHeader: React.FC<iHeaderProps> = (props) => {
 };
 
 const CurvedMenuHeaderInternal: React.FC<iHeaderProps> = (props) => {
-	const { isSignedIn, userId } = useAuth();
-	return <CurvedMenuHeaderBase {...props} auth={{ isSignedIn, userId }} />;
+  const { isSignedIn, userId, isLoaded } = useAuth();
+  
+  if (!isLoaded) return null;
+  
+  return (
+    <CurvedMenuHeaderBase 
+      {...props} 
+      auth={{ isSignedIn, userId }} 
+    />
+  );
 };
 
 const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boolean | undefined; userId: string | null | undefined } }> = ({

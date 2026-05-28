@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { 
@@ -17,13 +17,16 @@ import {
   GraduationCap,
   Truck,
   MessageSquare,
-  MoreVertical
+  MoreVertical,
+  LogOut
 } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function Dashboard() {
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
@@ -111,7 +114,14 @@ export default function Dashboard() {
             <button className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-black/5 transition-colors">
               <Settings className="h-4.5 w-4.5 text-black/60" />
             </button>
-            
+            <button
+              onClick={() => signOut(() => navigate('/'))}
+              className="flex h-8 w-8 items-center justify-center 
+                         rounded-md hover:bg-black/5 transition-colors"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4 text-black/60" />
+            </button>
 
           </div>
         </header>

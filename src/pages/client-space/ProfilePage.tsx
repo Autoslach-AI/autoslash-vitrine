@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
@@ -8,6 +8,7 @@ import { User, Briefcase, Pencil, Check, X } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [enterprise, setEnterprise] = useState<any>(null);
@@ -477,6 +478,28 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 </div>
+
+<div className="flex items-center justify-between 
+                pt-4 border-t border-black/5">
+  <div>
+    <p className="text-sm font-bold text-black/60">
+      Déconnexion
+    </p>
+    <p className="text-xs text-black/30 font-jakarta mt-0.5">
+      Vous serez redirigé vers l'accueil
+    </p>
+  </div>
+  <button
+    onClick={() => signOut(() => navigate('/'))}
+    className="px-6 py-2.5 rounded-lg border 
+               border-black/10 text-black/50 
+               text-xs font-bold font-jakarta 
+               tracking-widest hover:bg-black/5 
+               hover:text-black transition-all"
+  >
+    SE DÉCONNECTER
+  </button>
+</div>
               </>
             )}
 
