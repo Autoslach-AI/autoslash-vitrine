@@ -315,7 +315,7 @@ const CurvedMenuHeaderBase: React.FC<iHeaderProps & { auth?: { isSignedIn: boole
 								)}
 							</button>
 						) : (
-							<SignInButton mode="modal" forceRedirectUrl="/onboarding">
+							<SignInButton mode="modal" forceRedirectUrl="/dashboard">
 								<button className={`p-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300`}>
 									<User size={20} />
 								</button>
