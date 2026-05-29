@@ -92,27 +92,20 @@ export default function Dashboard() {
             <div className="flex h-6 w-6 items-center justify-center rounded bg-black text-white">
               <LayoutGrid size={14} />
             </div>
-            <span className="font-bold text-sm tracking-tight">Studio Admin</span>
+            <span className="font-bold text-sm tracking-tight">Autoslash AI</span>
           </div>
 
           <div className="px-4 py-4 flex flex-col gap-6 flex-1 overflow-y-auto">
             <div className="flex items-center gap-2">
-              <button className="flex-1 flex items-center gap-2 bg-[#18181b] text-white rounded-md px-3 py-2 text-xs font-medium hover:bg-black/90 transition-colors">
-                <Plus size={14} />
-                Quick Create
+              <button 
+                onClick={() => {}} 
+                className="flex-1 flex items-center justify-center bg-[#18181b] text-white rounded-md px-3 py-2 text-xs font-medium hover:bg-black/90 transition-colors"
+              >
+                + Inviter un collaborateur
               </button>
               <button className="flex h-8 w-8 items-center justify-center rounded-md border hover:bg-black/5 transition-colors">
                 <Mail size={14} className="text-black/60" />
               </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest px-2 mb-2">Dashboards</p>
-                <div className="space-y-0.5">
-                  <SidebarItem icon={<LayoutGrid size={16} />} label="Default" active />
-                </div>
-              </div>
             </div>
 
             <div className="mt-auto">
@@ -159,9 +152,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-              <Settings className="h-4.5 w-4.5 text-black/60" />
-            </button>
             <button
               onClick={() => signOut(() => navigate('/'))}
               className="flex h-8 w-8 items-center justify-center 
