@@ -23,6 +23,7 @@ import {
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Separator } from "@/components/ui/separator";
 import { checkOnboardingStatus } from "../lib/supabase-onboarding";
+import { supabase } from '../lib/supabaseClient';
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
@@ -43,6 +44,44 @@ export default function Dashboard() {
       }
     });
   }, [user, isLoaded]);
+
+  function UserAvatar() {
+    const { user } = useUser();
+    const [photoUrl, setPhotoUrl] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+      if (!user?.id) return;
+      supabase
+        .from('user_profiles')
+        .select('photo_url')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.photo_url) setPhotoUrl(data.photo_url);
+        });
+    }, [user?.id]);
+
+    const src = photoUrl || user?.imageUrl;
+
+    return (
+      <div className="h-7 w-7 overflow-hidden rounded-full 
+                      border border-black/5 flex-shrink-0">
+        {src ? (
+          <img 
+            src={src} 
+            alt="Avatar" 
+            className="h-full w-full object-cover" 
+          />
+        ) : (
+          <div className="flex h-full w-full items-center 
+                          justify-center bg-black text-[10px] 
+                          font-bold text-white uppercase">
+            {user?.firstName?.charAt(0) || 'U'}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full bg-[#fbfbfb] text-black font-jakarta overflow-hidden">
@@ -78,13 +117,7 @@ export default function Dashboard() {
 
             <div className="mt-auto">
               <Link to="/client-space/profil" className="flex items-center gap-2 px-2 py-3 border-t overflow-hidden hover:bg-black/5 transition-colors cursor-pointer group">
-                <div className="h-8 w-8 rounded-full overflow-hidden bg-black/5 flex-shrink-0 group-hover:ring-2 group-hover:ring-black/10 transition-all">
-                  <img 
-                    src={user?.imageUrl || "https://avatar.vercel.sh/arham"} 
-                    alt="User" 
-                    className="h-full w-full object-cover" 
-                  />
-                </div>
+                <UserAvatar />
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold truncate">{user?.fullName || "User"}</p>
                   <p className="text-[9px] text-black/40 truncate">{user?.primaryEmailAddress?.emailAddress || ""}</p>
