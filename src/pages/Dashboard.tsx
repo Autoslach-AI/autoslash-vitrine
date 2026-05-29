@@ -24,12 +24,15 @@ import { useUser, useClerk } from "@clerk/clerk-react";
 import { Separator } from "@/components/ui/separator";
 import { checkOnboardingStatus } from "../lib/supabase-onboarding";
 import { supabase } from '../lib/supabaseClient';
+import InviteCollaboratorModal from "@/components/dashboard/InviteCollaboratorModal";
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [enterprise, setEnterprise] = useState<{ enterprise_id: string; package_type: string } | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -43,6 +46,21 @@ export default function Dashboard() {
         navigate('/onboarding');
       }
     });
+  }, [user, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    
+    supabase
+      .from('enterprises')
+      .select('enterprise_id, package_type')
+      .eq('email', user.primaryEmailAddress?.emailAddress)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setEnterprise(data);
+        }
+      });
   }, [user, isLoaded]);
 
   function UserAvatar() {
@@ -98,7 +116,7 @@ export default function Dashboard() {
           <div className="px-4 py-4 flex flex-col gap-6 flex-1 overflow-y-auto">
             <div className="flex items-center gap-2">
               <button 
-                onClick={() => {}} 
+                onClick={() => setShowInviteModal(true)} 
                 className="flex-1 flex items-center justify-center bg-[#18181b] text-white rounded-md px-3 py-2 text-xs font-medium hover:bg-black/90 transition-colors"
               >
                 + Inviter un collaborateur
@@ -172,6 +190,16 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {showInviteModal && (
+        <InviteCollaboratorModal 
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          enterprise_id={enterprise?.enterprise_id}
+          package_type={enterprise?.package_type}
+          user_profile_id={user?.id}
+        />
+      )}
     </div>
   );
 }
