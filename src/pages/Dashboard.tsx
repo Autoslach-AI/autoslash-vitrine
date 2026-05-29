@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
@@ -22,12 +22,27 @@ import {
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Separator } from "@/components/ui/separator";
+import { checkOnboardingStatus } from "../lib/supabase-onboarding";
 
 export default function Dashboard() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) {
+      navigate('/');
+      return;
+    }
+    
+    checkOnboardingStatus(user.id).then((completed) => {
+      if (!completed) {
+        navigate('/onboarding');
+      }
+    });
+  }, [user, isLoaded]);
 
   return (
     <div className="flex h-screen w-full bg-[#fbfbfb] text-black font-jakarta overflow-hidden">
