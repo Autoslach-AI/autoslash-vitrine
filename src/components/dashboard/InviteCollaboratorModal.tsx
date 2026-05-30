@@ -302,9 +302,13 @@ export default function InviteCollaboratorModal({
                 <p className="text-xs font-semibold text-neutral-800">
                   Invitez votre équipe dès l'activation de votre espace.
                 </p>
-                <span className="text-[11px] font-bold text-neutral-400 mt-2 hover:text-black cursor-pointer transition-colors">
+                <a
+                  href="/contact"
+                  onClick={onClose}
+                  className="text-sm font-semibold text-black underline cursor-pointer hover:opacity-70 transition-opacity mt-2"
+                >
                   Passez à l'étape suivante →
-                </span>
+                </a>
               </div>
             ) : (
               <form onSubmit={handleSendInvite} className="space-y-4">
