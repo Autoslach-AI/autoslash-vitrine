@@ -8,6 +8,7 @@ interface InviteCollaboratorModalProps {
   enterprise_id: string | undefined;
   package_type: string | undefined;
   user_profile_id: string | undefined;
+  userStatus?: string;
 }
 
 export default function InviteCollaboratorModal({
@@ -15,7 +16,8 @@ export default function InviteCollaboratorModal({
   onClose,
   enterprise_id,
   package_type,
-  user_profile_id
+  user_profile_id,
+  userStatus
 }: InviteCollaboratorModalProps) {
   const [enterpriseName, setEnterpriseName] = useState<string>('');
   const [currentMemberCount, setCurrentMemberCount] = useState<number>(0);
@@ -180,6 +182,37 @@ export default function InviteCollaboratorModal({
 
       if (inviteError) throw inviteError;
 
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const workspaceName = enterpriseName;
+
+      try {
+        const edgeResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-invite-email`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": supabaseAnonKey,
+              "Authorization": `Bearer ${supabaseAnonKey}`
+            },
+            body: JSON.stringify({
+              email: trimmedEmail,
+              role,
+              token,
+              inviterName: user_profile_id,
+              workspaceName: workspaceName
+            })
+          }
+        );
+
+        if (edgeResponse.ok === false) {
+          console.error("Failed to send edge invite email via Edge Function", await edgeResponse.text());
+        }
+      } catch (err) {
+        console.error("Edge function email invite error:", err);
+      }
+
       setToastMessage({ text: 'Invitation envoyée !', isError: false });
       setEmail('');
 
@@ -262,71 +295,82 @@ export default function InviteCollaboratorModal({
             </div>
 
             {/* Main Form */}
-            <form onSubmit={handleSendInvite} className="space-y-4">
-              {/* Field: Email */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-black/80">Adresse e-mail</label>
-                <input 
-                  type="text"
-                  value={email}
-                  disabled={isLimitReached}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ex. collaborateur@gmail.com"
-                  className="w-full h-9 px-3 rounded-md border border-neutral-200 outline-none focus:border-black/30 text-xs font-jakarta bg-[#fcfcfc] focus:bg-white transition-all disabled:opacity-50 disabled:bg-neutral-50"
-                  required
-                />
+            {userStatus === 'PROSPECT' ? (
+              <div className="flex flex-col items-center justify-center text-center py-10 px-6 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
+                <p className="text-xs font-semibold text-neutral-800">
+                  Invitez votre équipe dès l'activation de votre espace.
+                </p>
+                <span className="text-[11px] font-bold text-neutral-400 mt-2 hover:text-black cursor-pointer transition-colors">
+                  Passez à l'étape suivante →
+                </span>
               </div>
-
-              {/* Field: Role */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-black/80">Rôle</label>
-                <select
-                  value={role}
-                  disabled={isLimitReached}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full h-9 px-2 rounded-md border border-neutral-200 outline-none focus:border-black/30 text-xs font-jakarta bg-[#fcfcfc] focus:bg-white transition-all disabled:opacity-50"
-                >
-                  <option value="VIEWER">Lecture seule</option>
-                  <option value="EDITOR">Éditeur</option>
-                  <option value="ADMIN">Administrateur</option>
-                </select>
-                
-                {/* Role Description text */}
-                <div className="p-2.5 rounded bg-neutral-50 border border-neutral-100 mt-1.5">
-                  <p className="text-[10px] text-neutral-500 font-medium">
-                    {role === 'VIEWER' && 'VIEWER : "Peut consulter sans modifier"'}
-                    {role === 'EDITOR' && 'EDITOR : "Peut modifier le contenu"'}
-                    {role === 'ADMIN' && 'ADMIN : "Accès complet sauf suppression du compte"'}
-                  </p>
+            ) : (
+              <form onSubmit={handleSendInvite} className="space-y-4">
+                {/* Field: Email */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-black/80">Adresse e-mail</label>
+                  <input 
+                    type="text"
+                    value={email}
+                    disabled={isLimitReached}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="ex. collaborateur@gmail.com"
+                    className="w-full h-9 px-3 rounded-md border border-neutral-200 outline-none focus:border-black/30 text-xs font-jakarta bg-[#fcfcfc] focus:bg-white transition-all disabled:opacity-50 disabled:bg-neutral-50"
+                    required
+                  />
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-2 pt-2">
-                <button
-                  type="button"
-                  disabled={isLimitReached || isCopying}
-                  onClick={handleCopyLink}
-                  className="w-full h-9 flex items-center justify-center gap-1.5 border border-neutral-200 hover:bg-neutral-50 text-neutral-900 rounded-md text-xs font-bold transition-all disabled:opacity-50"
-                >
-                  {isCopying ? (
-                    <Loader2 className="animate-spin h-3.5 w-3.5 mr-1" />
-                  ) : null}
-                  {copied ? '✓ Lien copié !' : '🔗 Copier le lien d’invitation'}
-                </button>
+                {/* Field: Role */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-black/80">Rôle</label>
+                  <select
+                    value={role}
+                    disabled={isLimitReached}
+                    onChange={(e) => setRole(e.target.value as any)}
+                    className="w-full h-9 px-2 rounded-md border border-neutral-200 outline-none focus:border-black/30 text-xs font-jakarta bg-[#fcfcfc] focus:bg-white transition-all disabled:opacity-50"
+                  >
+                    <option value="VIEWER">Lecture seule</option>
+                    <option value="EDITOR">Éditeur</option>
+                    <option value="ADMIN">Administrateur</option>
+                  </select>
+                  
+                  {/* Role Description text */}
+                  <div className="p-2.5 rounded bg-neutral-50 border border-neutral-100 mt-1.5">
+                    <p className="text-[10px] text-neutral-500 font-medium">
+                      {role === 'VIEWER' && 'VIEWER : "Peut consulter sans modifier"'}
+                      {role === 'EDITOR' && 'EDITOR : "Peut modifier le contenu"'}
+                      {role === 'ADMIN' && 'ADMIN : "Accès complet sauf suppression du compte"'}
+                    </p>
+                  </div>
+                </div>
 
-                <button
-                  type="submit"
-                  disabled={isLimitReached || isSubmitting}
-                  className="w-full h-10 bg-black hover:bg-black/90 text-white rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:bg-neutral-200 disabled:text-neutral-400"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin h-3.5 w-3.5 mr-1" />
-                  ) : null}
-                  Envoyer l’invitation →
-                </button>
-              </div>
-            </form>
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2 pt-2">
+                  <button
+                    type="button"
+                    disabled={isLimitReached || isCopying}
+                    onClick={handleCopyLink}
+                    className="w-full h-9 flex items-center justify-center gap-1.5 border border-neutral-200 hover:bg-neutral-50 text-neutral-900 rounded-md text-xs font-bold transition-all disabled:opacity-50"
+                  >
+                    {isCopying ? (
+                      <Loader2 className="animate-spin h-3.5 w-3.5 mr-1" />
+                    ) : null}
+                    {copied ? '✓ Lien copié !' : '🔗 Copier le lien d’invitation'}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isLimitReached || isSubmitting}
+                    className="w-full h-10 bg-black hover:bg-black/90 text-white rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:bg-neutral-200 disabled:text-neutral-400"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="animate-spin h-3.5 w-3.5 mr-1" />
+                    ) : null}
+                    Envoyer l’invitation →
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
       </div>

@@ -32,7 +32,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [enterprise, setEnterprise] = useState<{ enterprise_id: string; package_type: string } | null>(null);
+  const [enterprise, setEnterprise] = useState<{ enterprise_id: string; package_type: string; status?: string } | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -53,7 +53,7 @@ export default function Dashboard() {
     
     supabase
       .from('enterprises')
-      .select('enterprise_id, package_type')
+      .select('enterprise_id, package_type, status')
       .eq('email', user.primaryEmailAddress?.emailAddress)
       .maybeSingle()
       .then(({ data }) => {
@@ -198,6 +198,7 @@ export default function Dashboard() {
           enterprise_id={enterprise?.enterprise_id}
           package_type={enterprise?.package_type}
           user_profile_id={user?.id}
+          userStatus={enterprise?.status}
         />
       )}
     </div>
