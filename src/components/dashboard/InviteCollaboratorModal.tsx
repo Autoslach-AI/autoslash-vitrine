@@ -276,23 +276,25 @@ export default function InviteCollaboratorModal({
         ) : (
           <div className="space-y-5">
             {/* Compteur and Progress Bar */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-baseline">
-                <span className="text-xs font-semibold text-black/50">Plan : {package_type || 'STARTUP'}</span>
-                <span className="text-xs font-bold text-black">{currentMemberCount}/{maxCollaborators} collaborateurs</span>
+            {userStatus !== 'PROSPECT' && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs font-semibold text-black/50">Plan : {package_type || 'STARTUP'}</span>
+                  <span className="text-xs font-bold text-black">{currentMemberCount}/{maxCollaborators} collaborateurs</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-black rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+                {isLimitReached && (
+                  <p className="text-xs font-semibold text-neutral-600 mt-1">
+                    Limite atteinte. Passez à l'offre supérieure.
+                  </p>
+                )}
               </div>
-              <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-black rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-              {isLimitReached && (
-                <p className="text-xs font-semibold text-neutral-600 mt-1">
-                  Limite atteinte. Passez à l'offre supérieure.
-                </p>
-              )}
-            </div>
+            )}
 
             {/* Main Form */}
             {userStatus === 'PROSPECT' ? (
