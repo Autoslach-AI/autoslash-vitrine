@@ -18,7 +18,12 @@ import {
   Truck,
   MessageSquare,
   MoreVertical,
-  LogOut
+  LogOut,
+  Home,
+  User,
+  Star,
+  Gift,
+  Users
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Separator } from "@/components/ui/separator";
@@ -126,6 +131,41 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* NAVIGATION SECTION */}
+            <div className="flex flex-col gap-1">
+              <p className="px-3 text-[10px] font-bold text-black/40 uppercase tracking-wider mb-1">
+                Navigation
+              </p>
+              <Link to="/dashboard">
+                <SidebarItem icon={<Home size={14} />} label="Accueil" active={true} />
+              </Link>
+              <Link to="/client-space/profil">
+                <SidebarItem icon={<User size={14} />} label="Mon Profil" active={false} />
+              </Link>
+            </div>
+
+            {/* À VENIR SECTION */}
+            <div className="flex flex-col gap-1">
+              <p className="px-3 text-[10px] font-bold text-black/40 uppercase tracking-wider mb-1">
+                À venir
+              </p>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
+                <Star size={14} />
+                <span className="text-xs flex-1">Mes Favoris</span>
+                <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
+                <Gift size={14} />
+                <span className="text-xs flex-1">Parrainage</span>
+                <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
+                <Users size={14} />
+                <span className="text-xs flex-1">Collaborateurs</span>
+                <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
+              </div>
+            </div>
+
             <div className="mt-auto">
               <Link to="/client-space/profil" className="flex items-center gap-2 px-2 py-3 border-t overflow-hidden hover:bg-black/5 transition-colors cursor-pointer group">
                 <UserAvatar />
@@ -217,7 +257,7 @@ function SidebarItem({ icon, label, active = false }: { icon: React.ReactNode, l
   );
 }
 
-function Users({ size, className }: { size?: number, className?: string }) {
+function UsersCustomIcon({ size, className }: { size?: number, className?: string }) {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
