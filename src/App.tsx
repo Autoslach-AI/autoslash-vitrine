@@ -31,6 +31,7 @@ const RuixenDemo = lazy(() => import("./pages/RuixenDemo"));
 const OnboardingPage = lazy(() => import("./pages/onboarding/index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ProfilePage = lazy(() => import("./pages/client-space/ProfilePage"));
+const JoinWorkspace = lazy(() => import("./pages/JoinWorkspace"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -110,9 +111,10 @@ function AppLayout() {
                           location.pathname === "/contact" ||
                           location.pathname === "/dashboard" ||
                           location.pathname.startsWith("/client-space") ||
+                          location.pathname.startsWith("/rejoindre") ||
                           isOnboardingPage;
 
-  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard";
+  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard" || location.pathname.startsWith("/rejoindre");
   
   return (
     <div className={cn(
@@ -129,6 +131,7 @@ function AppLayout() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/rejoindre/:token" element={<JoinWorkspace />} />
             <Route path="/client-space/profil" element={<ProfilePage />} />
             <Route path="/startup-package" element={<StartupPackagePage />} />
             <Route path="/architecture/:id" element={<ArchitectureDetail />} />
