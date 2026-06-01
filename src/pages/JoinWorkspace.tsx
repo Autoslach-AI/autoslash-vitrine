@@ -53,7 +53,7 @@ export default function JoinWorkspace() {
 
   const handleJoin = async () => {
     if (!isSignedIn) {
-      openSignIn({ redirectUrl: `/rejoindre/${token}` });
+      openSignIn({ forceRedirectUrl: `/rejoindre/${token}` });
       return;
     }
 
@@ -90,7 +90,7 @@ export default function JoinWorkspace() {
         console.warn("Error updating invite status:", updateError);
       }
 
-      navigate("/dashboard");
+      navigate("/workspace");
     } catch (err: any) {
       setJoinError(err.message || "Une erreur est survenue lors de l'adhésion au workspace.");
     } finally {
@@ -192,7 +192,7 @@ export default function JoinWorkspace() {
         ) : (
           <div className="space-y-4">
             <button
-              onClick={() => openSignIn({ redirectUrl: `/rejoindre/${token}` })}
+              onClick={() => openSignIn({ forceRedirectUrl: `/rejoindre/${token}` })}
               className="w-full h-10 bg-black hover:bg-black/90 text-white rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
             >
               Se connecter pour rejoindre →
