@@ -73,7 +73,8 @@ export default function JoinWorkspace() {
           status: 'ACTIVE',
           user_profile_id: user.id,
           full_name: fullName,
-          joined_at: new Date().toISOString()
+          joined_at: new Date().toISOString(),
+          invited_by: invite.invited_by
         });
 
       if (insertError) {
