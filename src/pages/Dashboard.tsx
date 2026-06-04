@@ -149,11 +149,9 @@ export default function Dashboard() {
               <p className="px-3 text-[10px] font-bold text-black/40 uppercase tracking-wider mb-1">
                 À venir
               </p>
-              <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
-                <Star size={14} />
-                <span className="text-xs flex-1">Mes Favoris</span>
-                <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
-              </div>
+              <Link to="/client-space/favoris">
+                <SidebarItem icon={<Star size={14} />} label="Mes Favoris" active={false} />
+              </Link>
               <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
                 <Gift size={14} />
                 <span className="text-xs flex-1">Parrainage</span>
