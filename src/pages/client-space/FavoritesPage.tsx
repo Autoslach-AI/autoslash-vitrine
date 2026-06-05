@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { supabase } from "../../lib/supabaseClient";
 import { 
@@ -28,10 +28,20 @@ export default function FavoritesPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Template[]>([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  const searchQuery = searchParams.get('q') || '';
+  const filteredTemplates = searchQuery
+    ? favorites.filter(t =>
+        t.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.sector?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : favorites;
 
   useEffect(() => {
     if (!isUserLoaded) return;
@@ -217,65 +227,87 @@ export default function FavoritesPage() {
               </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {favorites.map((item) => (
-                <div key={item.id} className="border border-[#e5e7eb] rounded-[12px] overflow-hidden flex flex-col hover:shadow-sm transition-shadow bg-white font-jakarta">
-                  {/* Image Container */}
-                  <div className="relative aspect-[3/2] bg-neutral-100 overflow-hidden">
-                    <img 
-                      src={item.image_url} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=60";
-                      }}
-                    />
-                    
-                    {/* Package type badge */}
-                    <span className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded leading-none uppercase">
-                      {item.package_type}
-                    </span>
-
-                    {/* Star Button */}
-                    <button
-                      onClick={(e) => handleRemoveFavorite(item.id, e)}
-                      className="absolute top-3 right-3 p-1.5 rounded-full bg-black/10 backdrop-blur-md border border-white/10 hover:opacity-60 transition-all"
-                      title="Retirer des favoris"
-                    >
-                      <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                    </button>
-                  </div>
-
-                  {/* Text Container */}
-                  <div className="p-3 flex flex-col flex-grow">
-                    <h4 className="font-bold text-sm text-black mb-1 line-clamp-1">{item.title}</h4>
-                    <span className="text-[10px] text-black/50 font-bold uppercase tracking-wider mb-2 block font-jakarta">
-                      {item.category} • {item.sector}
-                    </span>
-                    <p className="text-xs text-black/60 line-clamp-2 leading-relaxed mb-4">
-                      {item.description || "Aucune description disponible pour ce template."}
-                    </p>
-
-                    {/* Footer elements */}
-                    <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center justify-between">
-                      <a 
-                        href={item.preview_url || "#"} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-xs text-black/40 underline font-jakarta transition-all"
-                      >
-                        Voir le template
-                      </a>
-                      <Link 
-                        to={`/architecture/${item.id}`}
-                        className="text-xs font-bold text-black hover:opacity-75 font-jakarta transition-all"
-                      >
-                        Démarrer mon projet →
-                      </Link>
-                    </div>
-                  </div>
+            <div>
+              {searchQuery && (
+                <p className="text-xs text-black/40 mb-4 font-jakarta">
+                  Résultats pour "{searchQuery}" — {filteredTemplates.length} template(s)
+                </p>
+              )}
+              
+              {filteredTemplates.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-[40vh] text-center">
+                  <p className="text-sm font-semibold text-black/60 font-jakarta">
+                    Aucun favori ne correspond à votre recherche
+                  </p>
+                  <p className="text-xs text-black/40 mt-1 font-jakarta">
+                    Essayez de rechercher un autre mot-clé ou effacez la recherche
+                  </p>
+                  <Link to="/client-space/favoris" className="mt-4 inline-block text-xs font-bold text-black underline font-jakarta">
+                    Effacer la recherche
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredTemplates.map((item) => (
+                    <div key={item.id} className="border border-[#e5e7eb] rounded-[12px] overflow-hidden flex flex-col hover:shadow-sm transition-shadow bg-white font-jakarta">
+                      {/* Image Container */}
+                      <div className="relative aspect-[3/2] bg-neutral-100 overflow-hidden">
+                        <img 
+                          src={item.image_url} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=60";
+                          }}
+                        />
+                        
+                        {/* Package type badge */}
+                        <span className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded leading-none uppercase">
+                          {item.package_type}
+                        </span>
+
+                        {/* Star Button */}
+                        <button
+                          onClick={(e) => handleRemoveFavorite(item.id, e)}
+                          className="absolute top-3 right-3 p-1.5 rounded-full bg-black/10 backdrop-blur-md border border-white/10 hover:opacity-60 transition-all"
+                          title="Retirer des favoris"
+                        >
+                          <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                        </button>
+                      </div>
+
+                      {/* Text Container */}
+                      <div className="p-3 flex flex-col flex-grow">
+                        <h4 className="font-bold text-sm text-black mb-1 line-clamp-1">{item.title}</h4>
+                        <span className="text-[10px] text-black/50 font-bold uppercase tracking-wider mb-2 block font-jakarta">
+                          {item.category} • {item.sector}
+                        </span>
+                        <p className="text-xs text-black/60 line-clamp-2 leading-relaxed mb-4">
+                          {item.description || "Aucune description disponible pour ce template."}
+                        </p>
+
+                        {/* Footer elements */}
+                        <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center justify-between">
+                          <a 
+                            href={item.preview_url || "#"} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-xs text-black/40 underline font-jakarta transition-all"
+                          >
+                            Voir le template
+                          </a>
+                          <Link 
+                            to={`/architecture/${item.id}`}
+                            className="text-xs font-bold text-black hover:opacity-75 font-jakarta transition-all"
+                          >
+                            Démarrer mon projet →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </main>

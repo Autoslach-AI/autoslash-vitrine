@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { 
+  Search,
   Settings, 
   PanelLeft, 
   LayoutGrid, 
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [enterprise, setEnterprise] = useState<{ enterprise_id: string; package_type: string; status?: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -198,6 +200,28 @@ export default function Dashboard() {
             </button>
             
             <Separator orientation="vertical" className="h-4" />
+
+            <div className="relative flex flex-1 max-w-md items-center group">
+              <Search className="absolute left-3 h-3.5 w-3.5 
+                                 text-black/40 group-focus-within:text-black 
+                                 transition-colors" />
+              <input
+                type="text"
+                placeholder="Rechercher un favori..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate('/client-space/favoris?q=' + 
+                             encodeURIComponent(searchQuery.trim()));
+                  }
+                }}
+                className="h-8 w-full rounded-md border border-black/10 
+                           bg-[#f9f9f9] pl-9 pr-3 text-sm outline-none 
+                           focus:border-black/20 focus:bg-white 
+                           transition-all font-jakarta"
+              />
+            </div>
 
             <div className="flex-1" />
           </div>
