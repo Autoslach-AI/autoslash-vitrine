@@ -217,11 +217,11 @@ export default function FavoritesPage() {
               </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {favorites.map((item) => (
                 <div key={item.id} className="border border-[#e5e7eb] rounded-[12px] overflow-hidden flex flex-col hover:shadow-sm transition-shadow bg-white font-jakarta">
                   {/* Image Container */}
-                  <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+                  <div className="relative aspect-[3/2] bg-neutral-100 overflow-hidden">
                     <img 
                       src={item.image_url} 
                       alt={item.title} 
@@ -247,7 +247,7 @@ export default function FavoritesPage() {
                   </div>
 
                   {/* Text Container */}
-                  <div className="p-4 flex flex-col flex-grow">
+                  <div className="p-3 flex flex-col flex-grow">
                     <h4 className="font-bold text-sm text-black mb-1 line-clamp-1">{item.title}</h4>
                     <span className="text-[10px] text-black/50 font-bold uppercase tracking-wider mb-2 block font-jakarta">
                       {item.category} • {item.sector}
