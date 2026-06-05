@@ -258,17 +258,20 @@ export default function FavoritesPage() {
 
                     {/* Footer elements */}
                     <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-jakarta font-bold">
-                        Template {item.package_type}
-                      </span>
                       <a 
                         href={item.preview_url || "#"} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="text-xs font-bold text-black hover:opacity-75 flex items-center gap-1 font-jakarta transition-all"
+                        className="text-xs text-black/40 underline font-jakarta transition-all"
                       >
-                        Voir le template →
+                        Voir le template
                       </a>
+                      <Link 
+                        to={`/architecture/${item.id}`}
+                        className="text-xs font-bold text-black hover:opacity-75 font-jakarta transition-all"
+                      >
+                        Démarrer mon projet →
+                      </Link>
                     </div>
                   </div>
                 </div>
