@@ -165,6 +165,14 @@ export default function Dashboard() {
             </div>
 
             <div className="mt-auto">
+              <a 
+                href="/"
+                className="flex items-center gap-2 px-4 py-2 
+                           text-[11px] text-black/30 hover:text-black/60 
+                           transition-colors font-jakarta"
+              >
+                ← Retour au site
+              </a>
               <Link to="/client-space/profil" className="flex items-center gap-2 px-2 py-3 border-t overflow-hidden hover:bg-black/5 transition-colors cursor-pointer group">
                 <UserAvatar />
                 <div className="flex-1 min-w-0">
