@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { 
-  Search, 
   Settings, 
   PanelLeft, 
   LayoutGrid, 
@@ -168,7 +167,7 @@ export default function Dashboard() {
               <a 
                 href="/"
                 className="flex items-center gap-2 px-4 py-2 
-                           text-[11px] text-black/30 hover:text-black/60 
+                           text-[11px] text-black/50 hover:text-black/80 
                            transition-colors font-jakarta"
               >
                 ← Retour au site
@@ -200,19 +199,7 @@ export default function Dashboard() {
             
             <Separator orientation="vertical" className="h-4" />
 
-            <div className="relative flex flex-1 max-w-md items-center group">
-              <Search className="absolute left-3 h-3.5 w-3.5 text-black/40 group-focus-within:text-black transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Search" 
-                className="h-8 w-full rounded-md border border-black/10 bg-[#f9f9f9] pl-9 pr-12 text-sm outline-none focus:border-black/20 focus:bg-white transition-all font-jakarta"
-              />
-              <div className="absolute right-3 flex items-center gap-1">
-                <kbd className="pointer-events-none flex h-5 select-none items-center gap-1 rounded border bg-white px-1.5 font-mono text-[9px] font-medium text-black/40">
-                  <span className="text-xs">⌘</span>J
-                </kbd>
-              </div>
-            </div>
+            <div className="flex-1" />
           </div>
 
           <div className="flex items-center gap-3">
