@@ -4,7 +4,8 @@ import { OnboardingData } from '../pages/onboarding';
 export async function completeOnboarding(
   clerkUserId: string, 
   data: OnboardingData,
-  sessionId: string
+  sessionId: string,
+  referredBy?: string
 ) {
   const fullName = `${data.firstName} ${data.lastName}`.trim();
   
@@ -52,6 +53,19 @@ export async function completeOnboarding(
     .maybeSingle();
 
   if (!existing) {
+    let finalReferredBy: string | null = null;
+    if (referredBy) {
+      const { data: codeCheck } = await supabase
+        .from('referral_codes')
+        .select('user_id, code')
+        .eq('code', referredBy)
+        .maybeSingle();
+
+      if (codeCheck && codeCheck.user_id !== clerkUserId) {
+        finalReferredBy = referredBy;
+      }
+    }
+
     const { error: enterpriseError } = await supabase
       .from('enterprises')
       .insert({
@@ -64,7 +78,8 @@ export async function completeOnboarding(
         status: 'PROSPECT',
         is_test: false,
         region: region,
-        onboarding_session_id: sessionId
+        onboarding_session_id: sessionId,
+        referred_by: finalReferredBy
       });
 
     if (enterpriseError) {

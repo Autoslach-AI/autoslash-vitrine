@@ -65,10 +65,16 @@ function OnboardingPageInternal() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Generate session ID
+  // Generate session ID and check for referral code
   useEffect(() => {
     if (!sessionStorage.getItem('onboarding_session_id')) {
       sessionStorage.setItem('onboarding_session_id', crypto.randomUUID());
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      sessionStorage.setItem('autoslash_ref', refCode);
     }
   }, []);
 
@@ -98,12 +104,14 @@ function OnboardingPageInternal() {
     
     // Récupérer le session_id isolé
     const sessionId = sessionStorage.getItem('onboarding_session_id') || crypto.randomUUID();
+    const refCode = sessionStorage.getItem('autoslash_ref') || undefined;
 
     try {
-      await completeOnboarding(user.id, data, sessionId);
+      await completeOnboarding(user.id, data, sessionId, refCode);
       
       // Nettoyer le session_id après submit réussi
       sessionStorage.removeItem('onboarding_session_id');
+      sessionStorage.removeItem('autoslash_ref');
 
       if (targetRoute) {
         navigate(targetRoute);
