@@ -143,6 +143,12 @@ export default function Dashboard() {
               <Link to="/client-space/profil">
                 <SidebarItem icon={<User size={14} />} label="Mon Profil" active={false} />
               </Link>
+              <Link to="/client-space/favoris">
+                <SidebarItem icon={<Star size={14} />} label="Mes Favoris" active={false} />
+              </Link>
+              <Link to="/client-space/parrainage">
+                <SidebarItem icon={<Gift size={14} />} label="Parrainage" active={false} />
+              </Link>
             </div>
 
             {/* À VENIR SECTION */}
@@ -150,12 +156,6 @@ export default function Dashboard() {
               <p className="px-3 text-[10px] font-bold text-black/40 uppercase tracking-wider mb-1">
                 À venir
               </p>
-              <Link to="/client-space/favoris">
-                <SidebarItem icon={<Star size={14} />} label="Mes Favoris" active={false} />
-              </Link>
-              <Link to="/client-space/parrainage">
-                <SidebarItem icon={<Gift size={14} />} label="Parrainage" active={false} />
-              </Link>
               <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
                 <Users size={14} />
                 <span className="text-xs flex-1">Collaborateurs</span>
