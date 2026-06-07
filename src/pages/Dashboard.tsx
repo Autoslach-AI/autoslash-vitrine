@@ -153,11 +153,9 @@ export default function Dashboard() {
               <Link to="/client-space/favoris">
                 <SidebarItem icon={<Star size={14} />} label="Mes Favoris" active={false} />
               </Link>
-              <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
-                <Gift size={14} />
-                <span className="text-xs flex-1">Parrainage</span>
-                <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
-              </div>
+              <Link to="/client-space/parrainage">
+                <SidebarItem icon={<Gift size={14} />} label="Parrainage" active={false} />
+              </Link>
               <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none">
                 <Users size={14} />
                 <span className="text-xs flex-1">Collaborateurs</span>
