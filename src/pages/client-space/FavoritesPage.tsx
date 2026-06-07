@@ -161,11 +161,12 @@ export default function FavoritesPage() {
               À venir
             </p>
             
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md opacity-40 cursor-not-allowed text-black/60 select-none font-jakarta">
-              <Gift size={14} />
-              <span className="text-xs flex-1">Parrainage</span>
-              <span className="text-[10px] text-black/30 font-medium">Bientôt</span>
-            </div>
+            <Link to="/client-space/parrainage">
+              <div className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all text-black/60 hover:bg-black/5 hover:text-black font-jakarta text-xs">
+                <Gift size={14} />
+                <span className="flex-1">Parrainage</span>
+              </div>
+            </Link>
           </div>
 
           {/* Clerk user card */}
