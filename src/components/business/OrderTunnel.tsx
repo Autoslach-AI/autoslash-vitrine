@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +14,9 @@ interface OrderTunnelProps {
 
 export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price }) => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
+  const [referralCode, setReferralCode] = useState('');
   const [isLogoUploaded, setIsLogoUploaded] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isVisible, setIsVisible] = useState(false);
@@ -112,6 +115,18 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         }
       }
 
+      let finalReferralCode: string | null = null;
+      if (referralCode.trim()) {
+        const { data: codeCheck } = await supabase
+          .from('referral_codes')
+          .select('user_id, code')
+          .eq('code', referralCode.trim().toUpperCase())
+          .maybeSingle();
+        if (codeCheck && (!user || codeCheck.user_id !== user.id)) {
+          finalReferralCode = referralCode.trim().toUpperCase();
+        }
+      }
+
       const payload = {
         name: formData.company,
         contact_name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -124,7 +139,8 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
         template_id: templateId,
         status: 'PROSPECT',
         is_test: false,
-        assets_urls: assetUrls
+        assets_urls: assetUrls,
+        referred_by: finalReferralCode || null
       };
 
       console.log('Payload envoyé:', payload);
@@ -709,6 +725,18 @@ export const OrderTunnel: React.FC<OrderTunnelProps> = ({ isOpen, onClose, price
                               value={formData.message}
                               onChange={handleInputChange}
                             ></textarea>
+                        </div>
+                        <div>
+                          <label className="flbl text-white text-[11px] font-bold">
+                            Code de parrainage (optionnel)
+                          </label>
+                          <input
+                            type="text"
+                            className="ai-input text-white text-[14px]"
+                            placeholder="ex. AS-REF-XXXXXX"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value)}
+                          />
                         </div>
                         {errorMsg && <div className="text-red-500 text-[11px] font-bold">{errorMsg}</div>}
                         <div className="flex flex-row flex-nowrap items-center justify-center gap-4 mt-8">
