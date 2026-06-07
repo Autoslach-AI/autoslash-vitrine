@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Briefcase, Pencil, Check, X } from "lucide-react";
+import ClientSidebar from "../../components/client/ClientSidebar";
+import { User, Pencil, Check, X, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
@@ -249,55 +250,37 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8faff] text-black font-jakarta">
-      <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="flex h-screen w-full bg-[#ffffff] text-black font-jakarta overflow-hidden">
+      {/* Sidebar navigation */}
+      <ClientSidebar activePage="profil" user={user} photoUrl={photoUrl} />
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <h1 className="text-3xl font-bold">Mon Profil</h1>
-          <button
-            onClick={() => navigate(-1)}
-            className="text-xs font-bold text-black/40 
-                       hover:text-black transition-colors"
-          >
-            ← RETOUR
-          </button>
-        </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
+        {/* Top Header */}
+        <header className="h-14 flex items-center justify-between px-6 border-b border-neutral-100 bg-white sticky top-0 z-10 flex-shrink-0">
+          <h2 className="font-bold text-sm tracking-tight text-black font-jakarta">
+            Mon Profil
+          </h2>
 
-        <div className="flex gap-12">
-
-          {/* Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <nav className="space-y-1">
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => setActiveTab(item.label)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 
-                    text-sm font-medium rounded-md transition-all ${
-                    activeTab === item.label
-                      ? 'text-blue-600 bg-blue-50/50 shadow-sm'
-                      : 'text-gray-500 hover:text-black hover:bg-gray-100'
-                  }`}
-                >
-                  <span className={activeTab === item.label 
-                    ? 'text-blue-600' : 'text-gray-400'}>
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </button>
-              ))}
-            </nav>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => signOut(() => navigate("/"))}
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-black/5 transition-colors"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4 text-black/60" />
+            </button>
           </div>
+        </header>
 
-          {/* Content */}
-          <div className="flex-1 space-y-6">
+        {/* Content Body */}
+        <main className="flex-1 overflow-y-auto p-6 bg-[#f8faff] space-y-6">
+          <div className="max-w-4xl mx-auto space-y-6">
 
             {/* TAB 1 — Informations */}
             {activeTab === 'Informations' && (
               <>
-                <section className="bg-white rounded-xl border 
-                  border-black/[0.03] shadow-sm p-8 space-y-8">
+                <section className="bg-white rounded-xl border border-black/[0.03] shadow-sm p-8 space-y-8">
                   <h2 className="text-lg font-bold border-b pb-6">
                     Informations personnelles
                   </h2>
@@ -305,8 +288,7 @@ export default function ProfilePage() {
                   {/* Modal agrandissement photo */}
                   {showPhotoModal && (
                     <div 
-                      className="fixed inset-0 bg-black/80 backdrop-blur-sm 
-                                 flex items-center justify-center z-50"
+                      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
                       onClick={() => setShowPhotoModal(false)}
                     >
                       <div 
@@ -316,8 +298,7 @@ export default function ProfilePage() {
                         <img
                           src={photoUrl || user?.imageUrl}
                           alt="Avatar"
-                          className="w-[320px] h-[320px] md:w-[500px] md:h-[500px] rounded-full object-cover 
-                                     border-4 border-white/20 shadow-2xl"
+                          className="w-[320px] h-[320px] md:w-[500px] md:h-[500px] rounded-full object-cover border-4 border-white/20 shadow-2xl"
                         />
                         <div className="flex gap-3 mt-10">
                           <button
@@ -325,19 +306,13 @@ export default function ProfilePage() {
                               setShowPhotoModal(false);
                               fileInputRef.current?.click();
                             }}
-                            className="px-4 py-2 bg-white text-black text-xs 
-                                       font-bold font-jakarta rounded-full 
-                                       hover:bg-white/90 transition-all shadow-lg
-                                       whitespace-nowrap"
+                            className="px-4 py-2 bg-white text-black text-xs font-bold font-jakarta rounded-full hover:bg-white/90 transition-all shadow-lg whitespace-nowrap"
                           >
                             Changer la photo
                           </button>
                           <button
                             onClick={() => setShowPhotoModal(false)}
-                            className="px-4 py-2 bg-white/10 text-white text-xs 
-                                       font-bold font-jakarta rounded-full 
-                                       hover:bg-white/20 transition-all shadow-lg
-                                       border border-white/20"
+                            className="px-4 py-2 bg-white/10 text-white text-xs font-bold font-jakarta rounded-full hover:bg-white/20 transition-all shadow-lg border border-white/20"
                           >
                             Fermer
                           </button>
@@ -349,27 +324,22 @@ export default function ProfilePage() {
                   {/* Photo + bouton */}
                   <div className="flex items-center gap-5">
                     <div 
-                      className="relative cursor-pointer group"
+                      className="relative cursor-pointer group shrink-0"
                       onClick={() => setShowPhotoModal(true)}
                     >
-                      <img
-                        src={photoUrl || user?.imageUrl}
-                        alt="Avatar"
-                        className="h-16 w-16 rounded-full object-cover 
-                                   border border-black/5 transition-all
-                                   group-hover:brightness-75"
-                      />
-                      <div className="absolute inset-0 rounded-full 
-                                      flex items-center justify-center 
-                                      opacity-0 group-hover:opacity-100 
-                                      transition-opacity">
-                        <Pencil size={16} className="text-white" />
+                      <div className="h-16 w-16 rounded-full overflow-hidden border border-black/5 relative">
+                        <img
+                          src={photoUrl || user?.imageUrl}
+                          alt="Avatar"
+                          className="h-full w-full object-cover transition-all group-hover:brightness-75"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                          <Pencil size={16} className="text-white" />
+                        </div>
                       </div>
                       {uploadingPhoto && (
-                        <div className="absolute inset-0 rounded-full bg-black/40 
-                                        flex items-center justify-center">
-                          <div className="w-4 h-4 border-2 border-white/30 
-                                          border-t-white rounded-full animate-spin" />
+                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         </div>
                       )}
                     </div>
@@ -391,7 +361,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Champs personnels */}
-                  <div className="grid grid-cols-2 gap-8 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-2">
                     <EditableField fieldKey="full_name" label="Nom complet" />
                     <EditableField fieldKey="email" label="Email" readOnly />
                     <EditableField fieldKey="phone" label="Téléphone" />
@@ -399,30 +369,25 @@ export default function ProfilePage() {
                   </div>
                 </section>
 
-                {/* Mon Dossier fusionné ici */}
-                <section className="bg-white rounded-xl border 
-                  border-black/[0.03] shadow-sm p-8 space-y-8">
+                {/* Mon Dossier */}
+                <section className="bg-white rounded-xl border border-black/[0.03] shadow-sm p-8 space-y-8">
                   <h2 className="text-lg font-bold border-b pb-6">
                     Mon Dossier
                   </h2>
-                  <div className="grid grid-cols-2 gap-8">
-                    <EditableField 
-                      fieldKey="project_id" label="Référence" readOnly />
-                    <EditableField 
-                      fieldKey="package_type" label="Package" readOnly />
-                    <EditableField 
-                      fieldKey="status" label="Statut" readOnly />
-                    <EditableField 
-                      fieldKey="created_at" label="Inscription" readOnly />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <EditableField fieldKey="project_id" label="Référence" readOnly />
+                    <EditableField fieldKey="package_type" label="Package" readOnly />
+                    <EditableField fieldKey="status" label="Statut" readOnly />
+                    <EditableField fieldKey="created_at" label="Inscription" readOnly />
                   </div>
                 </section>
 
-                <section className="bg-white rounded-xl border 
-                  border-black/[0.03] shadow-sm p-8 space-y-8">
+                {/* Mon Projet */}
+                <section className="bg-white rounded-xl border border-black/[0.03] shadow-sm p-8 space-y-8">
                   <h2 className="text-lg font-bold border-b pb-6">
                     Mon Projet
                   </h2>
-                  <div className="grid grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     {[
                       { label: 'Intention', value: profile?.intention },
                       { label: 'Secteur', value: profile?.sector },
@@ -430,13 +395,11 @@ export default function ProfilePage() {
                       { label: 'Téléphone', value: profile?.phone },
                     ].map((item, i) => (
                       <div key={i} className="space-y-2.5">
-                        <label className="text-xs font-bold uppercase 
-                          tracking-wider text-black/40">{item.label}</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-black/40">{item.label}</label>
                         <Input
                           defaultValue={item.value || '—'}
                           readOnly
-                          className="h-11 bg-gray-50/30 border-black/5 
-                                     font-jakarta"
+                          className="h-11 bg-gray-50/30 border-black/5 font-jakarta"
                         />
                       </div>
                     ))}
@@ -446,74 +409,61 @@ export default function ProfilePage() {
                 {/* Bouton Sauvegarder */}
                 <div className="flex items-center justify-end gap-4">
                   {saved && (
-                    <span className="flex items-center gap-2 text-green-600 
-                                     text-sm font-medium">
+                    <span className="flex items-center gap-2 text-green-600 text-sm font-medium">
                       <Check size={16} /> Modifications sauvegardées
                     </span>
                   )}
                   <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-black text-white hover:bg-black/80 
-                               font-bold text-xs tracking-widest px-8 h-11"
+                    className="bg-black text-white hover:bg-black/80 font-bold text-xs tracking-widest px-8 h-11"
                   >
                     {saving ? (
-                      <div className="w-4 h-4 border-2 border-white/30 
-                                      border-t-white rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : 'SAUVEGARDER'}
                   </Button>
                 </div>
 
                 {/* Section Supprimer le compte */}
-                <div className="pt-12 space-y-6">
+                <div className="pt-6 space-y-6">
                   <hr className="border-black/[0.05]" />
                   <div className="flex justify-end">
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="text-[10px] font-bold text-red-500/60 hover:text-red-500 
-                                 border border-red-500/20 hover:border-red-500/40 
-                                 px-4 py-2 rounded-lg transition-all uppercase tracking-widest"
+                      className="text-[10px] font-bold text-red-500/60 hover:text-red-500 border border-red-500/20 hover:border-red-500/40 px-4 py-2 rounded-lg transition-all uppercase tracking-widest"
                     >
                       Supprimer mon compte
                     </button>
                   </div>
                 </div>
 
-<div className="flex items-center justify-between 
-                pt-4 border-t border-black/5">
-  <div>
-    <p className="text-sm font-bold text-black/60">
-      Déconnexion
-    </p>
-    <p className="text-xs text-black/30 font-jakarta mt-0.5">
-      Vous serez redirigé vers l'accueil
-    </p>
-  </div>
-  <button
-    onClick={() => signOut(() => navigate('/'))}
-    className="px-6 py-2.5 rounded-lg border 
-               border-black/10 text-black/50 
-               text-xs font-bold font-jakarta 
-               tracking-widest hover:bg-black/5 
-               hover:text-black transition-all"
-  >
-    SE DÉCONNECTER
-  </button>
-</div>
+                {/* Déconnexion */}
+                <div className="flex items-center justify-between pt-4 border-t border-black/5">
+                  <div>
+                    <p className="text-sm font-bold text-black/60">
+                      Déconnexion
+                    </p>
+                    <p className="text-xs text-black/30 font-jakarta mt-0.5">
+                      Vous serez redirigé vers l'accueil
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => signOut(() => navigate('/'))}
+                    className="px-6 py-2.5 rounded-lg border border-black/10 text-black/50 text-xs font-bold font-jakarta tracking-widest hover:bg-black/5 hover:text-black transition-all"
+                  >
+                    SE DÉCONNECTER
+                  </button>
+                </div>
               </>
             )}
 
-
-
           </div>
-        </div>
+        </main>
       </div>
 
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm 
-                        flex items-center justify-center z-50 px-4">
-          <div className="bg-[#1a1a1a] rounded-2xl p-8 w-full max-w-md 
-                          space-y-6 border border-white/10 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-[#1a1a1a] rounded-2xl p-8 w-full max-w-md space-y-6 border border-white/10 shadow-2xl">
             
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-lg">
@@ -532,8 +482,7 @@ export default function ProfilePage() {
 
             <p className="text-white/70 text-sm font-jakarta leading-relaxed">
               Êtes-vous sûr de vouloir supprimer votre compte ?
-              Tapez <span className="text-white font-bold">CONFIRMER</span> 
-              ci-dessous pour continuer.
+              Tapez <span className="text-white font-bold">CONFIRMER</span> ci-dessous pour continuer.
             </p>
 
             <input
@@ -541,14 +490,10 @@ export default function ProfilePage() {
               placeholder="Tapez CONFIRMER"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              className="w-full h-11 px-4 rounded-lg bg-transparent 
-                         border border-white/20 text-white font-jakarta 
-                         text-sm outline-none focus:border-white/50 
-                         transition-colors placeholder:text-white/20"
+              className="w-full h-11 px-4 rounded-lg bg-transparent border border-white/20 text-white font-jakarta text-sm outline-none focus:border-white/50 transition-colors placeholder:text-white/20"
             />
 
-            <p className="text-red-400 text-xs font-jakarta flex 
-                          items-center gap-2">
+            <p className="text-red-400 text-xs font-jakarta flex items-center gap-2">
               ⚠ Cette action est irréversible.
             </p>
 
@@ -558,26 +503,21 @@ export default function ProfilePage() {
                   setShowDeleteModal(false);
                   setDeleteConfirmText('');
                 }}
-                className="flex-1 h-11 rounded-lg border border-white/20 
-                           text-white/60 text-sm font-bold font-jakarta 
-                           hover:bg-white/5 transition-all"
+                className="flex-1 h-11 rounded-lg border border-white/20 text-white/60 text-sm font-bold font-jakarta hover:bg-white/5 transition-all"
               >
                 Retour
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteConfirmText !== 'CONFIRMER' || deleting}
-                className={`flex-1 h-11 rounded-lg text-sm font-bold 
-                  font-jakarta transition-all
-                  ${deleteConfirmText === 'CONFIRMER'
+                className={`flex-1 h-11 rounded-lg text-sm font-bold font-jakarta transition-all ${
+                  deleteConfirmText === 'CONFIRMER'
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-red-500/20 text-red-400/40 cursor-not-allowed'
-                  }`}
+                }`}
               >
                 {deleting ? (
-                  <div className="w-4 h-4 border-2 border-white/30 
-                                 border-t-white rounded-full animate-spin 
-                                 mx-auto" />
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
                 ) : 'Supprimer le compte'}
               </button>
             </div>
