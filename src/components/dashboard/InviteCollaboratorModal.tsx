@@ -186,6 +186,13 @@ export default function InviteCollaboratorModal({
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       const workspaceName = enterpriseName;
 
+      const { data: inviterProfile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', user_profile_id)
+        .maybeSingle();
+      const inviterName = inviterProfile?.full_name || user_profile_id;
+
       try {
         const edgeResponse = await fetch(
           `${supabaseUrl}/functions/v1/send-invite-email`,
@@ -200,7 +207,7 @@ export default function InviteCollaboratorModal({
               email: trimmedEmail,
               role,
               token,
-              inviterName: user_profile_id,
+              inviterName: inviterName,
               workspaceName: workspaceName
             })
           }
