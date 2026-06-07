@@ -140,14 +140,12 @@ export default function ReferralPage() {
     fetchData();
   }, [user, isUserLoaded, navigate]);
 
-  const referralLink = refCode?.code 
-    ? `https://autoslash-vitrine.vercel.app/?ref=${refCode.code}`
-    : "https://autoslash-vitrine.vercel.app";
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (refCode?.code) {
+      navigator.clipboard.writeText(refCode.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const maskEmail = (email: string) => {
@@ -277,9 +275,6 @@ export default function ReferralPage() {
                   <span className="text-2xl font-mono font-bold text-black tracking-tight block">
                     {refCode?.code || "—"}
                   </span>
-                  <span className="text-xs text-black/40 block font-jakarta">
-                    {referralLink}
-                  </span>
                 </div>
                 <button
                   onClick={handleCopyLink}
@@ -288,12 +283,12 @@ export default function ReferralPage() {
                   {copied ? (
                     <>
                       <Check size={12} />
-                      <span>✓ Lien copié !</span>
+                      <span>✓ Code copié !</span>
                     </>
                   ) : (
                     <>
                       <Copy size={12} />
-                      <span>Copier le lien</span>
+                      <span>Copier le code</span>
                     </>
                   )}
                 </button>
