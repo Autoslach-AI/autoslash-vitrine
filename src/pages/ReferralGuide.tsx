@@ -88,18 +88,71 @@ export default function ReferralGuide() {
           </h2>
           <div className="space-y-6">
             {steps.map((step, idx) => (
-              <div key={idx} className="flex gap-4">
-                <span className="font-mono text-xs font-bold text-black/30 pt-0.5">
-                  {step.num}
-                </span>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-black font-jakarta">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-black/60 leading-relaxed font-jakarta">
-                    {step.desc}
-                  </p>
+              <div key={idx}>
+                <div className="flex gap-4">
+                  <span className="font-mono text-xs font-bold text-black/30 pt-0.5">
+                    {step.num}
+                  </span>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-black font-jakarta">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs text-black/60 leading-relaxed font-jakarta">
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
+                {idx === 1 && (
+                  <div className="ml-10 mt-4 border border-neutral-200 rounded-[10px] overflow-hidden text-xs font-mono bg-[#0a0f1e]">
+                    {/* Header mockup */}
+                    <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-700">
+                      <span className="text-[#00AAFF] font-bold text-[10px] tracking-widest">
+                        ÉTAPE 04 / 05
+                      </span>
+                      <span className="text-neutral-500 text-[10px] tracking-widest">
+                        PRISE DE CONTACT
+                      </span>
+                    </div>
+
+                    {/* Champs simulés */}
+                    <div className="px-4 py-4 space-y-3">
+                      
+                      {/* Message field */}
+                      <div>
+                        <p className="text-[#00AAFF] text-[9px] font-bold tracking-widest mb-1">
+                          MESSAGE / BESOINS SPÉCIFIQUES
+                        </p>
+                        <div className="border border-neutral-700 rounded px-3 py-2 text-neutral-600 text-[10px]">
+                          Détaillez vos besoins IA...
+                        </div>
+                      </div>
+
+                      {/* Code parrainage — mis en évidence */}
+                      <div className="border border-[#00AAFF]/60 rounded-md p-2 bg-[#00AAFF]/5">
+                        <p className="text-[#00AAFF] text-[9px] font-bold tracking-widest mb-1 flex items-center gap-1">
+                          <span>▶</span>
+                          CODE DE PARRAINAGE (OPTIONNEL)
+                        </p>
+                        <div className="border border-[#00AAFF]/40 rounded px-3 py-2 text-neutral-400 text-[10px]">
+                          ex. AS-REF-XXXXXX
+                        </div>
+                        <p className="text-[#00AAFF]/70 text-[9px] mt-1.5 font-jakarta">
+                          ← Votre contact saisit ici votre code
+                        </p>
+                      </div>
+
+                      {/* Boutons simulés */}
+                      <div className="flex gap-2 pt-1">
+                        <div className="border border-neutral-600 rounded px-3 py-1.5 text-neutral-500 text-[9px] tracking-widest">
+                          ← PRÉCÉDENT
+                        </div>
+                        <div className="bg-[#00AAFF] rounded px-3 py-1.5 text-black text-[9px] font-bold tracking-widest">
+                          COMMANDER
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
