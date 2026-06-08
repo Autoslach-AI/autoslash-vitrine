@@ -79,6 +79,54 @@ export default function ReferralGuide() {
           <p className="text-sm text-black/80 leading-relaxed font-jakarta">
             Le programme de parrainage Autoslash AI vous permet de gagner une commission à chaque fois qu'une personne commande un projet grâce à votre code personnel.
           </p>
+          <div className="mt-4 border border-neutral-200 rounded-[10px] 
+                          overflow-hidden text-xs font-mono bg-[#0a0f1e]">
+            
+            {/* Header mockup */}
+            <div className="flex items-center justify-between 
+                            px-4 py-2 border-b border-neutral-700">
+              <span className="text-[#00AAFF] font-bold text-[10px] 
+                               tracking-widest">
+                MON CODE PARRAINAGE
+              </span>
+              <span className="text-neutral-500 text-[10px] 
+                               tracking-widest">
+                ESPACE PARRAINAGE
+              </span>
+            </div>
+
+            {/* Contenu mockup */}
+            <div className="px-4 py-4 space-y-3">
+              
+              {/* Code mis en évidence */}
+              <div className="border border-[#00AAFF]/60 rounded-md 
+                              p-3 bg-[#00AAFF]/5">
+                <p className="text-[#00AAFF] text-[9px] font-bold 
+                              tracking-widest mb-2 flex items-center gap-1">
+                  <span>▶</span>
+                  VOTRE CODE UNIQUE
+                </p>
+                <p className="text-white text-base font-bold 
+                              tracking-widest font-mono">
+                  AS-REF-XXXXXX
+                </p>
+                <p className="text-[#00AAFF]/70 text-[9px] mt-2 
+                              font-jakarta">
+                  ← Partagez ce code à vos contacts
+                </p>
+              </div>
+
+              {/* Bouton simulé */}
+              <div className="flex justify-end">
+                <div className="bg-[#00AAFF] rounded px-3 py-1.5 
+                                text-black text-[9px] font-bold 
+                                tracking-widest flex items-center gap-1">
+                  <span>⧉</span> COPIER LE CODE
+                </div>
+              </div>
+
+            </div>
+          </div>
         </section>
 
         {/* Section 2 — Les étapes */}
