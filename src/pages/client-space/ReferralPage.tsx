@@ -205,9 +205,18 @@ export default function ReferralPage() {
           <div className="max-w-4xl space-y-6 mx-auto">
             {/* BLOC 1 — Mon code parrainage */}
             <div className="bg-white border border-[#e5e7eb] rounded-[12px] p-6 space-y-4">
-              <h3 className="font-bold text-sm text-black font-jakarta">
-                Mon code parrainage
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-black font-jakarta">
+                  Mon code parrainage
+                </h3>
+                <a 
+                  href="/parrainage/comment-ca-marche"
+                  className="text-xs text-black/40 hover:text-black 
+                             underline transition-colors font-jakarta"
+                >
+                  Comment ça marche →
+                </a>
+              </div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <span className="text-2xl font-mono font-bold text-black tracking-tight block">

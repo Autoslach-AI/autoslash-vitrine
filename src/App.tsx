@@ -35,6 +35,7 @@ const JoinWorkspace = lazy(() => import("./pages/JoinWorkspace"));
 const WorkspacePage = lazy(() => import("./pages/WorkspacePage"));
 const FavoritesPage = lazy(() => import("./pages/client-space/FavoritesPage"));
 const ReferralPage = lazy(() => import("./pages/client-space/ReferralPage"));
+const ReferralGuide = lazy(() => import("./pages/ReferralGuide"));
 
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -116,9 +117,10 @@ function AppLayout() {
                           location.pathname.startsWith("/client-space") ||
                           location.pathname.startsWith("/rejoindre") ||
                           location.pathname.startsWith("/workspace") ||
+                          location.pathname.startsWith("/parrainage") ||
                           isOnboardingPage;
 
-  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard" || location.pathname.startsWith("/rejoindre") || location.pathname.startsWith("/workspace") || location.pathname.startsWith("/client-space/favoris") || location.pathname.startsWith("/client-space/parrainage");
+  const isWhiteBgPage = location.pathname === "/contact" || location.pathname === "/elite-plan" || location.pathname === "/dashboard" || location.pathname.startsWith("/rejoindre") || location.pathname.startsWith("/workspace") || location.pathname.startsWith("/client-space/favoris") || location.pathname.startsWith("/client-space/parrainage") || location.pathname.startsWith("/parrainage");
   
   return (
     <div className={cn(
@@ -140,6 +142,7 @@ function AppLayout() {
             <Route path="/client-space/profil" element={<ProfilePage />} />
             <Route path="/client-space/favoris" element={<FavoritesPage />} />
             <Route path="/client-space/parrainage" element={<ReferralPage />} />
+            <Route path="/parrainage/comment-ca-marche" element={<ReferralGuide />} />
             <Route path="/startup-package" element={<StartupPackagePage />} />
             <Route path="/architecture/:id" element={<ArchitectureDetail />} />
             <Route path="/business-package" element={<BusinessPackagePage />} />
