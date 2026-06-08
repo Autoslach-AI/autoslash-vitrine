@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function ReferralGuide() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [filleuls, setFilleuls] = useState(10);
 
   const steps = [
     {
@@ -126,6 +127,90 @@ export default function ReferralGuide() {
               </div>
 
             </div>
+          </div>
+        </section>
+
+        {/* Section — Simulateur de gains */}
+        <section className="border-t border-black/10 pt-8 space-y-6">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-black/40 font-jakarta">
+            Mon potentiel de gains
+          </h2>
+
+          <div className="space-y-4">
+            
+            {/* Slider */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-black font-jakarta">
+                  Nombre de filleuls
+                </p>
+                <p className="text-2xl font-bold font-mono text-black">
+                  {filleuls}
+                </p>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={1000}
+                value={filleuls}
+                onChange={(e) => setFilleuls(Number(e.target.value))}
+                className="w-full h-1.5 bg-neutral-200 rounded-full appearance-none cursor-pointer accent-black"
+              />
+              <div className="flex justify-between text-[10px] text-black/30 font-jakarta">
+                <span>1</span>
+                <span>250</span>
+                <span>500</span>
+                <span>750</span>
+                <span>1 000</span>
+              </div>
+            </div>
+
+            {/* Résultats par package */}
+            <div className="grid grid-cols-3 gap-3">
+              
+              <div className="border border-[#e5e7eb] rounded-[10px] p-4">
+                <p className="text-[10px] font-bold text-black/40 uppercase tracking-wider font-jakarta mb-1">
+                  STARTUP
+                </p>
+                <p className="text-lg font-bold font-mono text-black">
+                  {(filleuls * 7500).toLocaleString('fr-FR')}
+                </p>
+                <p className="text-[10px] text-black/40 font-jakarta">
+                  FCFA
+                </p>
+              </div>
+
+              <div className="border border-[#e5e7eb] rounded-[10px] p-4">
+                <p className="text-[10px] font-bold text-black/40 uppercase tracking-wider font-jakarta mb-1">
+                  BUSINESS
+                </p>
+                <p className="text-lg font-bold font-mono text-black">
+                  {(filleuls * 15000).toLocaleString('fr-FR')}
+                </p>
+                <p className="text-[10px] text-black/40 font-jakarta">
+                  FCFA
+                </p>
+              </div>
+
+              <div className="border border-[#e5e7eb] rounded-[10px] p-4 border-black/20 bg-black/[0.02]">
+                <p className="text-[10px] font-bold text-black/40 uppercase tracking-wider font-jakarta mb-1">
+                  ENTERPRISE
+                </p>
+                <p className="text-lg font-bold font-mono text-black">
+                  {(filleuls * 25000).toLocaleString('fr-FR')}
+                </p>
+                <p className="text-[10px] text-black/40 font-jakarta">
+                  FCFA
+                </p>
+              </div>
+
+            </div>
+
+            {/* Phrase d'impact */}
+            <p className="text-xs text-black/40 text-center font-jakarta italic">
+              {filleuls} filleul{filleuls > 1 ? 's' : ''} ENTERPRISE = {(filleuls * 25000).toLocaleString('fr-FR')} FCFA
+            </p>
+
           </div>
         </section>
 
