@@ -153,7 +153,7 @@ export default function FavoritesPage() {
               <p className="text-xs text-black/40 mt-1 font-jakarta">
                 Explorez nos templates et ajoutez-les à vos favoris
               </p>
-              <a href="/startup-package" 
+              <a href="/pricing" 
                  className="mt-4 inline-block text-xs font-bold 
                             text-black underline hover:opacity-75 font-jakarta transition-all">
                 Explorer les templates →
