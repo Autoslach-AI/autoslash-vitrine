@@ -278,7 +278,7 @@ export default function PricingPage() {
                     <CardTitle>
                       <p className="text-zinc-50">{plan.name}</p>
                     </CardTitle>
-                    <p className="text-sm text-zinc-400 mt-2 h-10">{plan.description}</p>
+                    <p className="text-sm text-zinc-400 mt-2 min-h-10">{plan.description}</p>
                     <div className="mt-4 flex flex-col items-start gap-1">
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-bold text-white">
