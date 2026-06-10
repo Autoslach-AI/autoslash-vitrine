@@ -274,7 +274,7 @@ export default function PricingPage() {
                   }`}
                   style={{ animationDelay: `${0.25 + i * 0.08}s` }}
                 >
-                  <CardHeader>
+                  <CardHeader className="flex-col items-start space-y-2">
                     <CardTitle>
                       <p className="text-zinc-50">{plan.name}</p>
                     </CardTitle>
