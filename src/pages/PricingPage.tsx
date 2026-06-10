@@ -269,7 +269,7 @@ export default function PricingPage() {
               return (
                 <Card
                   key={plan.id}
-                  className={`card-animate flex w-full md:w-80 flex-col justify-between text-left border-zinc-800 bg-zinc-900/70 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/60 transition-all duration-500 ${
+                  className={`card-animate flex w-full md:w-96 flex-col justify-between text-left border-zinc-800 bg-zinc-900/70 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/60 transition-all duration-500 ${
                     i === 1 ? "md:translate-y-2 border-white/20 shadow-2xl shadow-white/5" : ""
                   }`}
                   style={{ animationDelay: `${0.25 + i * 0.08}s` }}
