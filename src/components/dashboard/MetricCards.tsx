@@ -259,9 +259,13 @@ export function MetricCards({ userId }: { userId?: string }) {
             </button>
           </div>
 
-          <p className="text-muted-foreground text-xs font-medium">
-             Gagnez de l'argent avec votre lien →
-          </p>
+          <a 
+            href="/client-space/parrainage"
+            className="text-muted-foreground text-xs font-medium 
+                       hover:text-black transition-colors"
+          >
+            Voir mon espace parrainage →
+          </a>
 
         </CardContent>
       </Card>
