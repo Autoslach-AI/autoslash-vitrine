@@ -220,11 +220,9 @@ export default function BlogPage() {
                         {post.excerpt}
                       </p>
                       
-                      <Link to={`/blog/${post.slug || post.id}`}>
-                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-neutral-400 group-hover:text-neutral-900 transition-colors">
-                          READ FULL ARTICLE <span>→</span>
-                        </div>
-                      </Link>
+                      <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-neutral-400 cursor-default">
+                        READ FULL ARTICLE <span>→</span>
+                      </div>
                     </div>
                   </div>
                 ))}
