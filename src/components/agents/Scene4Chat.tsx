@@ -336,9 +336,7 @@ export default function Scene4Chat({ initialMessage }: Scene4ChatProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          system: systemPrompt,
+          agent_id: agentKey,
           messages: history,
         }),
       });
