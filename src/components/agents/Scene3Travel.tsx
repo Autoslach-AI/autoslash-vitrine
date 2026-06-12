@@ -115,7 +115,7 @@ export default function Scene3Travel({ destination, onComplete }: Scene3Props) {
       if (speed < maxSpeed) speed += 0.5;
 
       // Flash et navigation
-      if (speed > 32 && !flashDone) {
+      if (speed > 15 && !flashDone) {
         flashDone = true;
         setShowFlash(true);
         setTimeout(() => {
