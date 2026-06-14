@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Mic, MicOff, MessageSquare } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 interface Message {
   id: string;
@@ -18,6 +18,7 @@ const INITIAL_CARDS = [
 
 export default function AxonWidget() {
   const { isSignedIn, user } = useUser();
+  const { openSignIn } = useClerk();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -156,12 +157,12 @@ export default function AxonWidget() {
                     </p>
                   </div>
                   
-                  <a
-                    href="/onboarding"
+                  <button
+                    onClick={() => openSignIn()}
                     className="px-5 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white/90 transition-colors"
                   >
                     Se connecter
-                  </a>
+                  </button>
                 </div>
               ) : (
                 <>
