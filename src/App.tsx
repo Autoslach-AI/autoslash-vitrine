@@ -10,6 +10,7 @@ import { Header } from "./components/Header";
 import { BackButton } from "./components/ui/back-button";
 import Footer from "./components/Footer";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import AxonWidget from "./components/AxonWidget";
 import { cn } from "@/lib/utils";
 
 // Lazy loading page components
@@ -160,6 +161,7 @@ function AppLayout() {
       </main>
       {!isDashboardPage && <Footer />}
       {!isDashboardPage && <LanguageSwitcher />}
+      {!isDashboardPage && <AxonWidget />}
     </div>
   );
 }
