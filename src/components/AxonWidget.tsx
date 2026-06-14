@@ -109,8 +109,8 @@ export default function AxonWidget() {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="w-[360px] rounded-2xl overflow-hidden shadow-2xl"
             style={{
-              background: "#080808",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "#111111",
+              border: "1px solid rgba(255,255,255,0.15)",
             }}
           >
             {/* Header */}
@@ -194,8 +194,8 @@ export default function AxonWidget() {
                           onClick={() => sendMessage(card.value)}
                           className="text-left px-4 py-2.5 rounded-xl text-xs text-white/60 hover:text-white transition-colors"
                           style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.07)",
+                            background: "rgba(255,255,255,0.07)",
+                            border: "1px solid rgba(255,255,255,0.15)",
                             fontFamily: "'DM Sans', sans-serif",
                           }}
                         >
@@ -258,28 +258,44 @@ export default function AxonWidget() {
       </AnimatePresence>
 
       {/* Bouton bulle */}
-      <motion.button
-        onClick={() => setOpen(prev => !prev)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl"
-        style={{
-          background: open ? "#111" : "#fff",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <AnimatePresence mode="wait">
-          {open ? (
-            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-              <X size={20} className="text-white" />
-            </motion.div>
-          ) : (
-            <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-              <span className="text-black font-black text-xs tracking-wider">AX</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
+      <div className="relative">
+        {!open && (
+          <>
+            <motion.div
+              className="absolute inset-0 rounded-full bg-blue-400"
+              animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute inset-0 rounded-full bg-blue-300"
+              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+            />
+          </>
+        )}
+        <motion.button
+          onClick={() => setOpen(prev => !prev)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-10"
+          style={{
+            background: open ? "#111" : "#fff",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          <AnimatePresence mode="wait">
+            {open ? (
+              <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <X size={20} className="text-white" />
+              </motion.div>
+            ) : (
+              <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <span className="text-black font-black text-xs tracking-wider">AX</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </div>
 
     </div>
   );
