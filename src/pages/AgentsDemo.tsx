@@ -66,7 +66,7 @@ export default function AgentsDemo() {
     setFinalDestination(destination);
     setFlash(true);
     setTimeout(() => {
-      setSearchParams({ scene: "scene3", dest: destination });
+      setSearchParams({ scene: "scene4", agent: destination });
       setFlash(false);
     }, 800);
   };
