@@ -240,7 +240,7 @@ export default function AxonWidget() {
                 />
                 <button
                   onClick={toggleVoice}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isListening ? "bg-red-500/20 text-red-400" : "text-white/20 hover:text-white"}`}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isListening ? "bg-red-500/20 text-red-400" : "text-white/60 hover:text-white"}`}
                 >
                   {isListening ? <MicOff size={13} /> : <Mic size={13} />}
                 </button>
