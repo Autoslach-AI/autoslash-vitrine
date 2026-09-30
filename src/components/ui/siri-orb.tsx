@@ -5,7 +5,6 @@ import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Settings, Mic, X, MoreHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GoogleGenAI } from "@google/genai";
 import RoboticOrb from "@/components/ui/RoboticOrb";
 
 // --- Minimal Button Component ---
@@ -57,15 +56,8 @@ export default function Scene4Vocal() {
   
   const recognitionRef = useRef<any>(null);
   const conversationRef = useRef<{role: string; parts: {text: string}[]}[]>([]);
-  const aiRef = useRef<any>(null);
 
   useEffect(() => {
-    // Initialisation Gemini
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey) {
-      aiRef.current = new GoogleGenAI({ apiKey });
-    }
-    
     // Charger les voix au montage
     if (window.speechSynthesis) {
       window.speechSynthesis.getVoices();
@@ -135,26 +127,23 @@ export default function Scene4Vocal() {
     setOrbState("thinking");
     setStatus("Je réfléchis...");
 
-    if (!aiRef.current) {
-      agentSpeak("Désolé, ma connexion à l'intelligence artificielle est interrompue.");
-      return;
-    }
-
     try {
-      const response = await aiRef.current.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: conversationRef.current,
-        config: {
-          systemInstruction: `Tu es l'Agent Commercial d'Autoslash AI. Tu es en appel vocal avec un prospect.
-Réponds en 2-3 phrases maximum — tu parles à voix haute.
-Pose des questions pour comprendre : secteur d'activité, volume de prospects, et objectifs de vente.
-Sois direct, énergique, professionnel et persuasif. Parle exclusivement en français.`,
-          temperature: 0.8,
-          maxOutputTokens: 150,
-        },
+      const history = conversationRef.current.map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.parts[0].text,
+      }));
+
+      const res = await fetch("https://vrmkpnqjmqztpfowwkzv.supabase.co/functions/v1/chat-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent_id: "commercial",
+          messages: history,
+        }),
       });
 
-      const reply = response.text || "Pouvez-vous répéter ?";
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || "Pouvez-vous répéter ?";
       agentSpeak(reply);
     } catch (error) {
       console.error("AI Error:", error);
