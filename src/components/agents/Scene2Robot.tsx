@@ -69,8 +69,8 @@ const SECTOR_CARDS: Card[] = [
 ];
 
 const AGENT_CARDS: Card[] = [
-  { label: "Agent Business",   value: "agent_business"   },
-  { label: "Agent Commercial", value: "agent_commercial" },
+  { label: "Agent Business",   value: "business"   },
+  { label: "Agent Commercial", value: "commercial" },
 ];
 
 const DIRECT_DESTINATIONS: Record<string, string> = {
@@ -544,8 +544,8 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     }
 
     const FAREWELL_SPEECHES: Record<string, string> = {
-      "agent_business":   "Compris. Je vous transfère vers l'Agent Business.",
-      "agent_commercial": "C'est noté. L'Agent Commercial vous attend.",
+      "business":   "Compris. Je vous transfère vers l'Agent Business.",
+      "commercial": "C'est noté. L'Agent Commercial vous attend.",
       "agents":           "Parfait. Je vous emmène voir nos agents en action.",
       "projects":         "Excellent. Découvrez nos réalisations concrètes.",
       "pricing":          "Je vous guide vers nos offres et packages.",
@@ -571,7 +571,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       if (destPath && destPath.startsWith("/")) {
         navigate(destPath);
       } else {
-        const finalDest = (card.value === "agent_business" || card.value === "agent_commercial") 
+        const finalDest = (card.value === "business" || card.value === "commercial") 
           ? card.value 
           : (destPath || "contact");
         onComplete(finalDest);
