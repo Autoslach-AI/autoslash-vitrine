@@ -234,24 +234,13 @@ export default function Scene4Vocal() {
       </div>
 
       {/* Center: The Orb */}
-      <div className="flex flex-col items-center gap-8">
+      <div className="flex flex-col items-center justify-center">
         <motion.div
           animate={orbAnim.animate}
           transition={orbAnim.transition}
         >
           <RoboticOrb orbState={orbState} size={280} />
         </motion.div>
-        
-        <div className="text-center space-y-4 max-w-xl">
-          <h1 className="text-2xl font-bold text-white tracking-tight leading-snug px-4 min-h-[4rem] flex items-center justify-center" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {orbState === "listening" ? VOCAL_CONFIG.listening : 
-             orbState === "thinking" ? "Je réfléchis..." :
-             status}
-          </h1>
-          <p className="text-white/40 text-sm font-medium tracking-wide">
-            {isListening ? VOCAL_CONFIG.hintActive : VOCAL_CONFIG.hint}
-          </p>
-        </div>
       </div>
 
       {/* Bottom Controls */}
