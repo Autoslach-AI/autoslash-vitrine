@@ -1,21 +1,20 @@
 /**
  * Scene2Robot.tsx — L'Oracle Autoslash AI
  * ─────────────────────────────────────────
- * Orbe robotique animée (RoboticOrb) avec :
- *   - Reconnaissance vocale Web Speech API bidirectionnelle
- *   - Synthèse vocale Web Speech API
- *   - Bouton micro manuel + écoute automatique après parole
- *   - Parsing JSON structuré (speech / cards / destination)
- *   - Connecté à l'Edge Function Supabase chat-agent (agent_id: "axon_voice")
- *   - Cartes suggestions cliquables de navigation
+ * Robot Spline 3D original qui :
+ *   - S'éveille avec une animation d'entrée
+ *   - Parle via Web Speech API (synthèse vocale) sans sous-titre à l'écran
+ *   - Écoute automatiquement le visiteur après avoir parlé via Web Speech API (reconnaissance vocale)
+ *   - Transmet le texte reconnu à callOracle(), exactement comme un clic sur une carte
+ *   - Génère des cartes réponses dynamiques via l'Edge Function chat-agent (agent_id: "axon_voice")
+ *   - Guide le visiteur vers la bonne destination
  */
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { Suspense, lazy, useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
-import { Mic } from "lucide-react";
-import { cn } from "@/lib/utils";
-import RoboticOrb from "@/components/ui/RoboticOrb";
+
+const Spline = lazy(() => import("@splinetool/react-spline"));
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -76,16 +75,16 @@ const DIRECT_DESTINATIONS: Record<string, string> = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// SYSTEM PROMPT ORACLE (Documentaire - le prompt actif vient de la base Supabase)
+// SYSTEM PROMPT ORACLE
 // ═══════════════════════════════════════════════════════════════
 
-/*
 const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une intelligence artificielle bienveillante et précise.
 Tu guides les visiteurs du site vitrine vers la bonne destination.
 
 TON CARACTÈRE :
 - Direct et chaleureux, jamais robotique
 - Phrases courtes (max 2 phrases) car tu parles à voix haute
+- Tu te présentes en disant que tes circuits d'écoute sont en maintenance donc tu utilises des cartes
 - Tu poses des questions intelligentes pour comprendre le besoin
 
 DESTINATIONS :
@@ -95,6 +94,8 @@ DESTINATIONS :
 - "blog"            → articles, actualités, apprendre, études de cas
 - "contact"         → parler à l'équipe, démarrer un projet, question spécifique
 
+RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication.
+
 FORMAT :
 {
   "speech": "texte à dire à voix haute (1-2 phrases max, naturel)",
@@ -103,7 +104,6 @@ FORMAT :
   ],
   "destination": null
 }`;
-*/
 
 // ═══════════════════════════════════════════════════════════════
 // HOOK : SYNTHÈSE VOCALE
@@ -120,13 +120,10 @@ function useSpeech() {
     u.rate    = 0.85;
     u.pitch   = 0.7;
     u.volume  = 1;
-
+    // Voix française
     const voices = window.speechSynthesis.getVoices();
-    const fr = voices.find(v => v.lang.startsWith("fr") && (v.name.includes("Google") || v.name.includes("Enhanced"))) 
-            ?? voices.find(v => v.lang.startsWith("fr")) 
-            ?? voices[0];
+    const fr = voices.find(v => v.lang.startsWith("fr")) ?? voices[0];
     if (fr) u.voice = fr;
-
     u.onstart = () => setSpeaking(true);
     u.onend   = () => { setSpeaking(false); onEnd?.(); };
     u.onerror = () => { setSpeaking(false); onEnd?.(); };
@@ -141,60 +138,6 @@ function useSpeech() {
   }, []);
 
   return { speak, stop, speaking };
-}
-
-// ═══════════════════════════════════════════════════════════════
-// COMPOSANT : BULLE DE PAROLE
-// ═══════════════════════════════════════════════════════════════
-
-function SpeechBubble({ text, visible }: { text: string; visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && text && (
-        <motion.div
-          initial={{ opacity: 0, y: 12, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.96 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="relative max-w-md p-5 rounded-2xl backdrop-blur-md"
-          style={{
-            background: "rgba(10, 15, 30, 0.75)",
-            border: "1px solid rgba(0, 102, 255, 0.25)",
-            boxShadow: "0 0 30px rgba(0, 80, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
-          }}
-        >
-          {/* Flèche pointant vers le robot */}
-          <div
-            className="absolute -right-2 top-6 w-4 h-4 rotate-45"
-            style={{
-              background: "rgba(10, 15, 30, 0.75)",
-              borderRight: "1px solid rgba(0, 102, 255, 0.25)",
-              borderTop: "1px solid rgba(0, 102, 255, 0.25)",
-            }}
-          />
-
-          {/* Indicateur Oracle */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-            <span
-              className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/70"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
-            >
-              Oracle
-            </span>
-          </div>
-
-          {/* Texte parlé */}
-          <p
-            className="text-white/90 text-base font-light leading-relaxed"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            {text}
-          </p>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -253,16 +196,14 @@ function SuggestionCards({
 // COMPOSANT : ÉTAT ROBOT (BADGE)
 // ═══════════════════════════════════════════════════════════════
 
-function RobotStatusBadge({ state, isListening }: { state: RobotState; isListening: boolean }) {
-  const config = isListening
-    ? { label: "Micro à l'écoute", color: "#10b981" }
-    : {
-        awakening: { label: "Connexion",    color: "#60a5fa" },
-        speaking:  { label: "En parole",    color: "#34d399" },
-        waiting:   { label: "En attente",   color: "#a78bfa" },
-        thinking:  { label: "Analyse...",   color: "#fbbf24" },
-        farewell:  { label: "Départ",       color: "#f87171" },
-      }[state];
+function RobotStatusBadge({ state }: { state: RobotState }) {
+  const config = {
+    awakening: { label: "Connexion",    color: "#60a5fa" },
+    speaking:  { label: "En parole",    color: "#34d399" },
+    waiting:   { label: "À l'écoute",   color: "#a78bfa" },
+    thinking:  { label: "Analyse...",   color: "#fbbf24" },
+    farewell:  { label: "Départ",       color: "#f87171" },
+  }[state];
 
   return (
     <div
@@ -321,83 +262,24 @@ function ThinkingDots() {
 
 export default function Scene2Robot({ onComplete }: Scene2Props) {
   const navigate = useNavigate();
-  const [robotState, setRobotState]     = useState<RobotState>("awakening");
-  const [isListening, setIsListening]   = useState(false);
-  const [cards, setCards]               = useState<Card[]>([]);
-  const [currentSpeech, setSpeech]      = useState("");
-  const [showBubble, setShowBubble]     = useState(false);
+  const [robotState, setRobotState]   = useState<RobotState>("awakening");
+  const [cards, setCards]             = useState<Card[]>([]);
   const [robotShifted, setRobotShifted] = useState(false);
-  const [history, setHistory]           = useState<{ role: string; content: string }[]>([]);
+  const [splineReady, setSplineReady] = useState(false);
+  const [history, setHistory]         = useState<{ role: string; content: string }[]>([]);
 
   const recognitionRef = useRef<any>(null);
+  const callOracleRef = useRef<(msg: string) => Promise<void>>(async () => {});
   const startListeningRef = useRef<() => void>(() => {});
   const fallbackSaidRef = useRef(false);
+  const hasAwokenRef = useRef(false);
 
   const { speak, stop, speaking } = useSpeech();
-
-  // ── Orb State déduit ──────────────────────────────────────────────────
-  const orbState: "idle" | "speaking" | "listening" | "thinking" =
-    robotState === "speaking" || robotState === "farewell"
-      ? "speaking"
-      : robotState === "thinking"
-      ? "thinking"
-      : isListening
-      ? "listening"
-      : "idle";
-
-  // ── Animation Variants pour l'Orbe (exactement identiques à siri-orb.tsx)
-  const getOrbAnimation = () => {
-    switch (orbState) {
-      case "speaking":
-        return {
-          animate: {
-            scale: [1, 1.12, 0.96, 1.08, 1],
-            opacity: [1, 1, 1, 1, 1],
-            filter: [
-              "blur(2px) brightness(1)",
-              "blur(4px) brightness(1.4)",
-              "blur(2px) brightness(1.1)",
-              "blur(3px) brightness(1.3)",
-              "blur(2px) brightness(1)",
-            ],
-          },
-          transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "listening":
-        return {
-          animate: {
-            scale: [1, 1.06, 0.98, 1.04, 1],
-            borderRadius: ["50%", "48%", "52%", "49%", "50%"],
-          },
-          transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
-        };
-      case "thinking":
-        return {
-          animate: {
-            scale: [1, 1.02, 1],
-            opacity: [0.6, 0.9, 0.6],
-            rotate: [0, 3, -3, 0],
-          },
-          transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-        };
-      default: // idle
-        return {
-          animate: {
-            scale: [1, 1.03, 1],
-            opacity: [0.85, 1, 0.85],
-          },
-          transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-        };
-    }
-  };
 
   // ── Reconnaissance Vocale (Web Speech API) ─────────────────────────────
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      setIsListening(false);
-      return;
-    }
+    if (!SR) return;
 
     if (recognitionRef.current) {
       try {
@@ -410,47 +292,33 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     rec.continuous = false;
     rec.interimResults = false;
 
-    rec.onstart = () => {
-      setIsListening(true);
-    };
-
     rec.onresult = (e: any) => {
-      const text = e.results[0][0].transcript;
-      setIsListening(false);
+      const text = e.results[0][0]?.transcript;
       if (text && text.trim()) {
-        callOracle(text.trim());
+        callOracleRef.current(text.trim());
       }
     };
 
-    rec.onerror = () => {
-      setIsListening(false);
-    };
-
-    rec.onend = () => {
-      setIsListening(false);
-    };
+    rec.onerror = () => {};
+    rec.onend = () => {};
 
     recognitionRef.current = rec;
     try {
       rec.start();
-    } catch {
-      setIsListening(false);
-    }
+    } catch {}
   }, []);
 
   startListeningRef.current = startListening;
 
   // ── Appel Oracle (Edge Function chat-agent avec agent_id: "axon_voice") ──
   const callOracle = useCallback(async (userMessage: string) => {
-    // Arrêter l'écoute pendant la réflexion
+    // Interrompre toute écoute en cours pendant que le robot réfléchit
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try { recognitionRef.current.abort(); } catch {}
     }
-    setIsListening(false);
 
     setRobotState("thinking");
     setCards([]);
-    setShowBubble(false);
 
     const newHistory = [
       ...history,
@@ -492,8 +360,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       if (parsed.destination && DEST_CONFIG[parsed.destination]) {
         setRobotShifted(true);
         setRobotState("farewell");
-        setSpeech(parsed.speech);
-        setShowBubble(true);
         speak(parsed.speech, () => {
           setTimeout(() => onComplete(parsed.destination!), 600);
         });
@@ -501,9 +367,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       }
 
       // Continuer la conversation
-      setSpeech(parsed.speech);
       setRobotState("speaking");
-      setShowBubble(true);
 
       speak(parsed.speech, () => {
         setRobotState("waiting");
@@ -511,7 +375,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           setRobotShifted(true);
           setCards(parsed.cards);
         }
-        // Démarrage automatique de l'écoute après la parole
+        // Démarrage automatique de l'écoute après que le robot a fini de parler
         startListeningRef.current();
       });
 
@@ -520,8 +384,8 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       const fallback = "Une perturbation dans mes circuits. Dites-moi simplement ce que vous cherchez.";
       
       setRobotState("speaking");
-      setShowBubble(false);
       
+      // On ne dit la phrase qu'une seule fois (demande utilisateur)
       if (!fallbackSaidRef.current) {
         speak(fallback, () => {
           setRobotState("waiting");
@@ -537,55 +401,46 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     }
   }, [history, speak, onComplete]);
 
-  // ── Séquence d'éveil au montage ───────────────────────────────────────
+  callOracleRef.current = callOracle;
+
+  // ── Séquence d'éveil (déclenchée UNE SEULE FOIS après chargement Spline) ──
   useEffect(() => {
-    // Charger les voix du navigateur
-    if (window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-    }
+    if (!splineReady || hasAwokenRef.current) return;
+    hasAwokenRef.current = true;
+
+    // Charger les voix
+    window.speechSynthesis?.getVoices();
 
     const timer = setTimeout(() => {
-      callOracle("__INIT__");
-    }, 1000);
+      callOracleRef.current("__INIT__");
+    }, 1200);
 
+    return () => clearTimeout(timer);
+  }, [splineReady]);
+
+  // Nettoyage au démontage
+  useEffect(() => {
     return () => {
-      clearTimeout(timer);
       stop();
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
+        try { recognitionRef.current.abort(); } catch {}
       }
     };
-  }, []);
-
-  // ── Basculer le micro manuellement ───────────────────────────────────
-  const toggleVoice = () => {
-    if (isListening) {
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
-      }
-      setIsListening(false);
-    } else {
-      stop();
-      startListening();
-    }
-  };
+  }, [stop]);
 
   // ── Sélection d'une carte ─────────────────────────────────────────────
   const handleCardSelect = useCallback((card: Card) => {
     if (robotState === "thinking" || robotState === "speaking") return;
 
-    // Arrêter le micro s'il était en écoute
+    // Interrompre le micro si un clic est effectué
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try { recognitionRef.current.abort(); } catch {}
     }
-    setIsListening(false);
 
     // SI LE VISITEUR VEUT TESTER LES AGENTS -> ON LUI PROPOSE LES DEUX OPTIONS
     if (card.value === "agents") {
-      setSpeech("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?");
       setCards(AGENT_CARDS);
       setRobotState("speaking");
-      setShowBubble(true);
       speak("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?", () => {
         setRobotState("waiting");
         startListeningRef.current();
@@ -605,7 +460,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
 
     stop();
     setCards([]);
-    setShowBubble(false);
     setRobotState("farewell");
     setRobotShifted(false);
 
@@ -613,9 +467,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     const speechKey = card.value;
     const speech = FAREWELL_SPEECHES[speechKey] ?? "Je vous guide vers votre destination.";
 
-    setSpeech(speech);
-    setShowBubble(true);
-
+    // Parler → puis naviguer ou déclencher Scène 3
     const performNavigation = () => {
       if (destPath && destPath.startsWith("/")) {
         navigate(destPath);
@@ -631,34 +483,47 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       setTimeout(performNavigation, 300);
     });
 
+    // Failsafe si voix indisponible → déclenche après 2.5s
     const failsafe = setTimeout(performNavigation, 2500);
     return () => clearTimeout(failsafe);
 
   }, [robotState, stop, speak, onComplete, navigate]);
 
-  const orbAnim = getOrbAnimation();
-
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden select-none">
+    <div className="fixed inset-0 bg-black overflow-hidden">
 
-      {/* ── Orbe Robotique Animée (Remplace le robot Spline 3D) ─────────── */}
+      {/* ── Robot Spline ───────────────────────────────────────────────── */}
       <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-        animate={{ x: robotShifted ? "22%" : "0%" }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0"
+        animate={{ x: robotShifted ? "20%" : "0%" }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
       >
-        <motion.div
-          animate={orbAnim.animate}
-          transition={orbAnim.transition}
-          className="pointer-events-auto"
-        >
-          <RoboticOrb orbState={orbState} size={280} />
-        </motion.div>
+        <Suspense fallback={
+          <div className="w-full h-full flex items-center justify-center">
+            <motion.div
+              className="w-16 h-16 border border-blue-500/30 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+        }>
+          <Spline
+            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+            className="w-full h-full"
+            onLoad={() => setSplineReady(true)}
+          />
+        </Suspense>
+
+        {/* Overlays de profondeur */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-black/80 to-transparent" />
+        </div>
       </motion.div>
 
-      {/* ── Zone gauche — bulle + cartes ─────────────────────────────── */}
+      {/* ── Zone gauche — cartes de suggestions ─────────────────────────── */}
       <div
-        className="absolute top-0 left-0 bottom-0 flex flex-col justify-center px-8 md:px-16"
+        className="absolute top-0 left-0 bottom-0 flex flex-col justify-center px-10 md:px-16"
         style={{ width: "45%", zIndex: 20 }}
       >
         <AnimatePresence mode="wait">
@@ -698,7 +563,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
             </motion.div>
           )}
 
-          {/* Speaking + waiting + listening */}
+          {/* Cartes suggestions (sans bulle de sous-titre) */}
           {(robotState === "speaking" || robotState === "waiting" || robotState === "farewell") && (
             <motion.div
               key="speaking-zone"
@@ -707,10 +572,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {/* Bulle de dialogue visuelle */}
-              <SpeechBubble text={currentSpeech} visible={showBubble} />
-
-              {/* Cartes suggestions cliquables */}
               <AnimatePresence>
                 {cards.length > 0 && robotState === "waiting" && (
                   <motion.div
@@ -723,7 +584,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
                       className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-3"
                       style={{ fontFamily: "'DM Sans', sans-serif" }}
                     >
-                      Choisissez une option ou parlez au micro
+                      Choisissez une réponse
                     </p>
                     <SuggestionCards
                       cards={cards}
@@ -739,27 +600,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
         </AnimatePresence>
       </div>
 
-      {/* ── Contrôles vocaux (Bouton micro interactif) ──────────────────── */}
-      <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center justify-center gap-2 z-30 pointer-events-auto">
-        <motion.button
-          onClick={toggleVoice}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          className={cn(
-            "w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-2xl cursor-pointer",
-            isListening
-              ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-pulse"
-              : "bg-white text-black shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:bg-white/90"
-          )}
-          title={isListening ? "Arrêter l'écoute" : "Parler à l'Oracle"}
-        >
-          <Mic size={28} />
-        </motion.button>
-        <span className="text-[10px] text-white/30 font-medium tracking-wider uppercase">
-          {isListening ? "Je vous écoute..." : "Cliquer pour parler"}
-        </span>
-      </div>
-
       {/* ── Header — Badge Oracle ─────────────────────────────────────── */}
       <div className="absolute top-6 left-6 z-30">
         <div className="flex flex-col gap-2">
@@ -772,7 +612,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           >
             Oracle — Autoslash AI
           </motion.p>
-          <RobotStatusBadge state={robotState} isListening={isListening} />
+          <RobotStatusBadge state={robotState} />
         </div>
       </div>
 
