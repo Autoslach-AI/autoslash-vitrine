@@ -1,27 +1,21 @@
 /**
  * Scene2Robot.tsx — L'Oracle Autoslash AI
  * ─────────────────────────────────────────
- * Robot Spline 3D qui :
- *   - S'éveille avec une animation d'entrée
- *   - Parle via Web Speech API (synthèse vocale)
- *   - Montre un glow lumineux sur la bouche quand il parle
- *   - Génère des cartes réponses dynamiques via Claude API
- *   - Guide le visiteur vers la bonne destination
- *
- * SOLUTION TEMPORAIRE (maintenant) :
- *   Cartes cliquables générées par Claude → pas de micro nécessaire
- *
- * SOLUTION LONG TERME (plus tard) :
- *   ElevenLabs pour voix naturelle + reconnaissance vocale bidirectionnelle
- *   n8n déclenche l'agent commercial Atlas dès qu'un prospect est identifié
- *   Auth Clerk → robot appelle le visiteur par son prénom
+ * Orbe robotique animée (RoboticOrb) avec :
+ *   - Reconnaissance vocale Web Speech API bidirectionnelle
+ *   - Synthèse vocale Web Speech API
+ *   - Bouton micro manuel + écoute automatique après parole
+ *   - Parsing JSON structuré (speech / cards / destination)
+ *   - Connecté à l'Edge Function Supabase chat-agent (agent_id: "axon_voice")
+ *   - Cartes suggestions cliquables de navigation
  */
 
-import { Suspense, lazy, useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
-
-const Spline = lazy(() => import("@splinetool/react-spline"));
+import { Mic } from "lucide-react";
+import { cn } from "@/lib/utils";
+import RoboticOrb from "@/components/ui/RoboticOrb";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -82,16 +76,16 @@ const DIRECT_DESTINATIONS: Record<string, string> = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// SYSTEM PROMPT ORACLE
+// SYSTEM PROMPT ORACLE (Documentaire - le prompt actif vient de la base Supabase)
 // ═══════════════════════════════════════════════════════════════
 
+/*
 const ORACLE_SYSTEM = `Tu es l'Oracle d'Autoslash AI — une intelligence artificielle bienveillante et précise.
 Tu guides les visiteurs du site vitrine vers la bonne destination.
 
 TON CARACTÈRE :
 - Direct et chaleureux, jamais robotique
 - Phrases courtes (max 2 phrases) car tu parles à voix haute
-- Tu te présentes en disant que tes circuits d'écoute sont en maintenance donc tu utilises des cartes
 - Tu poses des questions intelligentes pour comprendre le besoin
 
 DESTINATIONS :
@@ -101,39 +95,15 @@ DESTINATIONS :
 - "blog"            → articles, actualités, apprendre, études de cas
 - "contact"         → parler à l'équipe, démarrer un projet, question spécifique
 
-RÈGLE ABSOLUE : Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication.
-
 FORMAT :
 {
   "speech": "texte à dire à voix haute (1-2 phrases max, naturel)",
   "cards": [
-    {"label": "texte court", "value": "clé"},
-    ...max 4 cartes
+    {"label": "texte court", "value": "clé"}
   ],
   "destination": null
-}
-
-Quand tu as assez d'information (confidence > 0.75) :
-{
-  "speech": "phrase de recommandation enthousiaste courte",
-  "cards": [],
-  "destination": "clé-destination"
-}
-
-PREMIER TOUR — Toujours commencer par :
-{
-  "speech": "Bonjour. Mes circuits d'écoute sont en maintenance, j'utilise des cartes pour vous comprendre. Qu'est-ce qui vous amène ici ?",
-  "cards": [
-    {"label": "Voir vos agents IA", "value": "agents"},
-    {"label": "Vos réalisations", "value": "projects"},
-    {"label": "Tarifs et offres", "value": "pricing"},
-    {"label": "Parler à l'équipe", "value": "contact"}
-  ],
-  "destination": null
-}
-
-RECADRAGE — Si le visiteur choisit quelque chose hors sujet :
-Réponds avec une card qui recadre poliment vers l'écosystème Autoslash AI.`;
+}`;
+*/
 
 // ═══════════════════════════════════════════════════════════════
 // HOOK : SYNTHÈSE VOCALE
@@ -150,10 +120,13 @@ function useSpeech() {
     u.rate    = 0.85;
     u.pitch   = 0.7;
     u.volume  = 1;
-    // Voix française
+
     const voices = window.speechSynthesis.getVoices();
-    const fr = voices.find(v => v.lang.startsWith("fr")) ?? voices[0];
+    const fr = voices.find(v => v.lang.startsWith("fr") && (v.name.includes("Google") || v.name.includes("Enhanced"))) 
+            ?? voices.find(v => v.lang.startsWith("fr")) 
+            ?? voices[0];
     if (fr) u.voice = fr;
+
     u.onstart = () => setSpeaking(true);
     u.onend   = () => { setSpeaking(false); onEnd?.(); };
     u.onerror = () => { setSpeaking(false); onEnd?.(); };
@@ -161,92 +134,66 @@ function useSpeech() {
   }, []);
 
   const stop = useCallback(() => {
-    window.speechSynthesis.cancel();
-    setSpeaking(false);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+    }
   }, []);
 
   return { speak, stop, speaking };
 }
 
 // ═══════════════════════════════════════════════════════════════
-// COMPOSANT : GLOW BOUCHE ROBOT
+// COMPOSANT : BULLE DE PAROLE
 // ═══════════════════════════════════════════════════════════════
 
-function MouthGlow({ speaking, robotShifted }: { speaking: boolean; robotShifted: boolean }) {
-  // Position approximative de la bouche du robot sur l'écran
-  // Robot centré → bouche ~50% horizontal, ~38% vertical
-  // Robot shifté droite (25%) → bouche ~62% horizontal
-  const left = robotShifted ? "62%" : "50%";
-
+function SpeechBubble({ text, visible }: { text: string; visible: boolean }) {
   return (
-    <div
-      className="absolute pointer-events-none z-30"
-      style={{ left, top: "38%", transform: "translate(-50%, -50%)" }}
-    >
-      <AnimatePresence>
-        {speaking && (
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0.3 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0.3 }}
-            transition={{ duration: 0.2 }}
-            className="relative flex items-center justify-center"
-          >
-            {/* Lèvres lumineuses */}
-            <motion.div
-              className="relative"
-              style={{ width: 48, height: 14 }}
+    <AnimatePresence>
+      {visible && text && (
+        <motion.div
+          initial={{ opacity: 0, y: 12, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.96 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="relative max-w-md p-5 rounded-2xl backdrop-blur-md"
+          style={{
+            background: "rgba(10, 15, 30, 0.75)",
+            border: "1px solid rgba(0, 102, 255, 0.25)",
+            boxShadow: "0 0 30px rgba(0, 80, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+          }}
+        >
+          {/* Flèche pointant vers le robot */}
+          <div
+            className="absolute -right-2 top-6 w-4 h-4 rotate-45"
+            style={{
+              background: "rgba(10, 15, 30, 0.75)",
+              borderRight: "1px solid rgba(0, 102, 255, 0.25)",
+              borderTop: "1px solid rgba(0, 102, 255, 0.25)",
+            }}
+          />
+
+          {/* Indicateur Oracle */}
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <span
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/70"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
-              {/* Lèvre supérieure */}
-              <motion.div
-                className="absolute rounded-full"
-                style={{
-                  width: 48,
-                  height: 5,
-                  top: 0,
-                  background: "linear-gradient(90deg, transparent, rgba(0,180,255,0.9), rgba(100,220,255,1), rgba(0,180,255,0.9), transparent)",
-                  boxShadow: "0 0 12px 4px rgba(0,180,255,0.7), 0 0 24px 8px rgba(0,100,255,0.4)",
-                  filter: "blur(0.5px)",
-                }}
-                animate={{
-                  scaleY: [1, 0.6, 1.2, 0.8, 1],
-                  opacity: [0.9, 1, 0.8, 1, 0.9],
-                }}
-                transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
-              />
-              {/* Lèvre inférieure */}
-              <motion.div
-                className="absolute rounded-full"
-                style={{
-                  width: 40,
-                  height: 4,
-                  bottom: 0,
-                  left: 4,
-                  background: "linear-gradient(90deg, transparent, rgba(0,150,255,0.7), rgba(80,200,255,0.9), rgba(0,150,255,0.7), transparent)",
-                  boxShadow: "0 0 10px 3px rgba(0,150,255,0.6)",
-                  filter: "blur(0.5px)",
-                }}
-                animate={{
-                  scaleY: [1, 1.4, 0.7, 1.2, 1],
-                  opacity: [0.8, 1, 0.7, 0.9, 0.8],
-                }}
-                transition={{ duration: 0.35, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
-              />
-              {/* Halo global */}
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "radial-gradient(ellipse, rgba(0,180,255,0.3) 0%, transparent 70%)",
-                  transform: "scale(2.5)",
-                }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 0.3, repeat: Infinity }}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              Oracle
+            </span>
+          </div>
+
+          {/* Texte parlé */}
+          <p
+            className="text-white/90 text-base font-light leading-relaxed"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            {text}
+          </p>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -264,137 +211,104 @@ function SuggestionCards({
   disabled: boolean;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -40 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col gap-2.5"
-    >
+    <div className="flex flex-col gap-2.5 max-w-sm">
       {cards.map((card, i) => (
         <motion.button
-          key={`${card.value}-${i}`}
-          initial={{ opacity: 0, x: -30, scale: 0.95 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          onClick={() => !disabled && onSelect(card)}
+          key={card.value}
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -8 }}
+          transition={{ delay: i * 0.08, duration: 0.3 }}
           disabled={disabled}
-          whileHover={!disabled ? { x: 6, scale: 1.01 } : {}}
-          whileTap={!disabled ? { scale: 0.98 } : {}}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all duration-300 group max-w-[280px]"
+          onClick={() => onSelect(card)}
+          className="group relative flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 2px 14px rgba(0,0,0,0.2)",
-            cursor: disabled ? "default" : "pointer",
-            opacity: disabled ? 0.5 : 1,
+            background: "rgba(255, 255, 255, 0.03)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
           }}
+          whileHover={disabled ? {} : {
+            scale: 1.02,
+            backgroundColor: "rgba(0, 102, 255, 0.08)",
+            borderColor: "rgba(0, 102, 255, 0.35)",
+          }}
+          whileTap={disabled ? {} : { scale: 0.98 }}
         >
-          {/* Label */}
           <span
-            className="text-white font-medium text-xs group-hover:text-blue-300 transition-colors"
+            className="text-white/80 text-sm font-light group-hover:text-white transition-colors"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             {card.label}
           </span>
 
-          {/* Flèche */}
-          <motion.span
-            className="ml-auto text-white/10 group-hover:text-white/40 transition-colors text-[10px]"
-            animate={disabled ? {} : { x: [0, 2, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
+          <span className="text-white/20 text-xs group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all">
             →
-          </motion.span>
+          </span>
         </motion.button>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// COMPOSANT : BULLE CONVERSATION
+// COMPOSANT : ÉTAT ROBOT (BADGE)
 // ═══════════════════════════════════════════════════════════════
 
-function SpeechBubble({ text, visible }: { text: string; visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && text && (
-        <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.97 }}
-          transition={{ duration: 0.4 }}
-          className="px-6 py-4 rounded-2xl max-w-sm"
-          style={{
-            background: "rgba(0,0,0,0.7)",
-            border: "1px solid rgba(0,150,255,0.25)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 0 30px rgba(0,100,255,0.15)",
-          }}
-        >
-          <p
-            className="text-white/85 text-sm leading-relaxed"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            {text}
-          </p>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// COMPOSANT : INDICATEUR ÉTAT ROBOT
-// ═══════════════════════════════════════════════════════════════
-
-function RobotStatusBadge({ state }: { state: RobotState }) {
-  const config: Record<RobotState, { label: string; color: string }> = {
-    awakening: { label: "Initialisation...",  color: "#60a5fa" },
-    speaking:  { label: "En ligne",           color: "#34d399" },
-    waiting:   { label: "En attente",         color: "#fbbf24" },
-    thinking:  { label: "Analyse en cours...", color: "#a78bfa" },
-    farewell:  { label: "À bientôt",          color: "#f87171" },
-  };
-  const { label, color } = config[state];
+function RobotStatusBadge({ state, isListening }: { state: RobotState; isListening: boolean }) {
+  const config = isListening
+    ? { label: "Micro à l'écoute", color: "#10b981" }
+    : {
+        awakening: { label: "Connexion",    color: "#60a5fa" },
+        speaking:  { label: "En parole",    color: "#34d399" },
+        waiting:   { label: "En attente",   color: "#a78bfa" },
+        thinking:  { label: "Analyse...",   color: "#fbbf24" },
+        farewell:  { label: "Départ",       color: "#f87171" },
+      }[state];
 
   return (
-    <motion.div
-      className="flex items-center gap-2"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
+      className="inline-flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md"
+      style={{
+        background: "rgba(0, 0, 0, 0.4)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+      }}
     >
-      <motion.div
-        className="w-2 h-2 rounded-full"
-        style={{ backgroundColor: color }}
-        animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+      <div
+        className="w-1.5 h-1.5 rounded-full animate-pulse"
+        style={{ background: config.color }}
       />
       <span
-        className="text-white/30 text-[10px] font-bold uppercase tracking-widest"
+        className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50"
         style={{ fontFamily: "'DM Sans', sans-serif" }}
       >
-        {label}
+        {config.label}
       </span>
-    </motion.div>
+    </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// COMPOSANT : POINTS DE CHARGEMENT
+// COMPOSANT : POINTS DE RÉFLEXION
 // ═══════════════════════════════════════════════════════════════
 
 function ThinkingDots() {
   return (
-    <div className="flex items-center gap-1.5 py-2">
+    <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl max-w-[80px]"
+      style={{
+        background: "rgba(10, 15, 30, 0.75)",
+        border: "1px solid rgba(0, 102, 255, 0.2)",
+      }}
+    >
       {[0, 1, 2].map(i => (
         <motion.div
           key={i}
-          className="w-2 h-2 rounded-full bg-blue-400"
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-400"
+          animate={{ y: [0, -4, 0] }}
+          transition={{
+            duration: 0.6,
+            repeat: Infinity,
+            delay: i * 0.15,
+            ease: "easeInOut",
+          }}
         />
       ))}
     </div>
@@ -407,20 +321,133 @@ function ThinkingDots() {
 
 export default function Scene2Robot({ onComplete }: Scene2Props) {
   const navigate = useNavigate();
-  const [robotState, setRobotState]   = useState<RobotState>("awakening");
-  const [cards, setCards]             = useState<Card[]>([]);
-  const [currentSpeech, setSpeech]    = useState("");
-  const [showBubble, setShowBubble]   = useState(false);
+  const [robotState, setRobotState]     = useState<RobotState>("awakening");
+  const [isListening, setIsListening]   = useState(false);
+  const [cards, setCards]               = useState<Card[]>([]);
+  const [currentSpeech, setSpeech]      = useState("");
+  const [showBubble, setShowBubble]     = useState(false);
   const [robotShifted, setRobotShifted] = useState(false);
-  const [splineReady, setSplineReady] = useState(false);
-  const [history, setHistory]         = useState<{ role: string; content: string }[]>([]);
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [history, setHistory]           = useState<{ role: string; content: string }[]>([]);
 
-  const { speak, stop, speaking } = useSpeech();
+  const recognitionRef = useRef<any>(null);
+  const startListeningRef = useRef<() => void>(() => {});
   const fallbackSaidRef = useRef(false);
 
-  // ── Appel Oracle Claude ────────────────────────────────────────────────
+  const { speak, stop, speaking } = useSpeech();
+
+  // ── Orb State déduit ──────────────────────────────────────────────────
+  const orbState: "idle" | "speaking" | "listening" | "thinking" =
+    robotState === "speaking" || robotState === "farewell"
+      ? "speaking"
+      : robotState === "thinking"
+      ? "thinking"
+      : isListening
+      ? "listening"
+      : "idle";
+
+  // ── Animation Variants pour l'Orbe (exactement identiques à siri-orb.tsx)
+  const getOrbAnimation = () => {
+    switch (orbState) {
+      case "speaking":
+        return {
+          animate: {
+            scale: [1, 1.12, 0.96, 1.08, 1],
+            opacity: [1, 1, 1, 1, 1],
+            filter: [
+              "blur(2px) brightness(1)",
+              "blur(4px) brightness(1.4)",
+              "blur(2px) brightness(1.1)",
+              "blur(3px) brightness(1.3)",
+              "blur(2px) brightness(1)",
+            ],
+          },
+          transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut" }
+        };
+      case "listening":
+        return {
+          animate: {
+            scale: [1, 1.06, 0.98, 1.04, 1],
+            borderRadius: ["50%", "48%", "52%", "49%", "50%"],
+          },
+          transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
+        };
+      case "thinking":
+        return {
+          animate: {
+            scale: [1, 1.02, 1],
+            opacity: [0.6, 0.9, 0.6],
+            rotate: [0, 3, -3, 0],
+          },
+          transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+        };
+      default: // idle
+        return {
+          animate: {
+            scale: [1, 1.03, 1],
+            opacity: [0.85, 1, 0.85],
+          },
+          transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+        };
+    }
+  };
+
+  // ── Reconnaissance Vocale (Web Speech API) ─────────────────────────────
+  const startListening = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setIsListening(false);
+      return;
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {}
+    }
+
+    const rec = new SR();
+    rec.lang = "fr-FR";
+    rec.continuous = false;
+    rec.interimResults = false;
+
+    rec.onstart = () => {
+      setIsListening(true);
+    };
+
+    rec.onresult = (e: any) => {
+      const text = e.results[0][0].transcript;
+      setIsListening(false);
+      if (text && text.trim()) {
+        callOracle(text.trim());
+      }
+    };
+
+    rec.onerror = () => {
+      setIsListening(false);
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+    } catch {
+      setIsListening(false);
+    }
+  }, []);
+
+  startListeningRef.current = startListening;
+
+  // ── Appel Oracle (Edge Function chat-agent avec agent_id: "axon_voice") ──
   const callOracle = useCallback(async (userMessage: string) => {
+    // Arrêter l'écoute pendant la réflexion
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+    setIsListening(false);
+
     setRobotState("thinking");
     setCards([]);
     setShowBubble(false);
@@ -432,21 +459,13 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     setHistory(newHistory);
 
     try {
-      // NOTE: Appel client-side direct à Anthropic bloqué par CORS normalement
-      // Ici on simule ou on attend une erreur pour déclencher le fallback
-      const API_KEY = process.env.ANTHROPIC_API_KEY; 
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("https://vrmkpnqjmqztpfowwkzv.supabase.co/functions/v1/chat-agent", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-api-key": API_KEY ?? "",
-          "anthropic-version": "2023-06-01"
         },
         body: JSON.stringify({
-          model: "claude-3-5-sonnet-20240620",
-          max_tokens: 400,
-          system: ORACLE_SYSTEM,
+          agent_id: "axon_voice",
           messages: newHistory,
         }),
       });
@@ -460,7 +479,11 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       try {
         parsed = JSON.parse(raw);
       } catch {
-        throw new Error("JSON Parse Error");
+        parsed = {
+          speech: raw,
+          cards: SECTOR_CARDS,
+          destination: null,
+        };
       }
 
       setHistory(prev => [...prev, { role: "assistant", content: parsed.speech }]);
@@ -488,6 +511,8 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           setRobotShifted(true);
           setCards(parsed.cards);
         }
+        // Démarrage automatique de l'écoute après la parole
+        startListeningRef.current();
       });
 
     } catch (error) {
@@ -495,41 +520,65 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       const fallback = "Une perturbation dans mes circuits. Dites-moi simplement ce que vous cherchez.";
       
       setRobotState("speaking");
-      
-      // On ne montre pas la bulle pour le fallback (demande utilisateur)
       setShowBubble(false);
       
-      // On ne dit la phrase qu'une seule fois (demande utilisateur)
       if (!fallbackSaidRef.current) {
         speak(fallback, () => {
           setRobotState("waiting");
           fallbackSaidRef.current = true;
           setCards(SECTOR_CARDS);
+          startListeningRef.current();
         });
       } else {
         setRobotState("waiting");
         setCards(SECTOR_CARDS);
+        startListeningRef.current();
       }
     }
   }, [history, speak, onComplete]);
 
-  // ── Séquence d'éveil ──────────────────────────────────────────────────
+  // ── Séquence d'éveil au montage ───────────────────────────────────────
   useEffect(() => {
-    if (!splineReady) return;
-
-    // Charger les voix
-    window.speechSynthesis?.getVoices();
+    // Charger les voix du navigateur
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+    }
 
     const timer = setTimeout(() => {
       callOracle("__INIT__");
-    }, 1200);
+    }, 1000);
 
-    return () => clearTimeout(timer);
-  }, [splineReady]);
+    return () => {
+      clearTimeout(timer);
+      stop();
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+    };
+  }, []);
+
+  // ── Basculer le micro manuellement ───────────────────────────────────
+  const toggleVoice = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      setIsListening(false);
+    } else {
+      stop();
+      startListening();
+    }
+  };
 
   // ── Sélection d'une carte ─────────────────────────────────────────────
   const handleCardSelect = useCallback((card: Card) => {
     if (robotState === "thinking" || robotState === "speaking") return;
+
+    // Arrêter le micro s'il était en écoute
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+    setIsListening(false);
 
     // SI LE VISITEUR VEUT TESTER LES AGENTS -> ON LUI PROPOSE LES DEUX OPTIONS
     if (card.value === "agents") {
@@ -539,6 +588,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       setShowBubble(true);
       speak("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?", () => {
         setRobotState("waiting");
+        startListeningRef.current();
       });
       return;
     }
@@ -546,11 +596,11 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     const FAREWELL_SPEECHES: Record<string, string> = {
       "business":   "Compris. Je vous transfère vers l'Agent Business.",
       "commercial": "C'est noté. L'Agent Commercial vous attend.",
-      "agents":           "Parfait. Je vous emmène voir nos agents en action.",
-      "projects":         "Excellent. Découvrez nos réalisations concrètes.",
-      "pricing":          "Je vous guide vers nos offres et packages.",
-      "blog":             "Direction notre blog et actualités.",
-      "contact":          "Notre équipe vous attend.",
+      "agents":     "Parfait. Je vous emmène voir nos agents en action.",
+      "projects":   "Excellent. Découvrez nos réalisations concrètes.",
+      "pricing":    "Je vous guide vers nos offres et packages.",
+      "blog":       "Direction notre blog et actualités.",
+      "contact":    "Notre équipe vous attend.",
     };
 
     stop();
@@ -566,7 +616,6 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
     setSpeech(speech);
     setShowBubble(true);
 
-    // Parler → puis naviguer ou déclencher Scène 3
     const performNavigation = () => {
       if (destPath && destPath.startsWith("/")) {
         navigate(destPath);
@@ -582,49 +631,34 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       setTimeout(performNavigation, 300);
     });
 
-    // Failsafe si voix indisponible → déclenche après 2.5s
     const failsafe = setTimeout(performNavigation, 2500);
-
-    // Annuler failsafe si voix a fonctionné
     return () => clearTimeout(failsafe);
 
-  }, [robotState, stop, speak, onComplete]);
+  }, [robotState, stop, speak, onComplete, navigate]);
+
+  const orbAnim = getOrbAnimation();
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
+    <div className="fixed inset-0 bg-black overflow-hidden select-none">
 
-      {/* ── Robot Spline ───────────────────────────────────────────────── */}
+      {/* ── Orbe Robotique Animée (Remplace le robot Spline 3D) ─────────── */}
       <motion.div
-        className="absolute inset-0"
-        animate={{ x: robotShifted ? "20%" : "0%" }}
-        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+        animate={{ x: robotShifted ? "22%" : "0%" }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Suspense fallback={
-          <div className="w-full h-full flex items-center justify-center">
-            <motion.div
-              className="w-16 h-16 border border-blue-500/30 rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            />
-          </div>
-        }>
-          <Spline
-            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-            className="w-full h-full"
-            onLoad={() => setSplineReady(true)}
-          />
-        </Suspense>
-
-        {/* Overlays de profondeur */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-black/80 to-transparent" />
-        </div>
+        <motion.div
+          animate={orbAnim.animate}
+          transition={orbAnim.transition}
+          className="pointer-events-auto"
+        >
+          <RoboticOrb orbState={orbState} size={280} />
+        </motion.div>
       </motion.div>
 
       {/* ── Zone gauche — bulle + cartes ─────────────────────────────── */}
       <div
-        className="absolute top-0 left-0 bottom-0 flex flex-col justify-center px-10 md:px-16"
+        className="absolute top-0 left-0 bottom-0 flex flex-col justify-center px-8 md:px-16"
         style={{ width: "45%", zIndex: 20 }}
       >
         <AnimatePresence mode="wait">
@@ -664,7 +698,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
             </motion.div>
           )}
 
-          {/* Speaking + waiting */}
+          {/* Speaking + waiting + listening */}
           {(robotState === "speaking" || robotState === "waiting" || robotState === "farewell") && (
             <motion.div
               key="speaking-zone"
@@ -673,10 +707,10 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {/* Bulle de parole */}
+              {/* Bulle de dialogue visuelle */}
               <SpeechBubble text={currentSpeech} visible={showBubble} />
 
-              {/* Cartes suggestions */}
+              {/* Cartes suggestions cliquables */}
               <AnimatePresence>
                 {cards.length > 0 && robotState === "waiting" && (
                   <motion.div
@@ -689,7 +723,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
                       className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-3"
                       style={{ fontFamily: "'DM Sans', sans-serif" }}
                     >
-                      Choisissez une réponse
+                      Choisissez une option ou parlez au micro
                     </p>
                     <SuggestionCards
                       cards={cards}
@@ -705,6 +739,27 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
         </AnimatePresence>
       </div>
 
+      {/* ── Contrôles vocaux (Bouton micro interactif) ──────────────────── */}
+      <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center justify-center gap-2 z-30 pointer-events-auto">
+        <motion.button
+          onClick={toggleVoice}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className={cn(
+            "w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-2xl cursor-pointer",
+            isListening
+              ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-pulse"
+              : "bg-white text-black shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:bg-white/90"
+          )}
+          title={isListening ? "Arrêter l'écoute" : "Parler à l'Oracle"}
+        >
+          <Mic size={28} />
+        </motion.button>
+        <span className="text-[10px] text-white/30 font-medium tracking-wider uppercase">
+          {isListening ? "Je vous écoute..." : "Cliquer pour parler"}
+        </span>
+      </div>
+
       {/* ── Header — Badge Oracle ─────────────────────────────────────── */}
       <div className="absolute top-6 left-6 z-30">
         <div className="flex flex-col gap-2">
@@ -717,7 +772,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           >
             Oracle — Autoslash AI
           </motion.p>
-          <RobotStatusBadge state={robotState} />
+          <RobotStatusBadge state={robotState} isListening={isListening} />
         </div>
       </div>
 
