@@ -269,6 +269,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   const [history, setHistory]         = useState<{ role: string; content: string }[]>([]);
 
   const recognitionRef = useRef<any>(null);
+  const listenTimerRef = useRef<any>(null);
   const callOracleRef = useRef<(msg: string) => Promise<void>>(async () => {});
   const startListeningRef = useRef<() => void>(() => {});
   const fallbackSaidRef = useRef(false);
@@ -294,7 +295,8 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
 
     rec.onresult = (e: any) => {
       const text = e.results[0][0]?.transcript;
-      if (text && text.trim()) {
+      // Filtre de longueur minimale : ignorer les bruits et échos résiduels (< 3 caractères)
+      if (text && text.trim().length >= 3) {
         callOracleRef.current(text.trim());
       }
     };
@@ -312,7 +314,10 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
 
   // ── Appel Oracle (Edge Function chat-agent avec agent_id: "axon_voice") ──
   const callOracle = useCallback(async (userMessage: string) => {
-    // Interrompre toute écoute en cours pendant que le robot réfléchit
+    // Interrompre toute écoute ou délai en cours pendant que le robot réfléchit
+    if (listenTimerRef.current) {
+      clearTimeout(listenTimerRef.current);
+    }
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch {}
     }
@@ -375,8 +380,11 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           setRobotShifted(true);
           setCards(parsed.cards);
         }
-        // Démarrage automatique de l'écoute après que le robot a fini de parler
-        startListeningRef.current();
+        // Délai de 450ms pour laisser l'écho audio se dissiper avant d'activer le micro
+        if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
+        listenTimerRef.current = setTimeout(() => {
+          startListeningRef.current();
+        }, 450);
       });
 
     } catch (error) {
@@ -391,12 +399,18 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
           setRobotState("waiting");
           fallbackSaidRef.current = true;
           setCards(SECTOR_CARDS);
-          startListeningRef.current();
+          if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
+          listenTimerRef.current = setTimeout(() => {
+            startListeningRef.current();
+          }, 450);
         });
       } else {
         setRobotState("waiting");
         setCards(SECTOR_CARDS);
-        startListeningRef.current();
+        if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
+        listenTimerRef.current = setTimeout(() => {
+          startListeningRef.current();
+        }, 450);
       }
     }
   }, [history, speak, onComplete]);
@@ -422,6 +436,7 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   useEffect(() => {
     return () => {
       stop();
+      if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
       if (recognitionRef.current) {
         try { recognitionRef.current.abort(); } catch {}
       }
@@ -432,7 +447,8 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
   const handleCardSelect = useCallback((card: Card) => {
     if (robotState === "thinking" || robotState === "speaking") return;
 
-    // Interrompre le micro si un clic est effectué
+    // Interrompre le micro et tout timer d'écoute si un clic est effectué
+    if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch {}
     }
@@ -443,7 +459,10 @@ export default function Scene2Robot({ onComplete }: Scene2Props) {
       setRobotState("speaking");
       speak("Très bien. Quel agent souhaitez-vous mettre à l'épreuve ?", () => {
         setRobotState("waiting");
-        startListeningRef.current();
+        if (listenTimerRef.current) clearTimeout(listenTimerRef.current);
+        listenTimerRef.current = setTimeout(() => {
+          startListeningRef.current();
+        }, 450);
       });
       return;
     }
