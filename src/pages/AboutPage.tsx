@@ -12,6 +12,14 @@ import {
 } from "../components/ui/animated-slideshow";
 import { ActionCta } from "../components/ActionCta";
 
+const TL_CARDS = [
+  { label: "01 · ÉVEIL", title: "Éveil IA", text: "Des entrepreneurs brillants, des idées qui méritaient le monde — paralysés par des systèmes qui n'étaient pas faits pour eux. J'ai décidé que ça s'arrêtait là." },
+  { label: "02 · MISSION", title: "L'IA n'était pas accessible", text: "Trop chère, trop complexe, réservée aux géants. Autoslash AI est née pour changer ça — une infrastructure mondiale, livrée clé en main." },
+  { label: "03 · ARCHITECTURE", title: "Une architecture conçue pour l'élite", text: "Des agents qui travaillent quand vous dormez. Votre croissance, automatisée." },
+  { label: "04 · INFRASTRUCTURE", title: "Autoslash AI ne vend pas un outil", text: "Nous construisons l'infrastructure de votre prochain niveau. Des agents entraînés sur vos données. Opérationnels 24h/24. Nos clients ne gèrent plus leur croissance — ils la regardent se déployer pendant qu'ils font ce qui compte vraiment." },
+];
+const TL_N = TL_CARDS.length;
+
 export default function AboutPage() {
   const navigate = useNavigate();
   const worldRef = useRef<HTMLDivElement>(null);
@@ -26,17 +34,22 @@ export default function AboutPage() {
   const section5Ref = useRef<HTMLElement>(null);
   
   // Narrative element refs for direct-DOM fluidity
-  const declicTitleRef = useRef<HTMLDivElement>(null);
-  const narrative1Ref = useRef<HTMLDivElement>(null);
-  const narrative2Ref = useRef<HTMLDivElement>(null);
-  const solutionTitleRef = useRef<HTMLDivElement>(null);
-  const narrative3Ref = useRef<HTMLDivElement>(null);
+  const tlTrackRef = useRef<HTMLDivElement>(null);
+  const tlFillRef = useRef<HTMLDivElement>(null);
+  const tlCardRefs = useRef<(HTMLElement | null)[]>([]);
+  const tlNodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const ctaInnerRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
 
-  const heroSceneRef = useRef<HTMLImageElement>(null);
-  const heroStarshipRef = useRef<HTMLImageElement>(null);
-  const heroTitleRef = useRef<HTMLElement>(null);
+  const rupFrameRef = useRef<HTMLDivElement>(null);
+  const rupGlowRef = useRef<HTMLDivElement>(null);
+  const rupKickerRef = useRef<HTMLSpanElement>(null);
+  const rupStrikeRef = useRef<HTMLElement>(null);
+  const rupWordRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const rupEcgRef = useRef<SVGPathElement>(null);
+  const rupContentRef = useRef<HTMLDivElement>(null);
+  const rupIrisRef = useRef<HTMLDivElement>(null);
+  const rupORef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     // --- SECTION 1: TUNNEL CONFIG & SETUP ---
@@ -324,6 +337,22 @@ export default function AboutPage() {
         siliconScene.add(mesh);
     }
 
+    let tlRow = 0;
+    let tlMobile = false;
+    const layoutTimeline = () => {
+      tlRow = window.innerHeight * 0.62;
+      tlMobile = window.innerWidth < 768;
+      tlCardRefs.current.forEach((el, i) => { if (el) el.style.top = `${i * tlRow}px`; });
+      tlNodeRefs.current.forEach((el, i) => { if (el) el.style.top = `${i * tlRow}px`; });
+      if (tlTrackRef.current) {
+        tlTrackRef.current.style.setProperty('--tl-line-top', `${-tlRow * 0.6}px`);
+        tlTrackRef.current.style.setProperty('--tl-line-h', `${TL_N * tlRow}px`);
+      }
+    };
+    layoutTimeline();
+
+    let rupMeasure: { ox: number; oy: number; cx: number; cy: number; hr: number } | null = null;
+
     // --- SHARED SCROLL & RAF LOOP ---
     const lenis = new Lenis({ lerp: 0.1 });
     let velocity = 0;
@@ -393,8 +422,6 @@ export default function AboutPage() {
       if (section2Ref.current) { section2Ref.current.style.filter = 'none'; section2Ref.current.style.transform = 'none'; }
       if (siliconCanvasRef.current) { siliconCanvasRef.current.style.filter = 'none'; }
       if (section3Ref.current) { section3Ref.current.style.filter = 'none'; section3Ref.current.style.transform = 'none'; }
-      if (heroSceneRef.current) { heroSceneRef.current.style.filter = 'none'; }
-      if (heroStarshipRef.current) { heroStarshipRef.current.style.filter = 'none'; }
       if (section4Ref.current) { section4Ref.current.style.filter = 'none'; section4Ref.current.style.transform = 'none'; }
       if (section5Ref.current) { section5Ref.current.style.filter = 'none'; section5Ref.current.style.transform = 'none'; }
 
@@ -426,9 +453,7 @@ export default function AboutPage() {
           flashRef.current.style.opacity = (f * 0.8).toString();
           flashRef.current.style.background = '#ffffff';
         } else if (t23 > 0 && t23 < 1) {
-          const f = t23 < 0.5 ? t23 * 2 : 1 - (t23 - 0.5) * 2;
-          flashRef.current.style.opacity = (f * 0.95).toString();
-          flashRef.current.style.background = '#000000';
+          flashRef.current.style.opacity = '0';
         } else if (t34 > 0 && t34 < 1) {
           // Flash removed for t34
           flashRef.current.style.opacity = '0';
@@ -454,9 +479,6 @@ export default function AboutPage() {
 
           if (t12 > 0 && t12 < 1) {
             section2Ref.current.style.transform = `scale(${1.1 - t12 * 0.1})`;
-          } else if (t23 > 0 && t23 < 1) {
-            section2Ref.current.style.transform = `scale(${1 + t23 * 0.3})`;
-            if (siliconCanvasRef.current) siliconCanvasRef.current.style.filter = `blur(${t23 * 1.5}px)`;
           } else {
             const ty = (1 - s2A) * 60;
             const sc = 0.95 + (s2A * 0.05);
@@ -470,9 +492,7 @@ export default function AboutPage() {
           if (t23 > 0 && t23 < 1) {
             section3Ref.current.style.transform = `scale(${1.2 - t23 * 0.2})`;
           } else if (t34 > 0 && t34 < 1) {
-            if (heroSceneRef.current) heroSceneRef.current.style.filter = `blur(${t34 * 1.5}px)`;
-            if (heroStarshipRef.current) heroStarshipRef.current.style.filter = `blur(${t34 * 1.5}px)`;
-            section3Ref.current.style.transform = `scale(${1 + t34 * 0.2})`;
+            section3Ref.current.style.transform = 'none';
           } else {
             const ty = (1 - s3A) * 40;
             section3Ref.current.style.transform = `translate3d(0, ${ty}px, 0)`;
@@ -535,59 +555,119 @@ export default function AboutPage() {
               siliconRenderer.render(siliconScene, siliconCamera);
           }
           
-          // Éveil IA scroll (Vertical 'scroll ref' style)
-          if (declicTitleRef.current) {
-              // Extreme range for vertical migration
-              const y = (1 - (Math.max(0, sp - 0.24) / 0.12)) * 220 - 60;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.24) * 20) * (1 - Math.max(0, (sp - 0.34) * 20)));
-              declicTitleRef.current.style.transform = `translate3d(10vw, ${y}vh, 0)`;
-              declicTitleRef.current.style.opacity = alpha.toString();
-          }
-          if (narrative1Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.30) / 0.12)) * 220 - 60;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.30) * 20) * (1 - Math.max(0, (sp - 0.40) * 20)));
-              narrative1Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
-              narrative1Ref.current.style.opacity = alpha.toString();
-          }
-          if (narrative2Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.38) / 0.12)) * 220 - 60;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.38) * 20) * (1 - Math.max(0, (sp - 0.48) * 20)));
-              narrative2Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
-              narrative2Ref.current.style.opacity = alpha.toString();
-          }
-          // Architecture block scroll (Vertical 'scroll ref' style)
-          if (solutionTitleRef.current) {
-              const y = (1 - (Math.max(0, sp - 0.46) / 0.12)) * 220 - 60;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.46) * 20) * (1 - Math.max(0, (sp - 0.56) * 20)));
-              solutionTitleRef.current.style.transform = `translate3d(10vw, ${y}vh, 0)`;
-              solutionTitleRef.current.style.opacity = alpha.toString();
-          }
-          if (narrative3Ref.current) {
-              const y = (1 - (Math.max(0, sp - 0.54) / 0.12)) * 220 - 60;
-              const alpha = Math.max(0, Math.min(1, (sp - 0.54) * 20) * (1 - Math.max(0, (sp - 0.64) * 20)));
-              narrative3Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
-              narrative3Ref.current.style.opacity = alpha.toString();
+          if (tlTrackRef.current) {
+              const vh = window.innerHeight;
+              const row = tlRow;
+              const p = Math.max(0, Math.min(1, (sp - 0.27) / 0.37));
+              const travel = (TL_N - 1) * row + row * 1.3;
+              const ty = vh * 0.5 + row * 0.9 - p * travel;
+              tlTrackRef.current.style.transform = `translate3d(0, ${ty}px, 0)`;
+
+              const lineTop = -row * 0.6;
+              const fillBottom = vh * 0.5 - ty;
+              if (tlFillRef.current) {
+                  const k = Math.max(0, Math.min(1, (fillBottom - lineTop) / (TL_N * row)));
+                  tlFillRef.current.style.transform = `scaleY(${k})`;
+              }
+              for (let i = 0; i < TL_N; i++) {
+                  const y = i * row;
+                  const d = Math.abs(y - fillBottom) / row;
+                  const raw = y >= fillBottom ? 1 - (d - 0.28) / 0.32 : 1 - (d - 0.7) / 0.3;
+                  const v = Math.max(0, Math.min(1, raw));
+                  const card = tlCardRefs.current[i];
+                  if (card) {
+                      const dir = tlMobile ? 1 : (i % 2 === 0 ? -1 : 1);
+                      card.style.opacity = v.toString();
+                      card.style.transform = `translate3d(${dir * (1 - v) * 60}px, -50%, 0) scale(${0.88 + 0.12 * v})`;
+                      card.style.filter = v >= 0.999 ? 'none' : `blur(${(1 - v) * 6}px)`;
+                  }
+                  const node = tlNodeRefs.current[i];
+                  if (node) node.classList.toggle('lit', fillBottom >= y);
+              }
           }
       }
       
-      // --- SECTION 3: FUTURE HERO ---
-      if (sp > 0.68 && sp < 0.90) {
-          if (heroSceneRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.72) * 0.2);
-              heroSceneRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
+      // --- SECTION 3: RUPTURE (cadre qui s'agrandit + texte) ---
+      if (sp > 0.66 && sp < 0.90) {
+          const u = Math.max(0, Math.min(1, (sp - 0.69) / 0.10));
+          const seg = (a: number, b: number) => Math.max(0, Math.min(1, (u - a) / (b - a)));
+          const ease = (x: number) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+          const e = ease(seg(0, 0.4));
+
+          if (rupFrameRef.current) {
+              const f = rupFrameRef.current.style;
+              const iv = 24 * (1 - e);
+              const ih = (window.innerWidth < 768 ? 8 : 18) * (1 - e);
+              f.top = `${iv}vh`; f.bottom = `${iv}vh`;
+              f.left = `${ih}vw`; f.right = `${ih}vw`;
+              f.borderRadius = `${20 * (1 - e)}px`;
+              f.borderColor = `rgba(193,18,35,${0.5 * (1 - e)})`;
+              f.boxShadow = `0 0 ${60 * (1 - e)}px rgba(193,18,35,${0.25 * (1 - e)}), inset 0 0 ${80 * (1 - e)}px rgba(193,18,35,${0.08 * (1 - e)})`;
           }
-          if (heroStarshipRef.current) {
-              const scale = 1 + (Math.max(0, sp - 0.70) * 8);
-              const opacity = 1 - Math.max(0, (sp - 0.80) * 20);
-              heroStarshipRef.current.style.transform = `scale3d(${scale}, ${scale}, 1)`;
-              heroStarshipRef.current.style.opacity = opacity.toString();
+          if (rupKickerRef.current) {
+              const a = seg(0.28, 0.42);
+              rupKickerRef.current.style.opacity = a.toString();
+              rupKickerRef.current.style.transform = `translate3d(0, ${(1 - a) * 20}px, 0)`;
           }
-          if (heroTitleRef.current) {
-              const scale = 0.8 + (Math.max(0, sp - 0.75) * 1.2);
-              const opacity = Math.max(0, Math.min(1, (sp - 0.75) * 15)) * (1 - Math.max(0, (sp - 0.85) * 15));
-              heroTitleRef.current.style.transform = `translate3d(-50%, -50%, 0) scale3d(${scale}, ${scale}, 1)`;
-              heroTitleRef.current.style.opacity = opacity.toString();
+          const wins = [[0.38, 0.52], [0.50, 0.64], [0.62, 0.76]];
+          // Battement de coeur sur "MORT" : s'affaiblit puis s'arrête (ligne plate)
+          const env = seg(0.70, 0.76) * (1 - seg(0.78, 0.96));
+          const phase = ((time / 1000) / 0.9) % 1;
+          const beat = Math.max(
+            Math.exp(-Math.pow((phase - 0.08) / 0.05, 2)),
+            0.6 * Math.exp(-Math.pow((phase - 0.30) / 0.06, 2))
+          ) * env;
+          rupWordRefs.current.forEach((el, i) => {
+              if (!el) return;
+              const a = seg(wins[i][0], wins[i][1]);
+              let op = a;
+              if (i === 0) op = a * (1 - 0.55 * seg(0.74, 0.86));
+              el.style.opacity = op.toString();
+              const sc = i === 2 ? 1 + 0.045 * beat : 1;
+              el.style.transform = `translate3d(0, ${(1 - a) * 40}px, 0) scale(${sc})`;
+              el.style.filter = a >= 0.999 ? 'none' : `blur(${(1 - a) * 8}px)`;
+              if (i === 2) el.style.textShadow = `0 0 ${12 + 22 * beat}px rgba(193,18,35,${0.2 + 0.4 * beat})`;
+          });
+          if (rupEcgRef.current) rupEcgRef.current.style.strokeDashoffset = (1 - seg(0.72, 1)).toString();
+          if (rupStrikeRef.current) rupStrikeRef.current.style.transform = `scaleX(${seg(0.74, 0.86)})`;
+          if (rupGlowRef.current) rupGlowRef.current.style.opacity = (0.35 + 0.65 * seg(0.62, 0.8)).toString();
+
+          // Plongée dans le "O" de MORT
+          const v = Math.max(0, Math.min(1, (sp - 0.795) / 0.035));
+          const content = rupContentRef.current;
+          const iris = rupIrisRef.current;
+          if (content && iris) {
+              if (v > 0) {
+                  if (!rupMeasure && rupORef.current) {
+                      content.style.transform = 'none';
+                      const o = rupORef.current.getBoundingClientRect();
+                      const c = content.getBoundingClientRect();
+                      const cx = o.left + o.width / 2;
+                      const cy = o.top + o.height / 2;
+                      rupMeasure = { ox: cx - c.left, oy: cy - c.top, cx, cy, hr: o.width * 0.2 };
+                  }
+                  if (rupMeasure) {
+                      const S = Math.exp(v * Math.log(14));
+                      content.style.transformOrigin = `${rupMeasure.ox}px ${rupMeasure.oy}px`;
+                      content.style.transform = `scale(${S})`;
+                      const r = rupMeasure.hr * S * (1 + 6 * v * v * v);
+                      iris.style.clipPath = `circle(${r}px at ${rupMeasure.cx}px ${rupMeasure.cy}px)`;
+                  }
+              } else {
+                  content.style.transform = 'none';
+                  iris.style.clipPath = 'circle(0px at 50% 50%)';
+              }
           }
+          rupWordRefs.current.forEach((el, i) => {
+              if (!el) return;
+              el.style.willChange = v > 0 ? 'auto' : 'transform, opacity, filter';
+              if (v > 0) {
+                  if (i < 2) el.style.opacity = (parseFloat(el.style.opacity || '1') * (1 - Math.min(1, v * 3))).toString();
+                  if (i === 2) el.style.textShadow = 'none';
+              }
+          });
+          const ecg = rupEcgRef.current?.ownerSVGElement;
+          if (ecg) ecg.style.opacity = (1 - Math.min(1, v * 3)).toString();
       }
 
       rafHandle = requestAnimationFrame(raf);
@@ -595,6 +675,8 @@ export default function AboutPage() {
     rafHandle = requestAnimationFrame(raf);
 
     const handleResize = () => {
+        rupMeasure = null;
+        layoutTimeline();
         if (siliconRenderer && siliconMaterial) {
             siliconRenderer.setSize(window.innerWidth, window.innerHeight);
             siliconMaterial.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
@@ -829,6 +911,32 @@ export default function AboutPage() {
             pointer-events: none;
         }
 
+        /* SECTION 2 : TIMELINE DE CARTES */
+        .tl-viewport { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
+        .tl-track { position: absolute; left: 0; top: 0; width: 100%; height: 0; will-change: transform; }
+        .tl-line-bg, .tl-line-fill { position: absolute; left: 50%; width: 2px; margin-left: -1px; top: var(--tl-line-top, 0px); height: var(--tl-line-h, 0px); }
+        .tl-line-bg { background: rgba(0, 208, 255, 0.15); }
+        .tl-line-fill { background: linear-gradient(to bottom, #00d0ff, #ffffff, #00d0ff); box-shadow: 0 0 16px rgba(0, 208, 255, 0.9); transform-origin: top; transform: scaleY(0); }
+        .tl-node { position: absolute; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #05080c; border: 3px solid rgba(0, 208, 255, 0.35); transition: all 0.5s ease; z-index: 3; }
+        .tl-node.lit { border-color: #00d0ff; box-shadow: 0 0 16px rgba(0, 208, 255, 0.8); }
+        .tl-card { position: absolute; width: min(540px, 42vw); padding: 2rem 2.35rem; background: rgba(8, 10, 14, 0.82); border: 1px solid rgba(0, 208, 255, 0.25); border-radius: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 208, 255, 0.08); backdrop-filter: blur(6px); will-change: transform, opacity, filter; opacity: 0; }
+        .tl-card.tl-left { right: calc(50% + 56px); text-align: right; }
+        .tl-card.tl-right { left: calc(50% + 56px); text-align: left; }
+        .tl-card::after { content: ""; position: absolute; top: 50%; width: 40px; height: 2px; background: rgba(0, 208, 255, 0.4); }
+        .tl-card.tl-left::after { right: -40px; }
+        .tl-card.tl-right::after { left: -40px; }
+        .tl-label { display: inline-block; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.9rem; letter-spacing: 0.15em; color: #00d0ff; }
+        .tl-card h3 { margin: 0 0 0.75rem; font-size: 1.85rem; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; color: #ffffff; }
+        .tl-card p { margin: 0; font-size: 1.12rem; line-height: 1.7; font-weight: 300; color: rgba(255, 255, 255, 0.82); }
+        @media (max-width: 768px) {
+          .tl-line-bg, .tl-line-fill, .tl-node { left: 20px; }
+          .tl-card, .tl-card.tl-left, .tl-card.tl-right { left: 48px; right: auto; width: calc(100vw - 68px); text-align: left; }
+          .tl-card.tl-left::after, .tl-card.tl-right::after { left: -28px; right: auto; width: 28px; }
+          .tl-card h3 { font-size: 1.5rem; }
+          .tl-card p { font-size: 1rem; }
+          .tl-card { padding: 1.5rem 1.5rem; }
+        }
+
         /* SECTION 3: FUTURE HERO */
         .hero {
             position: absolute;
@@ -876,6 +984,39 @@ export default function AboutPage() {
             will-change: transform, opacity;
         }
 
+        /* SECTION 3 : RUPTURE */
+        .rup { position: absolute; inset: 0; background: #000; overflow: hidden; }
+        .rup-frame { position: absolute; top: 24vh; bottom: 24vh; left: 18vw; right: 18vw; border-radius: 20px; border: 1px solid rgba(0, 208, 255, 0.5); overflow: hidden; background: #05080c; }
+        .rup-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0, 208, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 208, 255, 0.07) 1px, transparent 1px); background-size: 64px 64px; -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); }
+        .rup-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(0, 208, 255, 0.22), transparent 62%); opacity: 0.35; }
+        .rup-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 5vw; }
+        .rup-kicker { font-family: monospace; font-size: 0.85rem; letter-spacing: 0.35em; color: #00d0ff; margin-bottom: 1.5rem; opacity: 0; }
+        .rup-title { margin: 0; font-size: clamp(2.6rem, 11vw, 10rem); font-weight: 900; line-height: 1.02; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; display: flex; flex-direction: column; align-items: center; }
+        .rup-word { position: relative; display: inline-block; opacity: 0; will-change: transform, opacity, filter; }
+        .rup-accent { color: #00d0ff; text-shadow: 0 0 40px rgba(0, 208, 255, 0.7); }
+        .rup-strike { position: absolute; left: -2%; right: -2%; top: 52%; height: 0.08em; background: #00d0ff; box-shadow: 0 0 20px rgba(0, 208, 255, 0.9); transform-origin: left; transform: scaleX(0); }
+
+        /* SECTION 3 : thème rouge sang */
+        .rup-frame { background: #030203; }
+        .rup-grid { background-image: none; }
+        .rup-glow { background: radial-gradient(ellipse at 50% 105%, rgba(150, 10, 25, 0.38), transparent 62%); }
+        .rup-accent { color: #c1121f; text-shadow: 0 0 18px rgba(193, 18, 35, 0.4); }
+        .rup-strike { background: #c1121f; box-shadow: 0 0 10px rgba(193, 18, 35, 0.5); }
+        .rup-ecg path { stroke: #c1121f; filter: drop-shadow(0 0 4px rgba(193, 18, 35, 0.6)); }
+
+        /* SECTION 3 : hiérarchie + battement */
+        .rup-title { font-size: clamp(2.2rem, 8vw, 7rem); line-height: 1.12; letter-spacing: 0.06em; }
+        .rup-word:nth-child(1) { font-weight: 200; color: rgba(255, 255, 255, 0.6); }
+        .rup-word:nth-child(2) { font-weight: 300; font-size: 0.32em; letter-spacing: 0.5em; margin: 0.6em 0; }
+        .rup-accent { font-weight: 900; }
+        .rup-strike { top: 50%; height: 0.03em; background: #d91425; }
+        .rup-ecg { width: min(640px, 70vw); height: 64px; margin-top: 2.5rem; overflow: visible; }
+        .rup-ecg path { fill: none; stroke: #c1121f; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px rgba(193, 18, 35, 0.6)); }
+
+        /* SECTION 3 : plongée dans le O */
+        .rup-o { display: inline-block; }
+        .rup-iris { position: absolute; inset: 0; background: #000; clip-path: circle(0px at 50% 50%); pointer-events: none; z-index: 5; }
+
         .scroll-spacer {
           height: 2800vh;
           width: 100%;
@@ -918,57 +1059,26 @@ export default function AboutPage() {
         style={{ zIndex: 20 }}
       >
         <canvas className="silicon-canvas" ref={siliconCanvasRef} />
-        
-        {/* MONUMENTAL TITLE SECTION 2 */}
-        <div 
-          ref={declicTitleRef}
-          className="declic-title"
-        >
-          Éveil IA
-        </div>
 
-        {/* NARRATIVE PHRASE SECTION 2 */}
-        <div 
-          ref={narrative1Ref}
-          className="narrative-phrase"
-        >
-          Des entrepreneurs brillants, des idées qui méritaient le monde — paralysés par des systèmes qui n'étaient pas faits pour eux. J'ai décidé que ça s'arrêtait là.
+        <div className="tl-viewport">
+          <div className="tl-track" ref={tlTrackRef}>
+            <div className="tl-line-bg" />
+            <div className="tl-line-fill" ref={tlFillRef} />
+            {TL_CARDS.map((c, i) => (
+              <React.Fragment key={c.title}>
+                <div className="tl-node" ref={(el) => { tlNodeRefs.current[i] = el; }} />
+                <article
+                  className={`tl-card ${i % 2 === 0 ? 'tl-left' : 'tl-right'}`}
+                  ref={(el) => { tlCardRefs.current[i] = el; }}
+                >
+                  <span className="tl-label">{c.label}</span>
+                  <h3>{c.title}</h3>
+                  <p>{c.text}</p>
+                </article>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-
-        {/* SECOND NARRATIVE PHRASE SECTION 2 (LEFT) */}
-        <div 
-          ref={narrative2Ref}
-          className="narrative-phrase left"
-        >
-          L'IA n'était pas accessible. Trop chère, trop complexe, réservée aux géants. <b>Autoslash AI est née pour changer ça</b> — une infrastructure mondiale, livrée clé en main.
-        </div>
-
-        {/* NEW TITLE: ARCHITECTURE SECTION 2 (LEFT) */}
-        <div 
-          ref={solutionTitleRef}
-          className="declic-title arch"
-        >
-          Une architecture conçue pour l'élite.<br/>
-          Des agents qui travaillent quand vous dormez.<br/>
-          Votre croissance, automatisée.
-        </div>
-
-        {/* FINAL NARRATIVE PHRASE SECTION 2 (LEFT) */}
-        <div 
-          ref={narrative3Ref}
-          className="narrative-phrase left"
-        >
-          <b>Autoslash AI ne vend pas un outil.</b>
-          <br/>
-          Nous construisons l'infrastructure de votre prochain niveau.
-          <br/>
-          Des agents entraînés sur vos données. Opérationnels 24h/24.
-          <br/>
-          <strong>Nos clients ne gèrent plus leur croissance — <b>ils la regardent se déployer</b> pendant qu'ils font ce qui compte vraiment.</strong>
-        </div>
-
-        {/* ATMOSPHERIC BOTTOM BLUR */}
-        <div className="bottom-blur-mask"></div>
       </section>
 
       {/* SECTION 3: FUTURE HERO (THE STARSHIP) */}
@@ -980,30 +1090,25 @@ export default function AboutPage() {
           background: '#000'
         }}
       >
-        <div className="hero">
-          {/* THE CITY LANDSCAPE (revealed as we go through the door) */}
-          <img 
-            ref={heroSceneRef}
-            src="https://design-fenix.com.ar/codepen/scroll/scene.webp" 
-            alt="Space Scene" 
-            className="hero__scene" 
-            referrerPolicy="no-referrer"
-          />
-          {/* THE COCKPIT / DOOR (zooms past the camera) */}
-          <img 
-            ref={heroStarshipRef}
-            src="https://design-fenix.com.ar/codepen/scroll/starship.webp" 
-            alt="Door Interior" 
-            className="hero__starship" 
-            referrerPolicy="no-referrer"
-          />
-          {/* THE FINAL TEXT (zooms in after transition) */}
-          <h1 
-            ref={heroTitleRef}
-            className="hero__title"
-          >
-            LE MANUEL<br/>EST<br/>MORT
-          </h1>
+        <div className="rup">
+          <div className="rup-frame" ref={rupFrameRef}>
+            <div className="rup-grid" />
+            <div className="rup-glow" ref={rupGlowRef} />
+            <div className="rup-content" ref={rupContentRef}>
+              <h1 className="rup-title">
+                <span className="rup-word" ref={(el) => { rupWordRefs.current[0] = el; }}>
+                  LE MANUEL
+                  <i className="rup-strike" ref={rupStrikeRef} />
+                </span>
+                <span className="rup-word" ref={(el) => { rupWordRefs.current[1] = el; }}>EST</span>
+                <span className="rup-word rup-accent" ref={(el) => { rupWordRefs.current[2] = el; }}>M<span className="rup-o" ref={rupORef}>O</span>RT</span>
+              </h1>
+              <svg className="rup-ecg" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true">
+                <path ref={rupEcgRef} pathLength={1} d="M0 40 H100 L112 40 L124 6 L140 74 L152 22 L160 40 H240 L250 40 L258 18 L268 60 L276 32 L282 40 H350 L356 40 L362 30 L368 50 L372 40 H600" />
+              </svg>
+            </div>
+          </div>
+          <div className="rup-iris" ref={rupIrisRef} />
         </div>
       </section>
 
