@@ -589,29 +589,31 @@ export default function AboutPage() {
       
       // --- SECTION 3: RUPTURE (cadre qui s'agrandit + texte) ---
       if (sp > 0.66 && sp < 0.90) {
-          const u = Math.max(0, Math.min(1, (sp - 0.69) / 0.10));
+          const u = Math.max(0, Math.min(1, (sp - 0.69) / 0.11));
           const seg = (a: number, b: number) => Math.max(0, Math.min(1, (u - a) / (b - a)));
-          const ease = (x: number) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
-          const e = ease(seg(0, 0.4));
+          const ease = (x: number) => 0.5 - Math.cos(Math.PI * x) / 2;
+          const e = ease(seg(0.20, 0.68));
 
           if (rupFrameRef.current) {
               const f = rupFrameRef.current.style;
-              const iv = 24 * (1 - e);
-              const ih = (window.innerWidth < 768 ? 8 : 18) * (1 - e);
+              const iv = 32 * (1 - e);
+              const ih = (window.innerWidth < 768 ? 14 : 26) * (1 - e);
+              const pulse = 0.85 + 0.15 * Math.sin(time / 350);
               f.top = `${iv}vh`; f.bottom = `${iv}vh`;
               f.left = `${ih}vw`; f.right = `${ih}vw`;
               f.borderRadius = `${20 * (1 - e)}px`;
-              f.borderColor = `rgba(193,18,35,${0.5 * (1 - e)})`;
-              f.boxShadow = `0 0 ${60 * (1 - e)}px rgba(193,18,35,${0.25 * (1 - e)}), inset 0 0 ${80 * (1 - e)}px rgba(193,18,35,${0.08 * (1 - e)})`;
+              f.borderWidth = '2px';
+              f.borderColor = `rgba(255,60,75,${0.95 * (1 - e)})`;
+              f.boxShadow = `0 0 ${70 * (1 - e)}px rgba(220,20,40,${0.55 * pulse * (1 - e)}), 0 0 ${18 * (1 - e)}px rgba(255,60,75,${0.6 * (1 - e)}), inset 0 0 ${80 * (1 - e)}px rgba(193,18,35,${0.18 * (1 - e)})`;
           }
           if (rupKickerRef.current) {
               const a = seg(0.28, 0.42);
               rupKickerRef.current.style.opacity = a.toString();
               rupKickerRef.current.style.transform = `translate3d(0, ${(1 - a) * 20}px, 0)`;
           }
-          const wins = [[0.38, 0.52], [0.50, 0.64], [0.62, 0.76]];
+          const wins = [[0.50, 0.62], [0.60, 0.72], [0.70, 0.82]];
           // Battement de coeur sur "MORT" : s'affaiblit puis s'arrête (ligne plate)
-          const env = seg(0.70, 0.76) * (1 - seg(0.78, 0.96));
+          const env = seg(0.78, 0.84) * (1 - seg(0.86, 0.98));
           const phase = ((time / 1000) / 0.9) % 1;
           const beat = Math.max(
             Math.exp(-Math.pow((phase - 0.08) / 0.05, 2)),
@@ -621,19 +623,19 @@ export default function AboutPage() {
               if (!el) return;
               const a = seg(wins[i][0], wins[i][1]);
               let op = a;
-              if (i === 0) op = a * (1 - 0.55 * seg(0.74, 0.86));
+              if (i === 0) op = a * (1 - 0.55 * seg(0.80, 0.90));
               el.style.opacity = op.toString();
               const sc = i === 2 ? 1 + 0.045 * beat : 1;
               el.style.transform = `translate3d(0, ${(1 - a) * 40}px, 0) scale(${sc})`;
               el.style.filter = a >= 0.999 ? 'none' : `blur(${(1 - a) * 8}px)`;
               if (i === 2) el.style.textShadow = `0 0 ${12 + 22 * beat}px rgba(193,18,35,${0.2 + 0.4 * beat})`;
           });
-          if (rupEcgRef.current) rupEcgRef.current.style.strokeDashoffset = (1 - seg(0.72, 1)).toString();
-          if (rupStrikeRef.current) rupStrikeRef.current.style.transform = `scaleX(${seg(0.74, 0.86)})`;
-          if (rupGlowRef.current) rupGlowRef.current.style.opacity = (0.35 + 0.65 * seg(0.62, 0.8)).toString();
+          if (rupEcgRef.current) rupEcgRef.current.style.strokeDashoffset = (1 - seg(0.78, 1)).toString();
+          if (rupStrikeRef.current) rupStrikeRef.current.style.transform = `scaleX(${seg(0.80, 0.90)})`;
+          if (rupGlowRef.current) rupGlowRef.current.style.opacity = (0.35 + 0.65 * seg(0.68, 0.86)).toString();
 
           // Plongée dans le "O" de MORT
-          const v = Math.max(0, Math.min(1, (sp - 0.795) / 0.035));
+          const v = Math.max(0, Math.min(1, (sp - 0.80) / 0.03));
           const content = rupContentRef.current;
           const iris = rupIrisRef.current;
           if (content && iris) {
