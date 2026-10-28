@@ -437,8 +437,8 @@ export default function AboutPage() {
 
       // --- SECTION ALPHA & CROSSFADES (Direct DOM) ---
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
-      const s2A = sp < 0.25 ? 0 : sp < 0.68 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.68) / 0.05);
-      const s3A = sp < 0.68 ? 0 : sp < 0.83 ? Math.min(1, (sp - 0.68) / 0.05) : Math.max(0, 1 - (sp - 0.83) / 0.05);
+      const s2A = sp < 0.25 ? 0 : sp < 0.665 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.665) / 0.025);
+      const s3A = sp < 0.69 ? 0 : sp < 0.83 ? Math.min(1, (sp - 0.69) / 0.015) : Math.max(0, 1 - (sp - 0.83) / 0.05);
       const s4A = sp < 0.83 ? 0 
         : sp < 0.87 
           ? Math.min(1, (sp - 0.83) / 0.04)
@@ -449,9 +449,7 @@ export default function AboutPage() {
       // Flash & Transition Effects
       if (flashRef.current) {
         if (t12 > 0 && t12 < 1) {
-          const f = t12 < 0.5 ? t12 * 2 : 1 - (t12 - 0.5) * 2;
-          flashRef.current.style.opacity = (f * 0.8).toString();
-          flashRef.current.style.background = '#ffffff';
+          flashRef.current.style.opacity = '0';
         } else if (t23 > 0 && t23 < 1) {
           flashRef.current.style.opacity = '0';
         } else if (t34 > 0 && t34 < 1) {
@@ -461,6 +459,8 @@ export default function AboutPage() {
           const f = t45 < 0.5 ? t45 * 2 : 1 - (t45 - 0.5) * 2;
           flashRef.current.style.opacity = (f * 0.7).toString();
           flashRef.current.style.background = '#000000';
+        } else {
+          flashRef.current.style.opacity = '0';
         }
       }
 
