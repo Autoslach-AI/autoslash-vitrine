@@ -50,6 +50,7 @@ export default function AboutPage() {
   const rupContentRef = useRef<HTMLDivElement>(null);
   const rupIrisRef = useRef<HTMLDivElement>(null);
   const rupORef = useRef<HTMLSpanElement>(null);
+  const scrollSpacerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // --- SECTION 1: TUNNEL CONFIG & SETUP ---
@@ -413,6 +414,7 @@ export default function AboutPage() {
     let rafHandle: number;
     const raf = (time: number) => {
       lenis.raf(time);
+      const spacerBottom = scrollSpacerRef.current ? scrollSpacerRef.current.getBoundingClientRect().bottom : Infinity;
       velocity += (targetSpeed - velocity) * 0.1;
 
       const sp = scrollState.progress;
@@ -439,12 +441,7 @@ export default function AboutPage() {
       const s1A = sp < 0.20 ? 1 : Math.max(0, 1 - (sp - 0.20) / 0.05);
       const s2A = sp < 0.25 ? 0 : sp < 0.665 ? Math.min(1, (sp - 0.25) / 0.05) : Math.max(0, 1 - (sp - 0.665) / 0.025);
       const s3A = sp < 0.69 ? 0 : sp < 0.83 ? Math.min(1, (sp - 0.69) / 0.015) : Math.max(0, 1 - (sp - 0.83) / 0.05);
-      const s4A = sp < 0.83 ? 0 
-        : sp < 0.87 
-          ? Math.min(1, (sp - 0.83) / 0.04)
-          : sp > 0.92
-            ? 0
-            : Math.max(0, 1 - (sp - 0.87) / 0.05);
+      const s4A = sp < 0.83 ? 0 : sp < 0.905 ? 1 : sp < 0.925 ? 1 - (sp - 0.905) / 0.02 : 0;
 
       // Flash & Transition Effects
       if (flashRef.current) {
@@ -499,32 +496,36 @@ export default function AboutPage() {
           }
       }
       if (section4Ref.current) {
-          section4Ref.current.style.opacity = s4A.toString();
-          section4Ref.current.style.background = '#faf9f5';
-          section4Ref.current.style.visibility = s4A > 0 ? 'visible' : 'hidden';
-          section4Ref.current.style.pointerEvents = s4A > 0 ? 'auto' : 'none';
-          
-          if (t34 > 0 && t34 < 1) {
-            section4Ref.current.style.transform = `translateY(${(1 - t34) * 60}px)`;
-          } else if (t45 > 0 && t45 < 1) {
-            section4Ref.current.style.transform = `translateY(${-(t45 * 120)}px)`;
-          } else {
-            const entryOffset = (1 - s4A) * 60;
-            const exitOffset = sp > 0.90 ? (sp - 0.90) * -150 : 0;
-            section4Ref.current.style.transform = `translate3d(0, ${entryOffset + exitOffset}px, 0)`;
-          }
+          const el = section4Ref.current;
+          el.style.opacity = s4A.toString();
+          el.style.background = '#faf9f5';
+          el.style.visibility = s4A > 0 ? 'visible' : 'hidden';
+          el.style.pointerEvents = s4A > 0 ? 'auto' : 'none';
+
+          // Révélation circulaire depuis le "O" (point où la plongée se termine)
+          const W = window.innerWidth;
+          const H = window.innerHeight;
+          const cx = rupMeasure ? rupMeasure.cx : W / 2;
+          const cy = rupMeasure ? rupMeasure.cy : H / 2;
+          const maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) + 40;
+          const rv = Math.max(0, Math.min(1, (sp - 0.835) / 0.05));
+          const rEase = 1 - Math.pow(1 - rv, 3);
+          el.style.clipPath = rv >= 1 ? 'none' : `circle(${rEase * maxR}px at ${cx}px ${cy}px)`;
+          el.style.transform = 'none';
       }
 
-      const s5A = sp < 0.93 ? 0 
-        : sp < 0.97 
-          ? Math.min(1, (sp - 0.93) / 0.04) 
-          : Math.max(0, 1 - (sp - 0.98) / 0.02); 
+      const s5A = sp < 0.93 ? 0 : Math.min(1, (sp - 0.93) / 0.025);
 
       if (section5Ref.current) {
-          section5Ref.current.style.opacity = s5A.toString();
-          section5Ref.current.style.visibility = s5A > 0 ? 'visible' : 'hidden';
-          section5Ref.current.style.pointerEvents = s5A > 0 ? 'auto' : 'none';
-          
+          const vhNow = window.innerHeight;
+          // Le footer monte du bas : le bouton s'efface avant qu'ils se croisent
+          const footerTop = spacerBottom + 96;
+          const k = Math.max(0, Math.min(1, (0.9 * vhNow - footerTop) / (0.35 * vhNow)));
+          const s5Vis = s5A * (1 - k);
+          section5Ref.current.style.opacity = s5Vis.toString();
+          section5Ref.current.style.visibility = s5Vis > 0 ? 'visible' : 'hidden';
+          section5Ref.current.style.pointerEvents = s5Vis > 0.05 ? 'auto' : 'none';
+
           if (t45 > 0 && t45 < 1) {
             section5Ref.current.style.transform = 'none';
             if (ctaInnerRef.current) {
@@ -534,8 +535,7 @@ export default function AboutPage() {
               ctaInnerRef.current.style.opacity = opacity.toString();
             }
           } else {
-            const exitOffset = sp > 0.97 ? (sp - 0.97) * -2000 : 0;
-            section5Ref.current.style.transform = `translate3d(0, ${exitOffset}px, 0)`;
+            section5Ref.current.style.transform = `translate3d(0, ${-k * vhNow * 0.1}px, 0)`;
             if (ctaInnerRef.current) {
                ctaInnerRef.current.style.transform = 'none';
                ctaInnerRef.current.style.opacity = '1';
@@ -1019,6 +1019,34 @@ export default function AboutPage() {
         .rup-o { display: inline-block; }
         .rup-iris { position: absolute; inset: 0; background: #000; clip-path: circle(0px at 50% 50%); pointer-events: none; z-index: 5; }
 
+        /* SECTION 4 : FONDATEUR (fond clair) */
+        .fd-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: clamp(2rem, 8vw, 7rem); padding: 0 6vw; color: #0b0b0d; font-family: 'Helvetica Neue', 'Arial', sans-serif; }
+        .fd-col { display: flex; flex-direction: column; }
+        .fd-left { gap: 2.5rem; align-items: flex-start; }
+        .fd-right { gap: 1.75rem; width: min(520px, 42vw); }
+        .fd-item { opacity: 0; will-change: transform, opacity; }
+        .fd-label { display: block; font-family: monospace; font-size: 0.78rem; letter-spacing: 0.3em; color: #087a91; margin-bottom: 1.25rem; }
+        .fd-name { margin: 0; font-size: clamp(2.6rem, 6.4vw, 6rem); font-weight: 200; line-height: 1.02; letter-spacing: -0.03em; }
+        .fd-role { margin: 1.25rem 0 0; font-size: 1.05rem; font-weight: 400; letter-spacing: 0.04em; color: rgba(11, 11, 13, 0.6); }
+        .fd-portrait { width: min(240px, 26vw); aspect-ratio: 3 / 4; border-radius: 14px; border: 1px solid rgba(11, 11, 13, 0.15); background: #e6e3db; display: flex; align-items: center; justify-content: center; }
+        .fd-portrait span { font-size: 3.2rem; font-weight: 200; letter-spacing: 0.12em; color: rgba(11, 11, 13, 0.25); }
+        .fd-pillar { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; padding-top: 1.25rem; border-top: 1px solid rgba(11, 11, 13, 0.18); }
+        .fd-num { font-family: monospace; font-size: 0.8rem; letter-spacing: 0.2em; color: #087a91; padding-top: 0.35rem; }
+        .fd-pillar h3 { margin: 0 0 0.4rem; font-size: clamp(1.25rem, 2vw, 1.7rem); font-weight: 500; letter-spacing: -0.01em; }
+        .fd-pillar p { margin: 0; font-size: 1rem; font-weight: 300; line-height: 1.6; color: rgba(11, 11, 13, 0.65); }
+        .fd-team { padding-top: 1.25rem; border-top: 1px solid rgba(11, 11, 13, 0.18); }
+        .fd-team .fd-label { margin-bottom: 0.9rem; }
+        .fd-slots { display: flex; gap: 0.6rem; }
+        .fd-slot { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px dashed rgba(11, 11, 13, 0.35); display: block; }
+        @media (max-width: 768px) {
+          .fd-wrap { flex-direction: column; justify-content: center; gap: 1.5rem; padding: 0 7vw; overflow: hidden; }
+          .fd-left { flex-direction: row; align-items: center; gap: 1.25rem; }
+          .fd-portrait { width: 96px; flex-shrink: 0; }
+          .fd-name { font-size: clamp(2rem, 9vw, 3rem); }
+          .fd-right { width: 100%; gap: 1rem; }
+          .fd-pillar p { font-size: 0.9rem; }
+        }
+
         .scroll-spacer {
           height: 2800vh;
           width: 100%;
@@ -1127,11 +1155,11 @@ export default function AboutPage() {
           <div className="flex flex-wrap items-center justify-between gap-12 md:gap-20 max-w-7xl mx-auto w-full">
             <div className="flex flex-col space-y-2 md:space-y-3 flex-1 min-w-[300px]">
               {[
-                { title: "PAPE AMADOU MBAYE", imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2574&auto=format&fit=crop" },
-                { title: "FONDATEUR & ARCHITECTE IA", imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=2574&auto=format&fit=crop" },
-                { title: "STRATÉGIE & VISION", imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2574&auto=format&fit=crop" },
-                { title: "AGENTS & AUTOMATISATION", imageUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2574&auto=format&fit=crop" },
-                { title: "CROISSANCE & CLIENTS", imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2576&auto=format&fit=crop" }
+                { title: "PAPE AMADOU MBAYE" },
+                { title: "FONDATEUR & ARCHITECTE IA" },
+                { title: "STRATÉGIE & VISION" },
+                { title: "AGENTS & AUTOMATISATION" },
+                { title: "CROISSANCE & CLIENTS" }
               ].map((slide, index) => (
                 <TextStaggerHover
                   key={slide.title}
@@ -1182,7 +1210,7 @@ export default function AboutPage() {
       </section>
 
       {/* SCROLL TRIGGER */}
-      <div className="scroll-spacer"></div>
+      <div className="scroll-spacer" ref={scrollSpacerRef}></div>
     </div>
   );
 }
